@@ -16,9 +16,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Overlay */
+/* Overlay for readability */
 .main-overlay {
-  background-color: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.6);
   min-height: 100vh;
   padding: 2rem;
   display: flex;
@@ -26,9 +26,57 @@ body {
   align-items: flex-start;
 }
 
+/* Navbar */
+header {
+  background: black;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: #f4b400; /* Yellow */
+  font-weight: 700;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  cursor: default;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+}
+
+nav ul li a {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+nav ul li a.active,
+nav ul li a:hover {
+  background: #db4437; /* Red */
+  color: white;
+}
+
+/* Contact Section */
 .contact-section {
   max-width: 600px;
   width: 100%;
+  margin-top: 2rem;
 }
 
 .contact-section h1 {
@@ -180,14 +228,12 @@ textarea:focus {
 
 /* Footer */
 footer {
+  background: black;
+  color: #f4b400;
   text-align: center;
   padding: 1rem 0;
-  background: #111;
-  color: #888;
-  font-size: 0.9rem;
-  position: fixed;
-  width: 100%;
-  bottom: 0;
+  font-weight: 600;
+  margin-top: 4rem;
 }
 
 /* Responsive */
@@ -202,43 +248,17 @@ footer {
     height: 24px;
   }
 }
-nav {
-  background-color: #000;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+@media (max-width: 480px) {
+  .contact-section {
+    max-width: 90vw;
+  }
+
+  .contact-section h1 {
+    font-size: 2rem;
+  }
 }
 
-nav .logo {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: white;
-}
-
-nav ul {
-  list-style: none;
-  display: flex;
-  gap: 1.8rem;
-}
-
-nav ul li a {
-  color: white;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-nav ul li a:hover {
-  color: #f4b400;
-}
-
-nav ul li a.active {
-  color: #f4b400;
-  font-weight: 700;
-  border-bottom: 2px solid #f4b400;
-  padding-bottom: 4px;
-}
 
 
 
