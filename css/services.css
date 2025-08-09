@@ -8,7 +8,7 @@
 /* Body */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #fff;
+  background: url('../images/bgimg.jpg') no-repeat center center fixed;
   color: #111;
   line-height: 1.6;
   scroll-behavior: smooth;
