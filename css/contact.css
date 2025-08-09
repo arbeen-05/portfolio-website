@@ -57,14 +57,17 @@ input[type="text"],
 input[type="email"],
 input[type="tel"],
 textarea {
-  padding: 0.7rem 1rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
   border-radius: 6px;
   border: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
   background: #222;
   color: white;
   resize: vertical;
   transition: background 0.3s ease;
+  box-sizing: border-box;
+  min-height: 40px;
 }
 
 input::placeholder,
@@ -116,11 +119,12 @@ textarea:focus {
   transition: background-color 0.3s ease, transform 0.2s ease;
   cursor: pointer;
   user-select: none;
+  text-decoration: none;
 }
 
-.social-buttons .btn svg {
-  width: 24px;
-  height: 24px;
+.social-buttons .btn i {
+  font-size: 22px;
+  color: white;
   pointer-events: none;
 }
 
@@ -145,7 +149,7 @@ textarea:focus {
 .snapchat {
   background-color: #FFFC00;
 }
-.snapchat svg { fill: black; }
+.snapchat i { color: black; }
 .snapchat:hover { background-color: #e6e600; }
 
 .threads { background-color: #000; }
@@ -157,10 +161,10 @@ textarea:focus {
 .email {
   background-color: #f4b400;
 }
-.email svg { fill: black; }
+.email i { color: black; }
 .email:hover {
   background-color: #db4437;
-  svg { fill: white; }
+  color: white;
 }
 
 /* Footer */
@@ -181,10 +185,10 @@ footer {
     width: 40px;
     height: 40px;
   }
-  .social-buttons .btn svg {
-    width: 20px;
-    height: 20px;
+  .social-buttons .btn i {
+    font-size: 20px;
   }
 }
+
 
 
