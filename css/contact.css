@@ -103,7 +103,7 @@ textarea:focus {
 .social-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.2rem;
+  gap: 1rem;
   justify-content: center;
 }
 
@@ -111,26 +111,23 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px; /* rounded squares */
   background-color: #444;
   box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
   cursor: pointer;
   user-select: none;
   text-decoration: none;
-}
-
-.social-buttons .btn i {
-  font-size: 22px;
+  font-size: 28px; /* bigger icons */
   color: white;
-  pointer-events: none;
+  font-weight: 700;
 }
 
 .social-buttons .btn:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+  transform: scale(1.12);
+  box-shadow: 0 12px 20px rgba(0,0,0,0.5);
 }
 
 /* Brand colors override background */
@@ -148,20 +145,34 @@ textarea:focus {
 
 .snapchat {
   background-color: #FFFC00;
+  color: black;
 }
-.snapchat i { color: black; }
-.snapchat:hover { background-color: #e6e600; }
+.snapchat:hover {
+  background-color: #e6e600;
+  color: black;
+}
 
-.threads { background-color: #000; }
-.threads:hover { background-color: #333; }
+.threads {
+  background-color: #000;
+}
+.threads:hover {
+  background-color: #333;
+}
 
 .youtube { background-color: #FF0000; }
 .youtube:hover { background-color: #cc0000; }
 
 .email {
   background-color: #f4b400;
+  color: black;
+  font-size: 32px;
+  font-weight: 900;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.email i { color: black; }
 .email:hover {
   background-color: #db4437;
   color: white;
@@ -182,13 +193,16 @@ footer {
 /* Responsive */
 @media (max-width: 600px) {
   .social-buttons .btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
   }
-  .social-buttons .btn i {
-    font-size: 20px;
+  .social-buttons .btn svg {
+    width: 24px;
+    height: 24px;
   }
 }
+
 
 
 
