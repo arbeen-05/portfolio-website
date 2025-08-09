@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arbin Niroula | Contact</title>
+  <link rel="icon" href="images/favicon.jpg" type="image/jpeg" />
+  <link rel="stylesheet" href="css/contact.css" />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+  <header>
+    <nav>
+      <div class="logo">Arbin</div>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="contact-section">
+      <h1>Contact Me</h1>
+
+      <form id="contact-form" action="#" method="POST" novalidate>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Your full name" required />
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Your email address" required />
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="5" placeholder="Your message here" required></textarea>
+
+        <button type="submit" class="btn-submit">Send Message</button>
+      </form>
+
+      <p class="spam-note">* Spam protection enabled — no bots allowed! 😊</p>
+
+      <div class="social-buttons">
+        <button class="social-btn instagram" title="Instagram" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </button>
+        <button class="social-btn facebook" title="Facebook" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </button>
+        <button class="social-btn linkedin" title="LinkedIn" aria-label="LinkedIn">
+          <i class="fab fa-linkedin-in"></i>
+        </button>
+        <button class="social-btn github" title="GitHub" aria-label="GitHub">
+          <i class="fab fa-github"></i>
+        </button>
+        <button class="social-btn twitter" title="Twitter" aria-label="Twitter">
+          <i class="fab fa-twitter"></i>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Arbin Niroula. All rights reserved.</p>
+  </footer>
+
+  <script src="js/contact.js"></script>
+</body>
+</html>

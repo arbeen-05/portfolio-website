@@ -1,0 +1,152 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body & background */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  margin: 0;
+  min-height: 100vh;
+  background: url('../images/bgimg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  overflow-x: hidden;
+}
+
+/* Overlay for readability */
+.main-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero {
+  text-align: center;
+  max-width: 700px;
+}
+
+.profile-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 4px solid #f4b400; /* yellow */
+  object-fit: cover;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+  cursor: default;
+}
+
+.profile-img:hover {
+  transform: scale(1.1);
+}
+
+h1 {
+  font-size: 2.8rem;
+  color: #f4b400; /* yellow */
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+p {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  color: #ddd;
+}
+
+/* Contact button */
+.btn-contact {
+  background: #db4437; /* red */
+  color: white;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: background 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+
+.btn-contact:hover {
+  background: #1a73e8; /* blue */
+  transform: scale(1.05);
+}
+
+/* Header */
+header {
+  background: black;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  color: #f4b400; /* Yellow */
+  font-weight: 700;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  cursor: default;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+}
+
+nav ul li a {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+  position: relative;
+}
+
+nav ul li a.active,
+nav ul li a:hover {
+  background: #db4437; /* Red */
+  color: white;
+}
+
+/* Footer */
+footer {
+  background: black;
+  color: #f4b400;
+  text-align: center;
+  padding: 1rem 0;
+  font-weight: 600;
+  margin-top: 4rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .hero {
+    max-width: 90vw;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+}
