@@ -202,6 +202,43 @@ footer {
     height: 24px;
   }
 }
+nav {
+  background-color: #000;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav .logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1.8rem;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+  color: #f4b400;
+}
+
+nav ul li a.active {
+  color: #f4b400;
+  font-weight: 700;
+  border-bottom: 2px solid #f4b400;
+  padding-bottom: 4px;
+}
 
 
 
