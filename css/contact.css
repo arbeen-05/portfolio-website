@@ -49,11 +49,13 @@ form {
 
 label {
   font-weight: 600;
-  color: #ddd;
+  color: #f4b400;
+  margin-bottom: 0.3rem;
 }
 
 input[type="text"],
 input[type="email"],
+input[type="tel"],
 textarea {
   padding: 0.7rem 1rem;
   border-radius: 6px;
@@ -61,205 +63,128 @@ textarea {
   font-size: 1rem;
   background: #222;
   color: white;
+  resize: vertical;
+  transition: background 0.3s ease;
 }
 
-input[type="text"]::placeholder,
-input[type="email"]::placeholder,
+input::placeholder,
 textarea::placeholder {
   color: #aaa;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
+input:focus,
 textarea:focus {
   outline: 2px solid #f4b400;
   background: #333;
   color: white;
 }
 
-/* Submit button */
 .btn-submit {
-  background: #db4437; /* Red */
-  color: white;
-  padding: 1rem;
-  font-weight: 700;
+  background-color: #f4b400;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 30px;
+  padding: 1rem 1.8rem;
+  font-weight: 700;
   font-size: 1.2rem;
-  transition: background 0.3s ease, transform 0.3s ease;
+  color: #000;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-submit:hover {
-  background: #f4b400; /* Yellow */
-  color: black;
-  transform: scale(1.05);
+  background-color: #e0a800;
+  transform: translateY(-3px);
 }
 
-/* Social buttons container */
+/* Social buttons */
 .social-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.2rem;
   justify-content: center;
 }
 
-/* Generic button style */
 .social-buttons .btn {
-  display: inline-block;
-  padding: 0.6rem 1.3rem;
-  border-radius: 8px;
-  color: white;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.3s ease, transform 0.2s ease;
-  min-width: 100px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #444;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease;
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
-/* Hover effect */
+.social-buttons .btn svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
 .social-buttons .btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.6);
 }
 
-/* Brand colors */
-.fb {
-  background: #1877F2;
-}
-.fb:hover {
-  background: #145dbf;
-}
+/* Brand colors override background */
+.fb { background-color: #1877F2; }
+.fb:hover { background-color: #145dbf; }
 
-.insta {
-  background: #E1306C;
-}
-.insta:hover {
-  background: #b92758;
-}
+.insta { background-color: #E1306C; }
+.insta:hover { background-color: #b92758; }
 
-.tiktok {
-  background: #010101;
-  color: #69C9D0;
-}
-.tiktok:hover {
-  background: #333;
-}
+.tiktok { background-color: #010101; }
+.tiktok:hover { background-color: #333; }
 
-.whatsapp {
-  background: #25D366;
-  color: #fff;
-}
-.whatsapp:hover {
-  background: #1da851;
-}
+.whatsapp { background-color: #25D366; }
+.whatsapp:hover { background-color: #1da851; }
 
 .snapchat {
-  background: #FFFC00;
-  color: #000;
-  font-weight: 800;
+  background-color: #FFFC00;
 }
-.snapchat:hover {
-  background: #e6e600;
-}
+.snapchat svg { fill: black; }
+.snapchat:hover { background-color: #e6e600; }
 
-.threads {
-  background: #000;
-  color: #eee;
-}
-.threads:hover {
-  background: #333;
-}
+.threads { background-color: #000; }
+.threads:hover { background-color: #333; }
 
-.youtube {
-  background: #FF0000;
-}
-.youtube:hover {
-  background: #cc0000;
-}
+.youtube { background-color: #FF0000; }
+.youtube:hover { background-color: #cc0000; }
 
 .email {
-  background: #f4b400;
-  color: black;
+  background-color: #f4b400;
 }
+.email svg { fill: black; }
 .email:hover {
-  background: #db4437;
-  color: white;
-}
-
-/* Header */
-header {
-  background: black;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-nav {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  color: #f4b400; /* Yellow */
-  font-weight: 700;
-  font-size: 1.8rem;
-  letter-spacing: 2px;
-  cursor: default;
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-  gap: 1.5rem;
-}
-
-nav ul li a {
-  color: white;
-  font-weight: 600;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  transition: background 0.3s ease;
-}
-
-nav ul li a.active,
-nav ul li a:hover {
-  background: #db4437; /* Red */
-  color: white;
+  background-color: #db4437;
+  svg { fill: white; }
 }
 
 /* Footer */
 footer {
-  background: black;
-  color: #f4b400;
   text-align: center;
   padding: 1rem 0;
-  font-weight: 600;
-  margin-top: 4rem;
-}
-
-/* Form message */
-.form-message {
-  text-align: center;
-  font-weight: 600;
-  margin-top: 1rem;
-  min-height: 1.5rem;
-  color: #f4b400;
+  background: #111;
+  color: #888;
+  font-size: 0.9rem;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
   .social-buttons .btn {
-    min-width: 45%;
-    font-size: 0.9rem;
+    width: 40px;
+    height: 40px;
+  }
+  .social-buttons .btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
+
 
