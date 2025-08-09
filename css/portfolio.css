@@ -8,10 +8,12 @@
 /* Body */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #fff;
-  color: #111;
-  line-height: 1.6;
-  scroll-behavior: smooth;
+  color: white;
+  margin: 0;
+  min-height: 100vh;
+  background: url('../images/bgimg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  overflow-x: hidden;
 }
 
 /* Header */
