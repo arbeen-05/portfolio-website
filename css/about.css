@@ -14,101 +14,122 @@ body {
   background: url('../images/bgimg.jpg') no-repeat center center fixed;
   background-size: cover;
   overflow-x: hidden;
-}
-
-/* Overlay for readability */
-.main-overlay {
-  background-color: rgba(0, 0, 0, 0.6);
-  min-height: 100vh;
-  padding: 2rem;
   display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-.about-section {
-  max-width: 700px;
-  text-align: left;
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-
-.about-section h1 {
-  color: #f4b400; /* yellow */
-  margin-bottom: 1.5rem;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.about-section p {
-  margin-bottom: 1.3rem;
-  color: #ddd;
-}
-
-/* Download CV button */
-.btn-download-cv {
-  background: #f4b400; /* yellow */
-  color: black;
-  padding: 0.8rem 1.5rem;
-  font-weight: 700;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: 1.5rem;
-  transition: background 0.3s ease;
-}
-
-.btn-download-cv:hover {
-  background: #db4437; /* red */
-  color: white;
-}
-
-/* Header */
+/* Vertical Navbar */
 header {
-  background: black;
-  position: sticky;
+  background-color: #db4437; /* red */
+  width: 220px;
+  min-height: 100vh;
+  position: fixed;
   top: 0;
-  z-index: 1000;
-}
-
-nav {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
+  left: 0;
+  z-index: 10000;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  padding-top: 1rem;
 }
 
 .logo {
-  color: #f4b400; /* Yellow */
+  color: white;
   font-weight: 700;
   font-size: 1.8rem;
   letter-spacing: 2px;
-  cursor: default;
+  text-align: center;
+  margin-bottom: 2rem;
+  user-select: none;
 }
 
 nav ul {
-  display: flex;
   list-style: none;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-left: 0;
 }
 
 nav ul li a {
   color: white;
   font-weight: 600;
   text-decoration: none;
-  padding: 0.5rem 1rem;
+  padding: 0.8rem 1.5rem;
+  display: block;
   border-radius: 5px;
-  transition: background 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 nav ul li a.active,
 nav ul li a:hover {
-  background: #db4437; /* Red */
+  background-color: #a83225;
+}
+
+/* Hamburger Menu Button */
+.hamburger {
+  display: none;
+  cursor: pointer;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 11000;
+  flex-direction: column;
+  gap: 5px;
+  width: 30px;
+}
+
+.hamburger div {
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Main content area */
+.main-overlay {
+  margin-left: 220px;
+  background-color: rgba(0,0,0,0.6);
+  min-height: 100vh;
+  padding: 2rem;
+  flex-grow: 1;
+}
+
+/* Hero Section */
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #f4b400;
+  text-align: center;
+}
+
+.hero p {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: #f4b400;
+  color: black;
+  border: none;
+  padding: 0.8rem 1.8rem;
+  border-radius: 30px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-primary:hover {
+  background-color: #db4437;
   color: white;
+  transform: translateY(-3px);
 }
 
 /* Footer */
@@ -119,15 +140,39 @@ footer {
   padding: 1rem 0;
   font-weight: 600;
   margin-top: 4rem;
+  margin-left: 220px;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-  .about-section {
-    max-width: 90vw;
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  header {
+    position: fixed;
+    width: 0;
+    overflow-x: hidden;
+    transition: width 0.3s ease;
   }
 
-  .about-section h1 {
-    font-size: 2rem;
+  header.open {
+    width: 220px;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+
+  .main-overlay {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  footer {
+    margin-left: 0;
   }
 }
+
