@@ -1,0 +1,37 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background: url('OBS/images/bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    margin:0;
+    padding:0;
+}
+h1 { text-align:center; color:#333; }
+.login-container, .register-container, .product-container, .billing-container {
+    background: rgba(255,255,255,0.9);
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow:0 0 10px #000;
+}
+input, select, button {
+    display:block;
+    width: 90%;
+    margin:10px auto;
+    padding:10px;
+}
+button {
+    cursor:pointer;
+    background: #4CAF50;
+    color: #fff;
+    border:none;
+    border-radius:5px;
+}
+table { width:100%; margin:10px 0; border-collapse: collapse; }
+table, th, td { border: 1px solid #333; padding:5px; text-align:center; }
+@media print {
+    body * { visibility:hidden; }
+    .billing-container, .billing-container * { visibility:visible; }
+    .billing-container { position:absolute; left:0; top:0; width:33%; }
+}
