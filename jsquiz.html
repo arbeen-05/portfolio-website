@@ -2,24 +2,200 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Under Development</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nepal Quiz</title>
   <style>
     body {
-      background-color: yellow;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
       margin: 0;
-      height: 100vh;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      animation: fadeIn 2s ease-in-out;
     }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+
+    .quiz-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+      animation: slideUp 1s ease-in-out;
+    }
+
+    @keyframes slideUp {
+      from {transform: translateY(50px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
+
     h1 {
-      color: red;
-      font-size: 2em;
+      text-align: center;
+      color: #e65100;
+    }
+
+    .question {
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    .options label {
+      display: block;
+      background: #f1f1f1;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .options label:hover {
+      background: #ffe0b2;
+      transform: scale(1.05);
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #e65100;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #bf360c;
+      transform: scale(1.05);
+    }
+
+    .result {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <h1>JS Quiz is still under development!!</h1>
+  <div class="quiz-container">
+    <h1>General Knowledge Quiz</h1>
+    <form id="quizForm">
+      <!-- Question 1 -->
+      <div class="question">1. What is the capital of Nepal?</div>
+      <div class="options">
+        <label><input type="radio" name="q1" value="Kathmandu"> Kathmandu</label>
+        <label><input type="radio" name="q1" value="Pokhara"> Pokhara</label>
+        <label><input type="radio" name="q1" value="Lalitpur"> Lalitpur</label>
+      </div>
+
+      <!-- Question 2 -->
+      <div class="question">2. Mount Everest in Nepali is called?</div>
+      <div class="options">
+        <label><input type="radio" name="q2" value="Sagarmatha"> Sagarmatha</label>
+        <label><input type="radio" name="q2" value="Machhapuchhre"> Machhapuchhre</label>
+        <label><input type="radio" name="q2" value="Annapurna"> Annapurna</label>
+      </div>
+
+      <!-- Question 3 -->
+      <div class="question">3. Who is known as the first King of unified Nepal?</div>
+      <div class="options">
+        <label><input type="radio" name="q3" value="Prithvi Narayan Shah"> Prithvi Narayan Shah</label>
+        <label><input type="radio" name="q3" value="Tribhuvan"> King Tribhuvan</label>
+        <label><input type="radio" name="q3" value="Mahendra"> King Mahendra</label>
+      </div>
+
+      <!-- Question 4 -->
+      <div class="question">4. Solve: 15 × 2 – 10 ÷ 2 = ?</div>
+      <div class="options">
+        <label><input type="radio" name="q4" value="25"> 25</label>
+        <label><input type="radio" name="q4" value="30"> 30</label>
+        <label><input type="radio" name="q4" value="20"> 20</label>
+      </div>
+
+      <!-- Question 5 -->
+      <div class="question">5. Which is the national animal of Nepal?</div>
+      <div class="options">
+        <label><input type="radio" name="q5" value="Cow"> Cow</label>
+        <label><input type="radio" name="q5" value="Tiger"> Tiger</label>
+        <label><input type="radio" name="q5" value="Yak"> Yak</label>
+      </div>
+
+      <!-- Question 6 -->
+      <div class="question">6. Which river is considered the longest in Nepal?</div>
+      <div class="options">
+        <label><input type="radio" name="q6" value="Koshi"> Koshi</label>
+        <label><input type="radio" name="q6" value="Gandaki"> Gandaki</label>
+        <label><input type="radio" name="q6" value="Karnali"> Karnali</label>
+      </div>
+
+      <!-- Question 7 -->
+      <div class="question">7. IQ: If CAT = 3120, then DOG = ?</div>
+      <div class="options">
+        <label><input type="radio" name="q7" value="4157"> 4157</label>
+        <label><input type="radio" name="q7" value="4715"> 4715</label>
+        <label><input type="radio" name="q7" value="4657"> 4657</label>
+      </div>
+
+      <!-- Question 8 -->
+      <div class="question">8. In which year was Nepal declared a Federal Democratic Republic?</div>
+      <div class="options">
+        <label><input type="radio" name="q8" value="2006"> 2006</label>
+        <label><input type="radio" name="q8" value="2008"> 2008</label>
+        <label><input type="radio" name="q8" value="2015"> 2015</label>
+      </div>
+
+      <button type="button" onclick="checkAnswers()">Submit</button>
+    </form>
+    <div class="result" id="result"></div>
+    <footer>© Arbin Niroula 2025</footer>
+  </div>
+
+  <script>
+    function checkAnswers() {
+      const answers = {
+        q1: "Kathmandu",
+        q2: "Sagarmatha",
+        q3: "Prithvi Narayan Shah",
+        q4: "25",
+        q5: "Cow",
+        q6: "Karnali",
+        q7: "4157",
+        q8: "2008"
+      };
+
+      let score = 0;
+      let form = document.forms["quizForm"];
+
+      for (let key in answers) {
+        let userAns = form[key].value;
+        if (userAns === answers[key]) {
+          score += 10;
+        }
+      }
+
+      document.getElementById("result").innerHTML = "Your Score: " + score + "/80";
+    }
+  </script>
 </body>
 </html>
