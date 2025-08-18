@@ -1,81 +1,21 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><title>OBS | Billing</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/print.css" media="print">
-</head><body>
-<header class="appbar">
-  <h1>Billing</h1>
-  <nav class="appnav">
-    <a href="obs_dashboard.html">Dashboard</a>
-    <a href="obs_stock.html">Stock</a>
-    <a href="obs_search.html">Search</a>
-    <a href="obs_company.html">Company</a>
-  </nav>
-</header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Billing</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h2>Billing</h2>
+  <form id="billingForm">
+    <label>Item Code: <input type="text" id="billItemCode" required></label>
+    <label>Quantity: <input type="number" id="quantity" required></label>
+    <button type="submit">Add to Bill</button>
+  </form>
+  <div id="bill"></div>
+  <button onclick="printBill()">Print Bill</button>
+  <button onclick="history.back()">Go Back</button>
 
-<div id="qrOverlay" class="closezone" onclick="closeQr()">
-  <img src="images/qr.jpg" alt="QR Fullscreen">
-</div>
-
-<div class="main grid grid-2">
-  <div class="card">
-    <h3>Buyer</h3>
-    <div class="grid grid-2">
-      <div><label>Name</label><input id="custName" type="text" placeholder="Buyer name"></div>
-      <div><label>Address</label><input id="custAddress" type="text" placeholder="Buyer address"></div>
-    </div>
-
-    <h3 style="margin-top:10px">Items</h3>
-    <div id="items"></div>
-    <div style="margin-top:8px"><button type="button" onclick="addItemRow()">Add Item</button></div>
-
-    <div class="grid grid-3" style="margin-top:12px">
-      <div><label>Discount % (first)</label><input id="discount" type="number" value="0"></div>
-      <div><label>VAT % (after discount)</label><input id="vat" type="number" value="0"></div>
-      <div><label>Payment</label>
-        <select id="payment" onchange="togglePaymentFields()">
-          <option>Cash</option>
-          <option>Online</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="cashFields" class="grid grid-3" style="display:none; margin-top:10px">
-      <div><label>Total</label><input id="total" readonly></div>
-      <div><label>Amount Given</label><input id="given" type="number" placeholder="0.00" oninput="recalcTotals()"></div>
-      <div><label>Change</label><input id="change" readonly></div>
-    </div>
-
-    <div id="onlineFields" style="display:none; margin-top:10px">
-      <span class="badge">Online Payment</span>
-      <div style="display:flex; gap:10px; margin-top:8px">
-        <button type="button" onclick="openQrFull()">Open QR Fullscreen</button>
-      </div>
-    </div>
-
-    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
-      <button onclick="generateBill()">Generate Bill</button>
-      <button class="ghost" onclick="window.print()">Print Bill</button>
-    </div>
-  </div>
-
-  <div class="card" id="billPreviewWrap">
-    <h3>Preview</h3>
-    <div class="notice" style="margin-bottom:8px">
-      Subtotal: <b><span id="liveSubtotal">0.00</span></b> |
-      After Discount: <b><span id="liveAfterDisc">0.00</span></b> |
-      VAT Amt: <b><span id="liveVatAmt">0.00</span></b> |
-      Grand: <b><span id="liveGrand">0.00</span></b>
-    </div>
-    <div id="billOutput" class="notice">Add items to preview the bill here.</div>
-  </div>
-
-  <div class="card">
-    <h3>Stock (click a row to add)</h3>
-    <div id="stockSide"></div>
-  </div>
-</div>
-
-<footer class="site">© 2025 Online Billing System</footer>
-<script src="js/billing.js"></script>
-</body></html>
+  <script src="js/script.js"></script>
+</body>
+</html>

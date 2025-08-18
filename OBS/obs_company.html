@@ -1,77 +1,20 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><title>OBS | Company</title>
-<link rel="stylesheet" href="css/style.css">
-</head><body>
-<header class="appbar">
-  <h1>Company / Shop Details</h1>
-  <nav class="appnav"><a href="obs_dashboard.html">Back</a></nav>
-</header>
-<div class="main">
-  <div class="card" style="max-width:720px; margin:auto">
-    <form onsubmit="return false;">
-      <div class="grid grid-2">
-        <div><label>Company Name</label><input id="companyName" type="text" required></div>
-        <div><label>PAN Number</label><input id="panNumber" type="text" required></div>
-      </div>
-      <div class="grid grid-2">
-        <div><label>Address</label><input id="companyAddress" type="text" required></div>
-        <div><label>Contact</label><input id="companyContact" type="text" required></div>
-      </div>
-      <div class="grid grid-2">
-        <div><label>Email</label><input id="companyEmail" type="email"></div>
-        <div><label>Website</label><input id="companyWebsite" type="url"></div>
-      </div>
-      <div style="margin-top:10px; display:flex; gap:8px">
-        <button onclick="saveCompany()">Save</button>
-        <button class="ghost" onclick="previewBillHeader()">Preview On Bill</button>
-      </div>
-      <p class="notice" style="margin-top:8px">Saved locally. Appears on every bill.</p>
-    </form>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <h3>Bill Header Preview</h3>
-    <div id="billHeaderPreview" class="notice">No data saved yet.</div>
-  </div>
-</div>
-<footer class="site">© 2025 Online Billing System</footer>
-<script>
-function saveCompany(){
-  const company={
-    name:document.getElementById('companyName').value.trim(),
-    pan:document.getElementById('panNumber').value.trim(),
-    address:document.getElementById('companyAddress').value.trim(),
-    contact:document.getElementById('companyContact').value.trim(),
-    email:document.getElementById('companyEmail').value.trim(),
-    website:document.getElementById('companyWebsite').value.trim()
-  };
-  localStorage.setItem('obs_company', JSON.stringify(company));
-  alert('Saved');
-  previewBillHeader();
-}
-function loadCompany(){ return JSON.parse(localStorage.getItem('obs_company')||'{}'); }
-function previewBillHeader(){
-  const c=loadCompany();
-  document.getElementById('billHeaderPreview').innerHTML = `
-    <div id="printBill">
-      <h2>${c.name||'Your Company'}</h2>
-      <div class="muted">${c.address||''} • PAN: ${c.pan||''} • ${c.contact||''} ${c.email?('• '+c.email):''} ${c.website?('• '+c.website):''}</div>
-      <div class="meta"><div><b>Buyer:</b> John Doe<br><span class="muted">Sample Address</span></div><div><b>Txn ID:</b> TXN-000000<br><b>Date:</b> sample</div></div>
-      <table><thead><tr><th>Code</th><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th></tr></thead>
-      <tbody><tr><td>1001</td><td>Sample</td><td>100.00</td><td>1</td><td>100.00</td></tr></tbody>
-      <tfoot><tr><td colspan="4">Grand Total</td><td>100.00</td></tr></tfoot></table>
-      <div class="bottom-right">Printed by: sample</div>
-    </div>
-  `;
-}
-window.addEventListener('load', ()=>{
-  const c=loadCompany();
-  if(c.name) document.getElementById('companyName').value=c.name;
-  if(c.pan) document.getElementById('panNumber').value=c.pan;
-  if(c.address) document.getElementById('companyAddress').value=c.address;
-  if(c.contact) document.getElementById('companyContact').value=c.contact;
-  if(c.email) document.getElementById('companyEmail').value=c.email;
-  if(c.website) document.getElementById('companyWebsite').value=c.website;
-  previewBillHeader();
-});
-</script>
-</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Company Details</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h2>Enter Company Details</h2>
+  <form id="companyForm">
+    <label>Company Name: <input type="text" id="companyName" required></label><br>
+    <label>PAN: <input type="text" id="companyPAN" required></label><br>
+    <label>Address: <input type="text" id="companyAddress" required></label><br>
+    <label>Contact: <input type="text" id="companyContact" required></label><br>
+    <button type="submit">Save</button>
+    <button type="button" onclick="history.back()">Go Back</button>
+  </form>
+  <script src="js/script.js"></script>
+</body>
+</html>
