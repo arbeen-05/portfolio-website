@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><title>OBS | Stock</title>
+<link rel="stylesheet" href="css/style.css">
+</head><body>
+<header class="appbar">
+  <h1>Stock</h1>
+  <nav class="appnav">
+    <a href="obs_dashboard.html">Dashboard</a>
+    <a href="obs_billing.html">Billing</a>
+    <a href="obs_search.html">Search</a>
+    <a href="obs_company.html">Company</a>
+  </nav>
+</header>
+<div class="main grid">
+  <div class="card">
+    <h3>Add / Update</h3>
+    <form id="stockForm" onsubmit="return false;">
+      <div class="grid grid-3">
+        <div><label>Item Code</label><input id="itemCode" type="text" placeholder="Scan or enter unique code"></div>
+        <div><label>Item Name</label><input id="itemName" type="text"></div>
+        <div><label>Rate</label><input id="itemRate" type="number"></div>
+      </div>
+      <div class="grid grid-3">
+        <div><label>Quantity</label><input id="itemQty" type="number"></div>
+      </div>
+      <div style="margin-top:10px"><button onclick="addStock()">Save Item</button></div>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Current Stock</h3>
+    <div id="stockList"></div>
+  </div>
+</div>
+<footer class="site">© 2025 Online Billing System</footer>
+<script src="js/stock.js"></script>
+</body></html>
