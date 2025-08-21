@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>OBS Billing Software</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <header>
-    <h1>OBS Billing Software</h1>
-    <nav>
-      <a href="obs_company.html">Company Details</a>
-      <a href="obs_billing.html">Billing</a>
-      <a href="obs_stocks.html">Stocks</a>
-    </nav>
-  </header>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>OBS | Login</title>
+<link rel="stylesheet" href="css/style.css"></head><body>
+<header class="appbar"><h1>OBS — Premium Billing</h1><nav class="appnav"><a href="obs_index.html">Home</a></nav></header>
+<div class="container"><div class="card" style="max-width:540px;margin:60px auto;text-align:left">
+  <h2 style="margin-top:0">Sign in</h2>
+  <label>Username</label><input id="username" type="text" placeholder="username">
+  <label style="margin-top:8px">Password</label><input id="password" type="password" placeholder="password">
+  <div style="margin-top:10px;display:flex;gap:8px"><button class="btn" onclick="login()">Login</button><button class="btn ghost" onclick="register()">Register</button></div>
+  <p class="notice" style="margin-top:12px">Accounts are stored locally on this browser (no backend).</p>
+</div></div>
+<footer class="site">© 2025 OBS — Premium</footer>
+<script src="js/auth.js"></script></body></html>

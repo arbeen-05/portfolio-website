@@ -1,20 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Company Details</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <h2>Enter Company Details</h2>
-  <form id="companyForm">
-    <label>Company Name: <input type="text" id="companyName" required></label><br>
-    <label>PAN: <input type="text" id="companyPAN" required></label><br>
-    <label>Address: <input type="text" id="companyAddress" required></label><br>
-    <label>Contact: <input type="text" id="companyContact" required></label><br>
-    <button type="submit">Save</button>
-    <button type="button" onclick="history.back()">Go Back</button>
-  </form>
-  <script src="js/script.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>OBS | Company</title>
+<link rel="stylesheet" href="css/style.css"></head><body>
+<header class="appbar"><h1>Company</h1><nav class="appnav"><a href="obs_dashboard.html">Dashboard</a></nav></header>
+<div class="container">
+  <div class="card" style="max-width:820px;margin:auto">
+    <h3>Company / Shop Details</h3>
+    <div class="grid grid-2">
+      <div><label>Company Name</label><input id="companyName" type="text"></div>
+      <div><label>PAN</label><input id="panNumber" type="text"></div>
+    </div>
+    <div class="grid grid-2" style="margin-top:8px">
+      <div><label>Address</label><input id="companyAddress" type="text"></div>
+      <div><label>Contact</label><input id="companyContact" type="text"></div>
+    </div>
+    <div class="grid grid-2" style="margin-top:8px">
+      <div><label>Email</label><input id="companyEmail" type="email"></div>
+      <div><label>Website</label><input id="companyWebsite" type="url"></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px"><button class="btn" onclick="saveCompany()">Save</button><button class="btn ghost" onclick="previewBillHeader()">Preview</button></div>
+    <p class="notice" style="margin-top:10px">Details are saved locally and printed on every bill.</p>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>Header Preview</h3><div id="billHeaderPreview" class="notice">No data</div>
+  </div>
+</div>
+<footer class="site">© 2025 OBS</footer>
+<script>
+function saveCompany(){ const comp = { name:document.getElementById('companyName').value.trim(), pan:document.getElementById('panNumber').value.trim(), address:document.getElementById('companyAddress').value.trim(), contact:document.getElementById('companyContact').value.trim(), email:document.getElementById('companyEmail').value.trim(), website:document.getElementById('companyWebsite').value.trim() }; localStorage.setItem('obs_company', JSON.stringify(comp)); alert('Saved'); previewBillHeader(); }
+function loadCompany(){ return JSON.parse(localStorage.getItem('obs_company')||'{}'); }
+function previewBillHeader(){ const c = loadCompany(); document.getElementById('billHeaderPreview').innerHTML = `<div id="printBill"><h2>${c.name||'Your Company'}</h2><div class="meta">${c.address||''} • PAN: ${c.pan||''} • ${c.contact||''}</div></div>`; }
+window.addEventListener('load', ()=>{ const c = loadCompany(); if(c.name) document.getElementById('companyName').value=c.name; if(c.pan) document.getElementById('panNumber').value=c.pan; if(c.address) document.getElementById('companyAddress').value=c.address; if(c.contact) document.getElementById('companyContact').value=c.contact; if(c.email) document.getElementById('companyEmail').value=c.email; if(c.website) document.getElementById('companyWebsite').value=c.website; previewBillHeader(); });
+</script></body></html>

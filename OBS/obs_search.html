@@ -1,34 +1,19 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><title>OBS | Search</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/print.css" media="print">
-</head><body>
-<header class="appbar">
-  <h1>Search Transactions</h1>
-  <nav class="appnav">
-    <a href="obs_dashboard.html">Dashboard</a>
-    <a href="obs_billing.html">Billing</a>
-    <a href="obs_stock.html">Stock</a>
-    <a href="obs_company.html">Company</a>
-  </nav>
-</header>
-<div class="main grid">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>OBS | Search</title>
+<link rel="stylesheet" href="css/style.css"></head><body>
+<header class="appbar"><h1>Search</h1><nav class="appnav"><a href="obs_dashboard.html">Dashboard</a><a href="obs_billing.html">Billing</a></nav></header>
+<div class="container grid grid-2">
   <div class="card">
     <h3>Find by Transaction ID</h3>
-    <div class="grid grid-2">
-      <div><label>Transaction ID</label><input id="searchId" type="text" placeholder="TXN-000001"></div>
-      <div style="display:flex; align-items:end"><button onclick="searchTransaction()">Search</button></div>
-    </div>
+    <label>Transaction ID</label><input id="searchId" type="text" placeholder="TXN-000001"><div style="margin-top:8px"><button class="btn" onclick="searchTransaction()">Search</button></div>
   </div>
   <div class="card">
     <h3>Result</h3>
-    <div id="searchResult" class="notice">Enter an ID and click Search.</div>
+    <div id="searchResult" class="notice">Search results will appear here.</div>
   </div>
-  <div class="card">
+  <div class="card" style="grid-column:span 2">
     <h3>Recent Transactions</h3>
     <div id="recentList"></div>
   </div>
 </div>
-<footer class="site">© 2025 Online Billing System</footer>
-<script src="js/search.js"></script>
-</body></html>
+<footer class="site">© 2025 OBS</footer>
+<script src="js/search.js"></script></body></html>
