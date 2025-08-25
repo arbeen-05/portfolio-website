@@ -1,4 +1,0 @@
-@page{ size: A4 portrait; margin:10mm; }
-body *{ visibility: hidden !important; }
-#printBill, #printBill *{ visibility: visible !important; }
-#printBill{ position: absolute; left:0; top:0; width:190mm; min-height:99mm; margin:0; box-shadow:none; border:0 }
