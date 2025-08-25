@@ -1,0 +1,56 @@
+
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OBS Search</title>
+<link rel="stylesheet" href="assets/style.css">
+<script defer src="assets/app.js"></script>
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="brand"><span class="dot"></span> OBS Search</div>
+    <div class="nav">
+      <a href="index.html">Home</a>
+      <a href="obs_index.html">Billing</a>
+      <a href="obs_stock.html">Stock</a>
+      <a href="#" id="logout">Logout</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Search Transactions</h3>
+    <div class="grid cols-3">
+      <input id="byName" placeholder="Customer Name">
+      <input id="byBill" placeholder="Bill No">
+      <input id="byId" placeholder="Transaction ID">
+    </div>
+    <button class="btn" id="runSearch" style="margin-top:12px">Search</button>
+  </div>
+  <div class="card">
+    <h3>Results</h3>
+    <div style="max-height:460px;overflow:auto">
+    <table class="table" id="rtbl">
+      <thead><tr><th>Date/Time</th><th>Txn ID</th><th>Bill No</th><th>Customer</th><th class="right">Grand Total</th><th>Payment</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </div>
+  <footer>© <span id="y"></span> OBS. All rights reserved.</footer>
+</div>
+<script>
+requireAuth();
+document.getElementById('y').textContent = new Date().getFullYear();
+document.getElementById('logout').onclick = logout;
+function render(list){
+  const tbody = document.querySelector('#rtbl tbody'); tbody.innerHTML='';
+  list.forEach(tx=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${tx.datetime}</td><td>${tx.txnId}</td><td>${tx.billNo||''}</td><td>${tx.customer?.name||''}</td><td class="right">${money(tx.grand)}</td><td class="right">${tx.payMethod}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('runSearch').onclick = ()=>{
+  const list = searchTxns({name: byName.value, billNo: byBill.value, txnId: byId.value});
+  render(list);
+};
+render(getTxns().slice().sort((a,b)=>b.createdAt-a.createdAt));
+</script>
+</body></html>

@@ -1,0 +1,45 @@
+
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OBS Register</title>
+<link rel="stylesheet" href="assets/style.css">
+<script defer src="assets/app.js"></script>
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="brand"><span class="dot"></span> OBS Register</div>
+    <div class="nav"><a href="index.html">Home</a><a href="obs_login.html">Login</a></div>
+  </div>
+  <div class="grid cols-2">
+    <div class="card">
+      <h2>Create Account</h2>
+      <div class="grid">
+        <input id="displayName" placeholder="Your Name">
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+        <button class="btn" id="registerBtn">Register</button>
+      </div>
+      <p class="small">After registering, go to Login.</p>
+    </div>
+    <div class="card">
+      <h2>Already have an account?</h2>
+      <p><a class="btn secondary" href="obs_login.html">Go to Login</a></p>
+      <p class="small">You need to be logged in to bill and manage stock.</p>
+    </div>
+  </div>
+  <footer>© <span id="y"></span> OBS. All rights reserved.</footer>
+</div>
+<script>
+document.getElementById('y').textContent = new Date().getFullYear();
+document.getElementById('registerBtn').onclick = ()=>{
+  const dn = displayName.value.trim();
+  const u = username.value.trim();
+  const p = password.value;
+  if(!dn || !u || !p){ toast('Fill all fields','error'); return; }
+  const res = registerUser(u,p,dn);
+  if(!res.ok){ toast(res.msg,'error'); return; }
+  toast('Registered! Now login.','success');
+  setTimeout(()=>window.location.href='obs_login.html', 700);
+};
+</script>
+</body></html>
