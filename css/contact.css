@@ -210,7 +210,7 @@ textarea:focus {
 .youtube { background-color: #FF0000; }
 .youtube:hover { background-color: #cc0000; }
 
-.email {
+.gmail {
   background-color: #f4b400;
   color: black;
   font-size: 32px;
@@ -221,7 +221,7 @@ textarea:focus {
   justify-content: center;
   align-items: center;
 }
-.email:hover {
+.gmail:hover {
   background-color: #db4437;
   color: white;
 }
