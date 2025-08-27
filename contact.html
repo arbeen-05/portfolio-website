@@ -50,6 +50,7 @@
             pattern="^\+?[0-9\s\-]{7,15}$"
             required
           />
+          <label for="files">Any Files/Documents <i>(not mandatory)</i></label>
         <input type="file" id="file" name="file" required />
 <label for="file" id="file-label">Choose File</label>
 <span id="file-name">No file chosen</span>
@@ -64,7 +65,7 @@
   #file-label {
     display: inline-block;
     padding: 12px 25px;
-    background-color: blue;
+    background-color: red;
     color: white;
     font-size: 16px;
     font-weight: bold;
@@ -74,7 +75,7 @@
   }
 
   #file-label:hover {
-    background-color: darkblue;
+    background-color: gold;
   }
 
   /* Style file name */
