@@ -130,6 +130,19 @@ textarea:focus {
   color: white;
 }
 
+input [type="file"]
+{
+  background-color: #f4b400;
+  border: #ffffff;
+  border-radius: 45px;
+  padding: 1rem 1.8rem;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: red;
+  cursor: pointer;
+  transition: background-color 0.5s ease, transform 0.3s ease;
+}
+
 .btn-submit {
   background-color: #f4b400;
   border: none;
