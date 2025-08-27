@@ -50,62 +50,12 @@
             pattern="^\+?[0-9\s\-]{7,15}$"
             required
           />
-          <label for="files">Any Files/Documents <i>(not mandatory)</i></label>
-        <input type="file" id="file" name="file" required />
-<label for="file" id="file-label">Choose File</label>
-<span id="file-name">No file chosen</span>
-
-<style>
-  /* Hide default file input */
-  input[type="file"] {
-    display: none;
-  }
-
-  /* Style the label as button */
-  #file-label {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: pink;
-    color: black;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  #file-label:hover {
-    background-color: gold;
-  }
-
-  /* Style file name */
-  #file-name {
-    margin-left: 10px;
-    font-style: italic;
-    font-size: 14px;
-    color: #ffffff;
-  }
-</style>
-
-<script>
-  const fileInput = document.getElementById('file');
-  const fileName = document.getElementById('file-name');
-
-  fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-      fileName.textContent = fileInput.files[0].name;
-    } else {
-      fileName.textContent = "No file chosen";
-    }
-  });
-</script>
-         
-
           <label for="message">Message</label>
           <textarea id="message" name="message" rows="5" required></textarea>
 
           <button type="submit" class="btn-submit">Send Message</button>
         </form>
+        <b>We will get in touch with you shortly via email or WhatsApp.</b><br>
 
         <div class="social-buttons">
           <a href="https://www.facebook.com/arbineyyy" target="_blank" rel="noopener" class="btn fb" aria-label="Facebook" title="Facebook">
