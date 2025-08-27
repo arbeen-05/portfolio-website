@@ -13,7 +13,7 @@ body{
   background-size:cover;
   background-position:center;
   min-height:100vh;
-  color:#111;
+  color:red;
 }
 .topbar{
   display:flex;
