@@ -37,3 +37,20 @@ document.getElementById('contact-form').addEventListener('submit', e => {
 
   e.target.reset();
 });
+const hamburger = document.querySelector(".hamburger");
+const navMenu = document.querySelector("nav ul");
+const navLinks = document.querySelectorAll("nav ul li a");
+
+// Toggle menu
+hamburger.addEventListener("click", () => {
+  hamburger.classList.toggle("active");
+  navMenu.classList.toggle("open");
+});
+
+// Auto-close when a nav link is clicked
+navLinks.forEach(link => {
+  link.addEventListener("click", () => {
+    hamburger.classList.remove("active");
+    navMenu.classList.remove("open");
+  });
+});
