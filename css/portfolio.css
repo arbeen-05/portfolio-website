@@ -162,18 +162,23 @@ footer {
     top: 60px;
     right: 0;
     background: black;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
     width: 100%;
+    padding: 1.5rem 0;
     transform: scaleY(0);
     transform-origin: top;
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease;
+    text-align: center;
   }
 
   nav ul.open {
     transform: scaleY(1);
     opacity: 1;
   }
+}
 
   .hamburger {
     display: flex;
