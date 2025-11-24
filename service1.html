@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Development</title>
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: url('images/bgimg.jpg') center/cover fixed no-repeat;
+  color: white;
+  overflow: hidden;
+}
+
+/* Dark overlay */
+.overlay {
+  background: rgba(0,0,0,0.65);
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+}
+
+/* Content box */
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 12vh auto;
+  text-align: center;
+  padding: 20px;
+  animation: fadeIn 1.4s ease;
+}
+
+h1 {
+  font-size: 3rem;
+  color: #f4b400;
+  animation: slideDown 1s ease;
+}
+
+p {
+  font-size: 1.3rem;
+  margin-top: 15px;
+  animation: fadeInUp 1.4s ease;
+  line-height: 1.6;
+}
+
+/* Contact button */
+.btn {
+  margin-top: 35px;
+  padding: 15px 35px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: #f4b400;
+  color: black;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: 0.3s;
+  animation: pulse 2s infinite;
+}
+
+.btn:hover {
+  background: #db4437;
+  color: white;
+  transform: scale(1.08);
+}
+
+/* Animations */
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+@keyframes slideDown {0%{opacity:0;transform:translateY(-40px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp {0%{opacity:0;transform:translateY(40px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes pulse {0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+</style>
+</head>
+
+<body>
+<div class="overlay"></div>
+
+<div class="container">
+  <h1>Web Development</h1>
+  <p>
+    Custom responsive websites built using HTML, CSS, and JavaScript.  
+    Fast, modern, and fully personalized web solutions for your needs.
+  </p>
+  <a class="btn" href="contact.html">Contact Now</a>
+</div>
+</body>
+</html>
