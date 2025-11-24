@@ -26,7 +26,7 @@ body {
   align-items: flex-start;
 }
 
-/* Navbar - SAME AS ABOUT.CSS */
+/* Navbar */
 header {
   background: black;
   position: sticky;
@@ -130,19 +130,6 @@ textarea:focus {
   color: white;
 }
 
-input [type="file"]
-{
-  background-color: #f4b400;
-  border: #ffffff;
-  border-radius: 45px;
-  padding: 1rem 1.8rem;
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: red;
-  cursor: pointer;
-  transition: background-color 0.5s ease, transform 0.3s ease;
-}
-
 .btn-submit {
   background-color: #f4b400;
   border: none;
@@ -214,7 +201,7 @@ input [type="file"]
 }
 
 .threads {
-  background-color: #FFFFFF;
+  background-color: #000;
 }
 .threads:hover {
   background-color: #333;
@@ -223,7 +210,7 @@ input [type="file"]
 .youtube { background-color: #FF0000; }
 .youtube:hover { background-color: #cc0000; }
 
-.gmail {
+.email {
   background-color: #f4b400;
   color: black;
   font-size: 32px;
@@ -234,7 +221,7 @@ input [type="file"]
   justify-content: center;
   align-items: center;
 }
-.gmail:hover {
+.email:hover {
   background-color: #db4437;
   color: white;
 }
@@ -271,5 +258,3 @@ footer {
     font-size: 2rem;
   }
 }
-
-
