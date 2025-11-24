@@ -41,20 +41,22 @@
           <label for="email">Email</label>
           <input type="email" id="email" name="email" required />
 
-          <label for="whatsapp">Contact Number</label>
+          <label for="whatsapp">WhatsApp Number</label>
           <input
             type="tel"
             id="whatsapp"
             name="whatsapp"
-            placeholder="Whatsapp Number (if available)"
+            placeholder="+9779861453873"
             pattern="^\+?[0-9\s\-]{7,15}$"
             required
           />
+
           <label for="message">Message</label>
           <textarea id="message" name="message" rows="5" required></textarea>
-          
+
           <button type="submit" class="btn-submit">Send Message</button>
         </form>
+
         <div class="social-buttons">
           <a href="https://www.facebook.com/arbineyyy" target="_blank" rel="noopener" class="btn fb" aria-label="Facebook" title="Facebook">
             <i class="fab fa-facebook-f"></i>
@@ -77,20 +79,27 @@
           </a>
 
           <a href="https://www.threads.net/@arbiinn._" target="_blank" rel="noopener" class="btn threads" aria-label="Threads" title="Threads">
-            <i class="bi bi-threads></i>
-              t
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="28"
+              height="28"
+              fill="white"
+            >
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 5.52 4.48 10 10 10 5.52 0 10-4.48 10-10 0-5.52-4.48-10-10-10zm3.5 13H8.5v-2h4.5v-2H8.5v-2h4.5V7h-6v10h8v-2z"/>
+            </svg>
           </a>
 
           <a href="https://www.youtube.com/@arbeen10" target="_blank" rel="noopener" class="btn youtube" aria-label="YouTube" title="YouTube">
             <i class="fab fa-youtube"></i>
           </a>
-          
-            <a href="mailto:info@niroulaarbin.com.np" target="_blank" rel="noopener" class="btn gmail" aria-label="Gmail" title="Gmail">
-            <i class="fab fa-gmail"></i>
-              @
+
+          <a href="mailto:niroularbin@gmail.com" class="btn email" aria-label="Email" title="Email">
+            @
           </a>
         </div>
 
+        <div id="formMessage" class="form-message"></div>
       </section>
     </main>
   </div>
@@ -98,5 +107,7 @@
   <footer>
     <p>&copy; 2025 Arbin Niroula. All rights reserved.</p>
   </footer>
+
+  <script src="js/contact.js"></script>
 </body>
 </html>
