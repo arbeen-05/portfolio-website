@@ -13,3 +13,10 @@ document.querySelectorAll('nav ul li a').forEach(link => {
     }
   });
 });
+function toggleMenu() {
+  const nav = document.querySelector(".nav-links");
+  const burger = document.querySelector(".hamburger");
+
+  nav.classList.toggle("open");
+  burger.classList.toggle("active");
+}
