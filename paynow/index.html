@@ -4,156 +4,155 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Payment Options</title>
-<link rel="icon" href="images/favicon.jpg" type="image/jpeg" />
+    <link rel="icon" href="images/favicon.jpg" type="image/jpeg" />
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg,#6c63ff,#ff6584);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-    }
-    .payment-container {
-        background: #fff;
-        padding: 30px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        max-width: 400px;
-        width: 100%;
-        text-align: center;
-        animation: fadeIn 1s ease;
-    }
-    h2 {
-        margin-bottom: 25px;
-        color: #333;
-        font-size: 24px;
-    }
-    .payment-option {
-        background: linear-gradient(90deg,#6c63ff,#ff6584);
-        color: white;
-        padding: 18px;
-        margin: 12px 0;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: transform 0.3s, box-shadow 0.3s;
-        font-weight: bold;
-        font-size: 18px;
-    }
-    .payment-option:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+.payment-container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+h2 {
+    margin-bottom: 25px;
+    color: #333;
+}
+.payment-option {
+    background: linear-gradient(90deg,#6c63ff,#ff6584);
+    color: white;
+    padding: 18px;
+    margin: 12px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    font-weight: bold;
+    font-size: 18px;
+}
+.payment-option:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
 
-    /* Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background: rgba(0,0,0,0.7);
-        animation: fadeIn 0.5s ease;
-    }
-    .modal-content {
-        background: #fff;
-        margin: 10% auto;
-        padding: 20px;
-        border-radius: 15px;
-        width: 90%;
-        max-width: 350px;
-        text-align: center;
-        position: relative;
-        animation: popIn 0.5s ease;
-    }
-    .modal img {
-        width: 200px;
-        border-radius: 15px;
-        margin-bottom: 15px;
-    }
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 24px;
-        cursor: pointer;
-        color: #333;
-    }
-    .save-btn {
-        background: linear-gradient(90deg,#ff6584,#6c63ff);
-        border: none;
-        padding: 12px 20px;
-        color: #fff;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 16px;
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .save-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-    }
-
-    @keyframes fadeIn {
-        from {opacity: 0;} to {opacity:1;}
-    }
-    @keyframes popIn {
-        0% {transform: scale(0.5); opacity:0;}
-        100% {transform: scale(1); opacity:1;}
-    }
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 350px;
+    animation: popIn 0.5s;
+}
+.modal-content img {
+    width: 200px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+.save-btn {
+    background: linear-gradient(90deg,#ff6584,#6c63ff);
+    border: none;
+    padding: 12px 20px;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.save-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+@keyframes popIn {
+    0% {transform: scale(0.5); opacity:0;}
+    100% {transform: scale(1); opacity:1;}
+}
 </style>
 </head>
 <body>
 
 <div class="payment-container">
     <h2>Choose Payment Method</h2>
-    <div class="payment-option" data-img="images/esewa.jpg">e-Sewa QR</div>
-    <div class="payment-option" data-img="images/khalti.jpg">Khalti by IME QR</div>
-    <div class="payment-option" data-img="images/bank.jpg">Bank QR</div>
-    <div class="payment-option" data-img="images/connectips.jpg">ConnectIPS QR</div>
+    <div class="payment-option" onclick="openQR('esewa')">e-Sewa QR</div>
+    <div class="payment-option" onclick="openQR('khalti')">Khalti by IME QR</div>
+    <div class="payment-option" onclick="openQR('bank')">Bank QR</div>
+    <div class="payment-option" onclick="openQR('connectips')">ConnectIPS QR</div>
 </div>
 
-<!-- Modal -->
+<!-- QR Modal -->
 <div id="qrModal" class="modal">
     <div class="modal-content">
-        <span class="close">&times;</span>
+        <span class="close" onclick="closeQRModal()">&times;</span>
         <img id="qrImage" src="" alt="QR Code">
         <br>
-        <button class="save-btn" id="saveBtn">Save to Gallery</button>
+        <button class="save-btn" onclick="saveQR()">Save to Gallery</button>
     </div>
 </div>
 
 <script>
-    const options = document.querySelectorAll('.payment-option');
-    const modal = document.getElementById('qrModal');
-    const qrImg = document.getElementById('qrImage');
-    const closeBtn = document.querySelector('.close');
-    const saveBtn = document.getElementById('saveBtn');
+const modal = document.getElementById('qrModal');
+const qrImg = document.getElementById('qrImage');
 
-    options.forEach(option => {
-        option.addEventListener('click', () => {
-            qrImg.src = option.dataset.img;
-            modal.style.display = 'block';
-        });
-    });
+function openQR(option){
+    let src = '';
+    switch(option){
+        case 'esewa': src='images/esewa.png'; break;
+        case 'khalti': src='images/khalti.png'; break;
+        case 'bank': src='images/bank.png'; break;
+        case 'connectips': src='images/connectips.png'; break;
+    }
+    qrImg.src = src;
+    modal.style.display='flex';
+}
 
-    closeBtn.addEventListener('click', () => modal.style.display = 'none');
-    window.addEventListener('click', e => { if(e.target == modal) modal.style.display = 'none'; });
+function closeQRModal(){
+    modal.style.display='none';
+}
 
-    saveBtn.addEventListener('click', () => {
-        const a = document.createElement('a');
-        a.href = qrImg.src;
-        a.download = qrImg.src.split('/').pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        alert('QR Saved to gallery');
-    });
+function saveQR(){
+    const a = document.createElement('a');
+    a.href = qrImg.src;
+    a.download = qrImg.src.split('/').pop();
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    alert('QR Saved to gallery');
+}
+
+// Close modal when clicking outside
+window.onclick = function(e){
+    if(e.target == modal) closeQRModal();
+}
 </script>
 
 </body>
