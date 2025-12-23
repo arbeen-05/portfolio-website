@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Payment Options</title>
-    <link rel="icon" href="images/favicon.jpg" type="image/jpeg" />
+     <link rel="icon" href="images/favicon.jpg" type="image/jpeg" />
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -49,35 +49,56 @@ h2 {
     display: none;
     position: fixed;
     z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.7);
     justify-content: center;
     align-items: center;
 }
 .modal-content {
     background: #fff;
-    padding: 20px;
-    border-radius: 15px;
+    padding: 25px 20px 20px;
+    border-radius: 18px;
     text-align: center;
     max-width: 350px;
-    animation: popIn 0.5s;
+    position: relative;
+    animation: popIn 0.5s ease;
 }
 .modal-content img {
     width: 200px;
     border-radius: 15px;
     margin-bottom: 15px;
 }
+
+/* CLOSE BUTTON (UPDATED) */
 .close {
     position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 28px;
+    background: #000;
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
-    color: #333;
+    transition: 
+        background 0.3s ease,
+        color 0.3s ease,
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    animation: closeFloat 2s ease-in-out infinite;
 }
+.close:hover {
+    background: #e63946;
+    color: #000;
+    transform: scale(1.1) rotate(3deg);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
 .save-btn {
     background: linear-gradient(90deg,#ff6584,#6c63ff);
     border: none;
@@ -93,9 +114,14 @@ h2 {
     transform: scale(1.05);
     box-shadow: 0 6px 15px rgba(0,0,0,0.3);
 }
+
 @keyframes popIn {
-    0% {transform: scale(0.5); opacity:0;}
-    100% {transform: scale(1); opacity:1;}
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes closeFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
 }
 </style>
 </head>
@@ -112,7 +138,7 @@ h2 {
 <!-- QR Modal -->
 <div id="qrModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeQRModal()">&times;</span>
+        <div class="close" onclick="closeQRModal()">×</div>
         <img id="qrImage" src="" alt="QR Code">
         <br>
         <button class="save-btn" onclick="saveQR()">Save to Gallery</button>
@@ -132,11 +158,11 @@ function openQR(option){
         case 'connectips': src='images/connectips.jpg'; break;
     }
     qrImg.src = src;
-    modal.style.display='flex';
+    modal.style.display = 'flex';
 }
 
 function closeQRModal(){
-    modal.style.display='none';
+    modal.style.display = 'none';
 }
 
 function saveQR(){
@@ -149,9 +175,8 @@ function saveQR(){
     alert('QR Saved to gallery');
 }
 
-// Close modal when clicking outside
 window.onclick = function(e){
-    if(e.target == modal) closeQRModal();
+    if(e.target === modal) closeQRModal();
 }
 </script>
 
