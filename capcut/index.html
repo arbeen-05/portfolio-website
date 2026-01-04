@@ -137,53 +137,42 @@ textarea{resize:none;height:90px}
       <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800" alt="Monthly Plan">
       <h3>Monthly</h3>
       <div class="price">Rs. 500</div>
-      <a class="btn" href="#">Buy Monthly</a>
+      <a class="btn" href="#" onclick="selectPlan('Monthly',500)">Buy Monthly</a>
     </div>
 
     <div class="card">
       <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=800" alt="Yearly Plan">
       <h3>Yearly</h3>
       <div class="price">Rs. 999</div>
-      <a class="btn" href="#">Buy Yearly</a>
+      <a class="btn" href="#" onclick="selectPlan('Yearly',999)">Buy Yearly</a>
     </div>
 
     <div class="card">
       <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800" alt="Lifetime Plan">
       <h3>Lifetime</h3>
       <div class="price">Rs. 1999</div>
-      <a class="btn" href="#">Buy Lifetime</a>
+      <a class="btn" href="#" onclick="selectPlan('Lifetime',1999)">Buy Lifetime</a>
     </div>
   </div>
 
   <div class="form-box">
     <h2>Purchase Details</h2>
-    <form action="https://formspree.io/f/xgovpbry"
-  method="POST">
+    <form >
       <input type="text" placeholder="Full Name *" required>
       <input type="email" placeholder="Email Address (for CapCut) *" required>
       <input type="text" placeholder="WhatsApp Number">
-      <select id="plan" required>
-          <option value="">Select Plan *</option>
-          <option value="500">Monthly – Rs. 500</option>
-          <option value="999">Yearly – Rs. 999</option>
-          <option value="1999">Lifetime – Rs. 1999</option>
-      </select>
-
-<div id="total">Total Amount: Rs. 0</div>
-
+      <input type="text" id="selectedPlan" placeholder="Select a plan *" readonly required>
+      <div id="total">Total Amount: Rs. 0</div>
       <textarea placeholder="Message (if any)"></textarea>
       <button class="submit" type="submit">Submit</button>
     </form>
   </div>
 </div>
   <script>
-const plan=document.getElementById("plan");
-const total=document.getElementById("total");
-plan.addEventListener("change",()=>{
-  total.textContent=plan.value
-    ? "Total Amount: Rs. "+plan.value
-    : "Total Amount: Rs. 0";
-});
+function selectPlan(name,price){
+  document.getElementById("selectedPlan").value=name;
+  document.getElementById("total").textContent="Total Amount: Rs. "+price;
+  document.getElementById("selectedPlan").scrollIntoView({behavior:"smooth"});
 </script>
 </body>
 </html>
