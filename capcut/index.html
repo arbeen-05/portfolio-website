@@ -126,12 +126,45 @@ textarea{resize:none;height:90px}
   from{opacity:0;transform:translateY(40px)}
   to{opacity:1;transform:translateY(0)}
 }
+  /* ADD TO CSS */
+.home-link{
+  position:fixed;
+  top:20px;
+  left:20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 16px;
+  border-radius:30px;
+  background:rgba(255,255,255,0.12);
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  transition:.35s ease;
+  z-index:999;
+}
+.home-icon{
+  font-size:1.2rem;
+  transition:.35s ease;
+}
+.home-link:hover{
+  transform:translateY(-3px) scale(1.03);
+  background:linear-gradient(135deg,#00f260,#0575e6);
+}
+.home-link:hover .home-icon{
+  transform:rotate(-10deg) scale(1.15);
+}
 </style>
 </head>
 <body>
 <div class="container">
   <h1>Choose Your CapCut Plan</h1>
-
+<a href="https://www.niroulaarbin.com.np" class="home-link">
+  <span class="home-icon">⌂</span>
+  <span class="home-text">Back to Home</span>
+</a>
   <div class="plans">
     <div class="card">
       <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=800" alt="Monthly Plan">
