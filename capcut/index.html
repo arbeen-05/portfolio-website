@@ -208,6 +208,11 @@ function setPlan(plan,price){
   document.getElementById('planInput').value=plan;
   document.getElementById('total').innerText='Total Amount: Rs. '+price;
 }
+const home=document.querySelector('.home-link');
+window.addEventListener('scroll',()=>{
+  home.style.opacity=window.scrollY>50?'0':'1';
+  home.style.pointerEvents=window.scrollY>50?'none':'auto';
+});
 </script>
 </body>
 </html>
