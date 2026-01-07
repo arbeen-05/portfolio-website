@@ -126,6 +126,62 @@ textarea{resize:none;height:90px}
   from{opacity:0;transform:translateY(40px)}
   to{opacity:1;transform:translateY(0)}
 }
+  /* QR BUTTON */
+.qr-btn{
+  padding:14px 30px;
+  border:none;
+  border-radius:30px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,#00f260,#0575e6);
+  color:#fff;
+}
+
+/* OVERLAY */
+.qr-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  animation:fadeIn .4s ease;
+}
+
+/* POPUP BOX */
+.qr-box{
+  background:#111;
+  padding:30px;
+  border-radius:22px;
+  text-align:center;
+  position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  animation:scaleIn .4s ease;
+}
+.qr-box img{
+  width:260px;
+  border-radius:18px;
+  margin-top:15px;
+}
+.qr-close{
+  position:absolute;
+  top:12px;
+  right:16px;
+  font-size:26px;
+  cursor:pointer;
+  transition:.3s;
+}
+.qr-close:hover{color:#ff4d4d}
+
+@keyframes fadeIn{
+  from{opacity:0}to{opacity:1}
+}
+@keyframes scaleIn{
+  from{transform:scale(.85)}to{transform:scale(1)}
+}
+
   /* ADD TO CSS */
 .home-link{
   position:fixed;
@@ -187,7 +243,14 @@ textarea{resize:none;height:90px}
       <a class="btn" href="#form" onclick="setPlan('Lifetime',1999)">Buy Lifetime</a>
     </div>
   </div>
-
+<div id="qrPopup" class="qr-overlay">
+  <div class="qr-box">
+    <span class="qr-close" onclick="closeQR()">×</span>
+    <h3>Scan to Pay</h3>
+    <img src="qr.png" alt="Payment QR">
+  </div>
+</div>
+<button class="qr-btn" onclick="openQR()">Show Payment QR</button>
   <div class="form-box">
     <h2>Purchase Details</h2>
     <form action="https://getform.io/f/allgqyma" method="POST">
@@ -204,6 +267,12 @@ textarea{resize:none;height:90px}
   </div>
 </div>
   <script>
+    function openQR(){
+  document.getElementById("qrPopup").style.display="flex";
+}
+function closeQR(){
+  document.getElementById("qrPopup").style.display="none";
+}
 function setPlan(plan,price){
   document.getElementById('planInput').value=plan;
   document.getElementById('total').innerText='Total Amount: Rs. '+price;
