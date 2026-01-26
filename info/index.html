@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbin Niroula</title>
+<link rel="icon" href="images/favicon.jpg" type="image/jpg">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#00e5ff;
+  --card:rgba(255,255,255,0.06);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:#0b0f1a;
+  color:#fff;
+  overflow-x:hidden;
+}
+
+/* ---------- SECTIONS ---------- */
+.section{
+  padding:60px 6%;
+}
+
+.center{text-align:center}
+
+/* ---------- PROFILE ---------- */
+.profile-pic{
+  width:170px;
+  height:170px;
+  border-radius:50%;
+  overflow:hidden;
+  margin:0 auto 18px;
+  border:4px solid var(--primary);
+  transition:.6s;
+}
+.profile-pic:hover{
+  transform:scale(1.25);
+  box-shadow:0 0 40px var(--primary);
+}
+.profile-pic img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+h1{
+  font-size:2.8rem;
+  text-transform:uppercase;
+  letter-spacing:2px;
+}
+.subtitle{
+  opacity:.8;
+  margin-top:6px;
+}
+
+/* ---------- CARDS ---------- */
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:26px;
+  margin-bottom:24px;
+  box-shadow:0 0 35px rgba(0,0,0,.4);
+}
+.card h2{
+  color:var(--primary);
+  margin-bottom:12px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;
+}
+
+ul{list-style:none}
+li{margin-bottom:8px; opacity:.9}
+
+/* ---------- SOCIALS ---------- */
+.socials{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  margin:25px 0;
+  flex-wrap:wrap;
+}
+
+.socials a{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--primary);
+  transition:.35s;
+}
+
+.socials img{
+  width:26px;
+  filter:brightness(0);
+}
+
+/* Hover brand colors */
+.instagram:hover{background:#E1306C}
+.facebook:hover{background:#1877F2}
+.tiktok:hover{background:#000}
+.youtube:hover{background:#FF0000}
+.threads:hover{background:#000}
+.snapchat:hover{background:#FFFC00}
+.whatsapp:hover{background:#25D366}
+.email:hover{background:#D44638}
+
+.socials a:hover img{
+  filter:brightness(1);
+  transform:scale(1.15);
+}
+
+/* ---------- ACTIONS ---------- */
+.actions{
+  text-align:center;
+  margin-top:30px;
+}
+.actions button{
+  padding:14px 36px;
+  border:none;
+  border-radius:14px;
+  background:var(--primary);
+  font-weight:600;
+  cursor:pointer;
+  transition:.3s;
+}
+.actions button:hover{
+  transform:scale(1.1);
+  box-shadow:0 0 30px var(--primary);
+}
+
+/* ---------- FOOTER ---------- */
+footer{
+  text-align:center;
+  padding:24px 10px;
+  font-size:.85rem;
+  opacity:.6;
+}
+
+/* ---------- ANIMATION ---------- */
+.reveal{
+  opacity:0;
+  transform:translateY(30px);
+  transition:1s ease;
+}
+.reveal.show{
+  opacity:1;
+  transform:none;
+}
+
+/* ---------- MOBILE ---------- */
+@media(max-width:768px){
+  h1{font-size:2.1rem}
+  .profile-pic{width:140px;height:140px}
+  .socials a{width:56px;height:56px} /* no shrinking */
+}
+</style>
+</head>
+
+<body>
+
+<!-- HERO -->
+<section class="section center reveal">
+  <div class="profile-pic">
+    <img src="images/arbin.jpg" alt="Arbin Niroula">
+  </div>
+  <h1>Arbin Niroula</h1>
+  <div class="subtitle">Student • Tech • Creative</div>
+
+<div class="actions" style="margin:18px 0 10px">
+  <button style="width:300px"
+    onclick="location.href='https://www.niroulaarbin.com.np'">
+    Visit Website
+  </button>
+</div>
+
+</section>
+
+<!-- ABOUT -->
+<section class="section reveal">
+  <div class="card">
+    <h2>About Me</h2>
+    <p>I’m Arbin, a student from Ilam, currently living in Birtamod, Jhapa.</p>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section reveal">
+  <div class="grid">
+    <div class="card">
+      <h2>Programming</h2>
+      <ul><li>JavaScript</li><li>C</li><li>QBasic</li></ul>
+    </div>
+    <div class="card">
+      <h2>Tech Interests</h2>
+      <ul><li>Web Development</li><li>Logic Building</li><li>UI Design</li></ul>
+    </div>
+    <div class="card">
+      <h2>Creative Tools</h2>
+      <ul><li>Photo Editing</li><li>Video Editing</li></ul>
+    </div>
+    <div class="card">
+      <h2>Soft Skills</h2>
+      <ul><li>Teamwork</li><li>Adaptability</li><li>Time Management</li></ul>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION + SOCIAL -->
+<section class="section reveal">
+  <div class="card">
+    <h2>Education</h2>
+    <ul>
+      <li>Shree Pashupati Academy (Nursery–5)</li>
+      <li>Barbote English Boarding (6–8)</li>
+      <li>Shree Amar Secondary (9–10)</li>
+      <li>Devi Secondary (11–12)</li>
+    </ul>
+  </div>
+
+  <div class="socials">
+    <a class="instagram" href="https://instagram.com/arbiinn._"><img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png"></a>
+    <a class="facebook" href="https://facebook.com/arbineyyy"><img src="https://img.icons8.com/ios-filled/50/ffffff/facebook-new.png"></a>
+    <a class="tiktok" href="https://tiktok.com/@arbinniroula204"><img src="https://img.icons8.com/ios-filled/50/ffffff/tiktok.png"></a>
+    <a class="youtube" href="https://youtube.com/@arbiinn"><img src="https://img.icons8.com/ios-filled/50/ffffff/youtube-play.png"></a>
+    <a class="threads" href="#"><img src="https://img.icons8.com/ios-filled/50/ffffff/threads.png"></a>
+    <a class="snapchat" href="https://snapchat.com/add/arbineyyy"><img src="https://img.icons8.com/ios-filled/50/ffffff/snapchat.png"></a>
+    <a class="whatsapp" href="https://wa.me/9779861453873"><img src="https://img.icons8.com/ios-filled/50/ffffff/whatsapp.png"></a>
+    <a class="email" href="mailto:info@niroulaarbin.com.np"><img src="https://img.icons8.com/ios-filled/50/ffffff/new-post.png"></a>
+  </div>
+
+  <div class="actions">
+  <button onclick="location.href='tel:+9779861453873'">Call Now</button>
+  <button onclick="location.href='https://www.niroulaarbin.com.np/contact.html'">
+    Contact Form
+  </button>
+</div>
+
+</section>
+
+<footer>© 2026 Arbin Niroula. All Rights Reserved.</footer>
+
+<script>
+const reveals=document.querySelectorAll('.reveal');
+const reveal=()=>reveals.forEach(r=>{
+  if(r.getBoundingClientRect().top<window.innerHeight-80)r.classList.add('show');
+});
+window.addEventListener('scroll',reveal);
+window.addEventListener('load',reveal);
+</script>
+
+</body>
+</html>
