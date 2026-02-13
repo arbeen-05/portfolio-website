@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Access</title>
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --secondary: #ff758f;
+            --bg: #0b090a;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Floating Hearts Background */
+        .heart {
+            position: absolute;
+            color: var(--primary);
+            opacity: 0.5;
+            animation: float 4s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            z-index: 10;
+            width: 320px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        h2 { color: white; margin-bottom: 20px; font-weight: 300; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { background: rgba(255, 255, 255, 0.2); box-shadow: 0 0 10px var(--primary); }
+
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover { transform: scale(1.05); box-shadow: 0 5px 15px var(--primary); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Hey gothu😚</h2>
+    <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 15px;">Sorry mero sanu, laptop thena so, vanejasto kei garna paaina, still I tried my best from phone🥺 I am sorry if I am unable to meet your expectations😔</p>
+    <input type="password" id="passInput" placeholder="Yaha thichera password hala👀">
+    <br>
+    <button onclick="check()">Done✅ ❤️</button>
+</div>
+
+<script>
+    // Create floating hearts
+    function createHeart() {
+        const heart = document.createElement('div');
+        heart.classList.add('heart');
+        heart.innerHTML = '❤';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 4000);
+    }
+    setInterval(createHeart, 300);
+
+    function check() {
+        const val = document.getElementById('passInput').value;
+        if (val === "20810404") {
+            window.location.href = "https://www.niroulaarbin.com.np/kreety/";
+        } else {
+            alert("Password video ma thyo gothe😤 Watch full video please🥺❤️");
+            document.getElementById('passInput').value = "";
+        }
+    }
+
+    // Allow Enter key
+    document.getElementById('passInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') check();
+    });
+</script>
+
+</body>
+</html>
