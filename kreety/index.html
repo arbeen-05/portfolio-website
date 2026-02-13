@@ -1,21 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Be My Valentine</title>
+<title>Happy Valentines ❤️</title>
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="center">
-<audio id="bgMusic" src="files/audio.mp3"></audio>
-<div class="card">
+<body>
 
-<h1>Hey Kriti ❤️</h1>
-<p>Will you be my Valentine?</p>
-<button id="yesBtn">Yes 💖</button>
-<button id="noBtn">No 😏</button>
+<audio id="bgMusic" src="files/audio.mp3" loop></audio>
 
-</div>
+<div id="hearts-container"></div>
+
+<!-- PAGE 1 -->
+<section id="page1" class="page active">
+  <div class="card">
+    <h1>Hey Kriti ❤️</h1>
+    <h2>Will you be my Valentine?</h2>
+    <div class="btn-group">
+      <button class="btn yes" onclick="showPage('page2')">Yes 💖</button>
+      <button class="btn no" id="noBtn">No 😏</button>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 2 -->
+<section id="page2" class="page">
+  <div class="card">
+    <h1>I knew you would say YES 😌❤️</h1>
+    <button class="btn" onclick="playMusic()">Play Music 🎵</button>
+    <button class="btn" onclick="showPage('rose')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- ROSE DAY -->
+<section id="rose" class="page">
+  <div class="card">
+    <h1>Happy Rose Day 🌹</h1>
+    <div class="gift">🌹</div>
+    <button class="btn" onclick="showPage('propose')">Accept Rose ❤️</button>
+  </div>
+</section>
+
+<!-- PROPOSE DAY -->
+<section id="propose" class="page">
+  <div class="card">
+    <h1>Happy Propose Day 💍</h1>
+    <div class="gift">💐</div>
+    <button class="btn" onclick="showPage('chocolate')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- CHOCOLATE DAY -->
+<section id="chocolate" class="page">
+  <div class="card">
+    <h1>Happy Chocolate Day 🍫</h1>
+    <div class="gift">🍫</div>
+    <button class="btn" onclick="showPage('teddy')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- TEDDY DAY -->
+<section id="teddy" class="page">
+  <div class="card">
+    <h1>Happy Teddy Day 🧸</h1>
+    <div class="gift">🧸</div>
+    <button class="btn" onclick="showPage('promise')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- PROMISE DAY -->
+<section id="promise" class="page">
+  <div class="card">
+    <h1>Happy Promise Day 💖</h1>
+    <div class="gift">💍</div>
+    <p>I love you so much mero Kreety ❤️<br>
+    I will love you forever, and I will never leave you ❤️<br>
+    Thank you for choosing me.</p>
+    <button class="btn" onclick="showPage('hug')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- HUG DAY -->
+<section id="hug" class="page">
+  <div class="card">
+    <h1>Happy Hug Day 🤗</h1>
+    <div class="gift">🤗</div>
+    <button class="btn" onclick="showPage('kiss')">Continue ➜</button>
+  </div>
+</section>
+
+<!-- KISS DAY -->
+<section id="kiss" class="page">
+  <div class="card">
+    <h1>Happy Kiss Day 💋</h1>
+    <div class="gift">💋</div>
+    <button class="btn" onclick="showPage('valentine')">Final Surprise ➜</button>
+  </div>
+</section>
+
+<!-- VALENTINE DAY -->
+<section id="valentine" class="page">
+  <div class="card">
+    <h1>Happy Valentine's Day ❤️</h1>
+    <p>I love you mero Kreety 💖</p>
+    <div class="images">
+      <img src="files/img1.jpg">
+      <img src="files/img2.jpg">
+      <img src="files/img3.jpg">
+    </div>
+    <button class="btn" onclick="showPage('thankyou')">Finish ➜</button>
+  </div>
+</section>
+
+<!-- THANK YOU -->
+<section id="thankyou" class="page">
+  <div class="card">
+    <h1>Thank You Babe ❤️</h1>
+  </div>
+</section>
+
 <script src="script.js"></script>
 </body>
 </html>

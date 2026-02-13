@@ -1,56 +1,35 @@
+const noBtn = document.getElementById("noBtn");
 
-function nextPage(page){
-spawnHearts(30);
-setTimeout(()=>window.location.href=page,700);
+if(noBtn){
+noBtn.addEventListener("mouseover", ()=>{
+    noBtn.style.top = Math.random()*200 + "px";
+    noBtn.style.left = Math.random()*200 + "px";
+    spawnHearts(10);
+});
 }
 
-/* Persistent music across pages */
-function initMusic(){
-let music=document.getElementById("bgMusic");
-if(localStorage.getItem("musicPlaying")==="true"){
-music.play().catch(()=>{});
-}
+function showPage(id){
+spawnHearts(25);
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll(".gift").forEach(el=>el.classList.add("showGift"));
 }
 
 function playMusic(){
 let music=document.getElementById("bgMusic");
-music.loop=true;
-music.play().then(()=>{
-localStorage.setItem("musicPlaying","true");
-}).catch(()=>{});
+music.play().catch(()=>{});
 spawnHearts(40);
 }
 
-window.addEventListener("load",()=>{
-initMusic();
-document.querySelectorAll(".gift").forEach(el=>el.classList.add("showGift"));
-});
-
-/* Yes button */
-const yesBtn=document.getElementById("yesBtn");
-if(yesBtn){yesBtn.onclick=()=>nextPage("index2.html");}
-
-/* Running No button */
-const noBtn=document.getElementById("noBtn");
-if(noBtn){
-noBtn.addEventListener("mouseover",moveNo);
-noBtn.addEventListener("touchstart",moveNo);
-}
-function moveNo(){
-noBtn.style.position="fixed";
-noBtn.style.left=Math.random()*80+"vw";
-noBtn.style.top=Math.random()*70+"vh";
-spawnHearts(10);
-}
-
-function spawnHearts(count){
-for(let i=0;i<count;i++){
-let h=document.createElement("div");
-h.className="heart";
-h.innerHTML="❤";
-h.style.left=Math.random()*100+"vw";
-h.style.animationDuration=2+Math.random()*2+"s";
-document.body.appendChild(h);
-setTimeout(()=>h.remove(),4000);
+function spawnHearts(num){
+for(let i=0;i<num;i++){
+    let heart=document.createElement("div");
+    heart.className="heart";
+    heart.innerHTML="❤️";
+    heart.style.left=Math.random()*100+"%";
+    heart.style.bottom="0px";
+    heart.style.fontSize=(Math.random()*20+15)+"px";
+    document.body.appendChild(heart);
+    setTimeout(()=>heart.remove(),2000);
 }
 }
