@@ -2,9 +2,9 @@ const noBtn = document.getElementById("noBtn");
 
 if(noBtn){
 noBtn.addEventListener("mouseover", ()=>{
-    noBtn.style.top = Math.random()*200 + "px";
-    noBtn.style.left = Math.random()*200 + "px";
-    spawnHearts(10);
+    noBtn.style.top = Math.random()*350 + "px";
+    noBtn.style.left = Math.random()*400 + "px";
+    spawnHearts(20);
 });
 }
 
