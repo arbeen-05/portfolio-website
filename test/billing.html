@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Online Billing System by Arbin</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+<div class="app-wrap">
+
+<header class="header">
+  <h1>Online Billing System</h1>
+  <div class="user-box">
+    <span id="current-user">Guest</span>
+    <button id="btn-login">Login</button>
+    <button id="btn-shop">Shop</button>
+  </div>
+</header>
+
+<div class="grid">
+
+<!-- BILLING -->
+<div class="section">
+
+<h2>Create Bill</h2>
+
+<input id="buyer-name" placeholder="Customer Name">
+<input id="buyer-address" placeholder="Address">
+
+<div class="row">
+  <input id="item-search" placeholder="Product ID or Name">
+  <input id="item-qty" type="number" value="1" min="1">
+  <button id="btn-add-item">Add</button>
+</div>
+
+<div id="cart"></div>
+
+<div class="row">
+  <input id="vat" type="number" placeholder="VAT %">
+  <input id="discount" type="number" placeholder="Discount %">
+</div>
+
+<div class="row">
+  <select id="payment-method">
+    <option value="cash">Cash</option>
+    <option value="online">Online</option>
+  </select>
+
+  <input id="payment-status" value="Paid" readonly>
+</div>
+
+<div id="qr" style="display:none">
+  <img src="images/qr.jpg" width="120">
+</div>
+
+<input id="total" placeholder="Total" readonly>
+<input id="given" placeholder="Given Amount">
+<input id="return" placeholder="Return" readonly>
+
+<div class="row">
+  <button id="save">Save</button>
+  <button id="print">Save & Print</button>
+</div>
+
+</div>
+
+<!-- STOCK -->
+<div class="section">
+
+<h2>Stock</h2>
+
+<input id="s-name" placeholder="Item Name">
+<input id="s-rate" placeholder="Rate">
+<input id="s-qty" placeholder="Qty">
+
+<label>
+  <input type="checkbox" id="s-unlimited"> Unlimited
+</label>
+
+<button id="add-stock">Add Stock</button>
+
+<div id="stock-list"></div>
+
+</div>
+
+</div>
+
+<!-- LOGIN -->
+<div id="modal" class="modal">
+<div class="box">
+<h3>Login</h3>
+<input id="login-u" placeholder="Username">
+<input id="login-p" type="password" placeholder="Password">
+<button id="login-btn">Login</button>
+<button id="reg-switch">Register</button>
+</div>
+</div>
+
+<!-- PRINT -->
+<div id="print-area" class="print"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

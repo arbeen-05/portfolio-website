@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Online Billing System by Arbin Niroula</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* Extra landing-only upgrades */
+    body{
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    .hero{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:60px 20px;
+    }
+
+    .card{
+      text-align:center;
+      transform: translateY(10px);
+      animation: pop 0.8s ease forwards;
+    }
+
+    @keyframes pop{
+      from{opacity:0; transform: translateY(20px) scale(0.98);}
+      to{opacity:1; transform: translateY(0) scale(1);}
+    }
+
+    .card h2{
+      font-size:28px;
+      margin-bottom:10px;
+      background: linear-gradient(90deg,#7c5cff,#00d4ff);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .card p{
+      color:rgba(255,255,255,0.75);
+      margin:10px 0;
+    }
+
+    .btn{
+      display:inline-block;
+      margin-top:14px;
+      padding:12px 18px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:600;
+      color:white;
+      background: linear-gradient(135deg,#7c5cff,#00d4ff);
+      box-shadow:0 10px 30px rgba(124,92,255,0.25);
+      transition:0.3s;
+    }
+
+    .btn:hover{
+      transform: translateY(-3px) scale(1.02);
+      box-shadow:0 15px 40px rgba(0,212,255,0.25);
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.25);
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+
+    .topbar h1{
+      font-size:18px;
+      letter-spacing:0.5px;
+    }
+
+    nav a{
+      color:white;
+      text-decoration:none;
+      padding:8px 12px;
+      border-radius:8px;
+      background: rgba(255,255,255,0.08);
+      transition:0.2s;
+    }
+
+    nav a:hover{
+      background: rgba(255,255,255,0.15);
+    }
+
+    footer{
+      text-align:center;
+      padding:14px;
+      color:rgba(255,255,255,0.6);
+      font-size:12px;
+    }
+
+    /* floating background particles */
+    .bg-dots{
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: drift 20s linear infinite;
+      opacity:0.3;
+    }
+
+    @keyframes drift{
+      from{transform:translateY(0);}
+      to{transform:translateY(-40px);}
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-dots"></div>
+
+  <header class="topbar">
+    <h1>⚡ Nexa Services</h1>
+    <nav>
+      <a href="billing.html">Open Billing System</a>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <div class="card">
+      <h2>Smart Billing System</h2>
+      <p style="color:black";><b>A fast & responsive billing website with stock, invoices, and transactions.</b></p>
+      <p>Arbin Niroula</p>
+      <a class="btn" href="billing.html">Launch App</a>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Arbin Niroula. All rights reserved.
+  </footer>
+
+</body>
+</html>
