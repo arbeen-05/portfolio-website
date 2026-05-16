@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How I Built My First Personal Website — Arbin Niroula</title>
+  <link rel="icon" href="../../../images/favicon.jpg" type="image/jpeg" />
+  <link rel="stylesheet" href="../../../images/shared.css" />
+  <link rel="stylesheet" href="../../blog.css" />
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <section class="post-single pt-nav">
+    <div class="container">
+      <a href="../../" class="post-back reveal">← Back to Blog</a>
+
+      <div class="post-header reveal">
+        <span class="blog-tag">Web Dev</span>
+        <h1>How I Built My First Personal Website</h1>
+        <div class="post-meta" style="margin-top:1rem">
+          <span>Arbin Niroula</span>
+          <span class="meta-dot">·</span>
+          <span>5 min read</span>
+          <span class="meta-dot">·</span>
+          <span>2026</span>
+        </div>
+      </div>
+
+      <img src="../../../images/blog1.jpg" alt="Building a Personal Website" class="post-hero-img reveal" onerror="this.style.display='none'" />
+
+      <div class="post-content reveal">
+        <p>Building my first personal website was one of the most exciting and rewarding things I've done as a developer. It forced me to bring together everything I'd been learning — HTML structure, CSS styling, and JavaScript interactivity — into one coherent project that represented <em>me</em>.</p>
+
+        <h2>Starting with HTML</h2>
+        <p>I started by learning the basics of HTML, which allowed me to structure content using headings, paragraphs, links, and images. The key insight early on was that HTML is just the skeleton — it tells the browser <em>what</em> things are, not how they should look.</p>
+        <p>I structured my site with a clear hierarchy: a navigation bar at the top, a hero section to introduce myself, sections for my skills and projects, and a contact area at the bottom.</p>
+
+        <h2>Making It Look Good with CSS</h2>
+        <p>Once I had a clear structure, CSS transformed everything. I learned about the box model, flexbox layouts, CSS variables for consistent colors, and media queries for mobile responsiveness. Getting the site to look identical on both a 1440px desktop and a 375px phone was genuinely satisfying.</p>
+        <p>I chose a color scheme that felt personal — dark backgrounds with warm accent colors — and picked fonts from Google Fonts that felt editorial rather than generic.</p>
+
+        <h2>Adding Life with JavaScript</h2>
+        <p>JavaScript came next. I used it to create smooth scrolling between sections, a mobile hamburger menu that toggles open and closed, and small entrance animations triggered when elements scroll into view using the Intersection Observer API. These small touches made the site feel alive.</p>
+
+        <h2>Choosing a Background and Layout</h2>
+        <p>One of the most fun parts was personalising the visual design. I chose a background that matched my aesthetic, arranged sections to flow naturally, and made sure each section had breathing room.</p>
+
+        <h2>What I Learned</h2>
+        <p>Through this process, I not only improved my coding skills but also understood how design, usability, and functionality come together in web development. It was a small project, but it gave me the confidence to build more complex sites and helped me develop a genuine aesthetic sense.</p>
+        <p>If you're thinking about building your own personal site — just start. It doesn't have to be perfect. It just has to be yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+  <script src="../../../images/shared.js"></script>
+  <script>
+    (function () {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    })();
+  </script>
+</body>
+</html>
