@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>404-Page Not Found</title>
+  <title>404 - Page Not Found</title>
 
   <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
 
@@ -18,11 +18,11 @@
     body {
       height: 100vh;
       overflow: hidden;
-      background: #0b0f1a;
-      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: #0b0f1a;
+      color: white;
       text-align: center;
     }
 
@@ -30,8 +30,8 @@
       position: absolute;
       width: 200%;
       height: 200%;
-      background: radial-gradient(circle at center, #1a2a6c, #0b0f1a, #000);
-      animation: moveBg 10s infinite alternate ease-in-out;
+      background: radial-gradient(circle, #1a2a6c, #0b0f1a, #000);
+      animation: moveBg 10s infinite alternate;
       z-index: -2;
     }
 
@@ -42,72 +42,39 @@
 
     .particle {
       position: absolute;
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       background: white;
       border-radius: 50%;
+      opacity: 0.4;
       animation: floatUp linear infinite;
-      opacity: 0.5;
     }
 
     @keyframes floatUp {
-      from { transform: translateY(100vh); opacity: 0; }
-      to { transform: translateY(-10vh); opacity: 1; }
+      from { transform: translateY(100vh); }
+      to { transform: translateY(-10vh); }
     }
 
     .card {
       width: 92%;
-      max-width: 420px;
-      padding: 22px;
+      max-width: 520px;
+      padding: 20px;
       border-radius: 18px;
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(10px);
       box-shadow: 0 0 40px rgba(0,0,0,0.5);
-      animation: popIn 0.7s ease-out;
     }
 
-    @keyframes popIn {
-      from { transform: scale(0.6); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid white;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
-      70% { box-shadow: 0 0 0 18px rgba(255,255,255,0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
-    }
-
-    h1 {
-      font-size: 68px;
-      animation: glitch 1.5s infinite;
-    }
-
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px,2px); }
-      40% { transform: translate(2px,-2px); }
-      60% { transform: translate(-1px,1px); }
-      80% { transform: translate(1px,-1px); }
-      100% { transform: translate(0); }
-    }
+    h1 { font-size: 60px; }
 
     p {
-      opacity: 0.8;
+      opacity: 0.85;
       margin: 8px 0;
     }
 
     .btn {
       display: inline-block;
-      margin-top: 10px;
+      margin: 6px 5px;
       padding: 10px 16px;
       border-radius: 10px;
       background: linear-gradient(45deg, #ff4b2b, #ff416c);
@@ -115,49 +82,54 @@
       text-decoration: none;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
       border: none;
     }
 
-    .btn:hover {
-      transform: scale(1.08);
+    /* GAME */
+    .game { display: none; margin-top: 10px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
     }
 
-    /* GAME BUTTONS */
-    .gameBox {
-      display: none;
-      margin-top: 12px;
-    }
-
-    .fixGame {
-      display: none;
-      margin-top: 12px;
-    }
-
-    .draggable {
-      width: 130px;
-      padding: 10px;
-      margin: 10px auto;
-      background: #ff416c;
+    .cardBox {
+      aspect-ratio: 1;
+      background: #1f2a44;
       border-radius: 10px;
-      cursor: grab;
-    }
-
-    .dropZone {
-      width: 200px;
-      height: 90px;
-      margin: 10px auto;
-      border: 2px dashed white;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
+      cursor: pointer;
+      font-size: 22px;
+      user-select: none;
     }
 
-    /* MOBILE FIX */
+    .flipped { background: #ff416c; }
+    .matched { background: #4caf50; cursor: default; }
+
+    /* CAMERA */
+    .cameraBox {
+      display: none;
+      margin-top: 12px;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
     @media (max-width: 600px) {
-      h1 { font-size: 48px; }
-      .avatar { width: 95px; height: 95px; }
+      h1 { font-size: 42px; }
     }
 
   </style>
@@ -169,32 +141,38 @@
 
 <div class="card">
 
-  <img src="images/profile.jpg" class="avatar" alt="profile">
-
   <h1>404</h1>
-  <p>This page is broken in the multiverse.</p>
+
+  <p>Page not found. Even this URL gave up on life.</p>
 
   <a class="btn" href="https://www.niroulaarbin.com.np">Back to homepage</a>
+  <button class="btn" onclick="startGame()">Play Game</button>
 
-  <button class="btn" onclick="startFixGame()">Fix the Page</button>
-
-  <div class="fixGame" id="fixGame">
-
-    <p>Drag items to fix the system</p>
-
-    <div class="dropZone" id="zone">Drop Zone</div>
-
-    <div class="draggable" draggable="true" id="item1">404 TITLE</div>
-    <div class="draggable" draggable="true" id="item2">HOME BUTTON</div>
-
+  <div class="game" id="game">
+    <p>Match all pairs</p>
+    <div class="grid" id="grid"></div>
     <p id="status"></p>
+  </div>
+
+  <br>
+
+  <button class="btn" onclick="reportJoker()">Report as Joker Website🤡</button>
+
+  <div class="cameraBox" id="cameraBox">
+    <p id="msg"></p>
+    <button class="btn" onclick="openCamera()">Open Front Camera</button>
+    <video id="video" autoplay playsinline></video>
+  </div>
+
+  <div class="footer">
+    Copyright Arbin Niroula 2026
   </div>
 
 </div>
 
 <script>
   // particles
-  const count = window.innerWidth < 600 ? 15 : 35;
+  const count = window.innerWidth < 600 ? 15 : 30;
 
   for (let i = 0; i < count; i++) {
     const p = document.createElement("div");
@@ -205,32 +183,91 @@
   }
 
   // GAME LOGIC
-  function startFixGame() {
-    document.getElementById("fixGame").style.display = "block";
+  const symbols = ["🍕","🚀","🎮","⚡","🔥","💀","🌙","🧠"];
+  let cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+
+  let first = null;
+  let lock = false;
+  let matched = 0;
+
+  const grid = document.getElementById("grid");
+
+  function startGame() {
+    document.getElementById("game").style.display = "block";
+    render();
   }
 
-  let dragged = null;
+  function render() {
+    grid.innerHTML = "";
+    cards.forEach(val => {
+      const div = document.createElement("div");
+      div.className = "cardBox";
+      div.innerText = "❓";
+      div.dataset.value = val;
 
-  document.querySelectorAll(".draggable").forEach(el => {
-    el.addEventListener("dragstart", () => {
-      dragged = el;
+      div.onclick = () => flip(div);
+      grid.appendChild(div);
     });
-  });
+  }
 
-  const zone = document.getElementById("zone");
+  function flip(card) {
+    if (lock || card.classList.contains("matched")) return;
 
-  zone.addEventListener("dragover", e => {
-    e.preventDefault();
-  });
+    card.innerText = card.dataset.value;
+    card.classList.add("flipped");
 
-  zone.addEventListener("drop", () => {
-    if (dragged) {
-      dragged.remove();
-      zone.innerHTML = "SYSTEM FIXED ✔";
-      document.getElementById("status").innerText =
-        "Page restored successfully";
+    if (!first) {
+      first = card;
+      return;
     }
-  });
+
+    if (first.dataset.value === card.dataset.value) {
+      first.classList.add("matched");
+      card.classList.add("matched");
+      matched += 2;
+      first = null;
+
+      if (matched === cards.length) {
+        document.getElementById("status").innerText =
+          "All matched. System slightly less broken now.";
+      }
+
+    } else {
+      lock = true;
+      setTimeout(() => {
+        first.innerText = "❓";
+        card.innerText = "❓";
+        first.classList.remove("flipped");
+        card.classList.remove("flipped");
+        first = null;
+        lock = false;
+      }, 600);
+    }
+  }
+
+  // JOKER BUTTON + CAMERA
+  function reportJoker() {
+    document.getElementById("cameraBox").style.display = "block";
+    document.getElementById("msg").innerText =
+      "See your face in the mirror once, then come to talk to me😏\nClick to open front camera to see yourself first";
+  }
+
+  function openCamera() {
+    const video = document.getElementById("video");
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(() => {
+      document.getElementById("msg").innerText =
+        "Camera blocked. Even your device refused this request.";
+    });
+  }
+
 </script>
 
 </body>
