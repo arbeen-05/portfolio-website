@@ -145,7 +145,6 @@
     @media (max-width: 600px) {
       h1 { font-size: 42px; }
     }
-
   </style>
 </head>
 
@@ -166,16 +165,23 @@
 
   <button class="btn" id="gameBtn" onclick="toggleGame()">Play Game</button>
 
+  <!-- GAME -->
   <div class="game" id="game">
     <p>Match all pairs</p>
     <div class="grid" id="grid"></div>
     <p id="status"></p>
   </div>
 
-  <button class="btn" id="camBtn" onclick="toggleCamera()">Open Front Camera</button>
+  <!-- JOKER BUTTON -->
+  <button class="btn" id="jokerBtn" onclick="toggleJoker()">Report as Joker Website🤡</button>
 
-  <div class="cameraBox" id="cameraBox">
+  <div id="jokerBox" style="display:none;">
     <p id="msg"></p>
+    <button class="btn" id="cameraBtn" onclick="toggleCamera()">Open Front Camera</button>
+  </div>
+
+  <!-- CAMERA -->
+  <div class="cameraBox" id="cameraBox">
     <video id="video" autoplay playsinline></video>
   </div>
 
@@ -277,47 +283,78 @@
     }
   }
 
-  let camOpen = false;
+  // JOKER FLOW
+  let jokerOpen = false;
   let streamRef = null;
 
-  function toggleCamera() {
-    const box = document.getElementById("cameraBox");
-    const video = document.getElementById("video");
-    const btn = document.getElementById("camBtn");
-    const msg = document.getElementById("msg");
+  function toggleJoker() {
+    const jokerBtn = document.getElementById("jokerBtn");
+    const jokerBox = document.getElementById("jokerBox");
 
-    camOpen = !camOpen;
-
-    if (camOpen) {
-      box.style.display = "block";
-      btn.innerText = "Close Camera";
-
-      msg.innerText = "Front camera active";
-
-      navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false
-      })
-      .then(stream => {
-        streamRef = stream;
-        video.srcObject = stream;
-      })
-      .catch(() => {
-        msg.innerText = "Camera blocked by browser";
-        camOpen = false;
-        box.style.display = "none";
-        btn.innerText = "Open Front Camera";
-      });
-
+    if (!jokerOpen) {
+      // Open joker section
+      jokerOpen = true;
+      jokerBox.style.display = "block";
+      document.getElementById("msg").innerText =
+        "See your face in the mirror once, then come to talk to me😏\nClick below to open front camera to see yourself first";
+      jokerBtn.innerText = "Sorry, I realised";
     } else {
-      if (streamRef) {
-        streamRef.getTracks().forEach(t => t.stop());
-      }
-
-      video.srcObject = null;
-      box.style.display = "none";
-      btn.innerText = "Open Front Camera";
+      // Close everything and reset
+      jokerOpen = false;
+      stopCamera();
+      jokerBox.style.display = "none";
+      document.getElementById("cameraBox").style.display = "none";
+      document.getElementById("cameraBtn").innerText = "Open Front Camera";
+      jokerBtn.innerText = "Report as Joker Website🤡";
     }
+  }
+
+  // CAMERA TOGGLE
+  let cameraOpen = false;
+
+  function toggleCamera() {
+    const cameraBtn = document.getElementById("cameraBtn");
+
+    if (!cameraOpen) {
+      openCamera();
+    } else {
+      stopCamera();
+      cameraBtn.innerText = "Open Front Camera";
+      cameraOpen = false;
+    }
+  }
+
+  function openCamera() {
+    const video = document.getElementById("video");
+    const camBox = document.getElementById("cameraBox");
+    const cameraBtn = document.getElementById("cameraBtn");
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    })
+    .then(stream => {
+      streamRef = stream;
+      video.srcObject = stream;
+      camBox.style.display = "block";
+      cameraBtn.innerText = "Close Camera";
+      cameraOpen = true;
+    })
+    .catch(() => {
+      document.getElementById("msg").innerText =
+        "Camera blocked. Device refused.";
+    });
+  }
+
+  function stopCamera() {
+    const video = document.getElementById("video");
+    if (streamRef) {
+      streamRef.getTracks().forEach(track => track.stop());
+      streamRef = null;
+    }
+    video.srcObject = null;
+    document.getElementById("cameraBox").style.display = "none";
+    cameraOpen = false;
   }
 </script>
 
