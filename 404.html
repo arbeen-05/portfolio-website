@@ -16,8 +16,9 @@
     }
 
     body {
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -63,6 +64,16 @@
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(10px);
       box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      margin: 30px 0;
+    }
+
+    .avatar {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      margin-bottom: 10px;
     }
 
     h1 { font-size: 60px; }
@@ -86,7 +97,10 @@
     }
 
     /* GAME */
-    .game { display: none; margin-top: 10px; }
+    .game {
+      display: none;
+      margin-top: 12px;
+    }
 
     .grid {
       display: grid;
@@ -141,12 +155,16 @@
 
 <div class="card">
 
+  <!-- PROFILE -->
+  <img src="images/pfp2.jpg" class="avatar" alt="profile">
+
   <h1>404</h1>
 
   <p>Page not found. Even this URL gave up on life.</p>
 
   <a class="btn" href="https://www.niroulaarbin.com.np">Back to homepage</a>
-  <button class="btn" onclick="startGame()">Play Game</button>
+
+  <button class="btn" id="gameBtn" onclick="toggleGame()">Play Game</button>
 
   <div class="game" id="game">
     <p>Match all pairs</p>
@@ -154,13 +172,10 @@
     <p id="status"></p>
   </div>
 
-  <br>
-
-  <button class="btn" onclick="reportJoker()">Report as Joker Website🤡</button>
+  <button class="btn" id="camBtn" onclick="toggleCamera()">Open Front Camera</button>
 
   <div class="cameraBox" id="cameraBox">
     <p id="msg"></p>
-    <button class="btn" onclick="openCamera()">Open Front Camera</button>
     <video id="video" autoplay playsinline></video>
   </div>
 
@@ -182,7 +197,7 @@
     document.body.appendChild(p);
   }
 
-  // GAME LOGIC
+  // GAME
   const symbols = ["🍕","🚀","🎮","⚡","🔥","💀","🌙","🧠"];
   let cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
 
@@ -192,13 +207,9 @@
 
   const grid = document.getElementById("grid");
 
-  function startGame() {
-    document.getElementById("game").style.display = "block";
-    render();
-  }
-
   function render() {
     grid.innerHTML = "";
+
     cards.forEach(val => {
       const div = document.createElement("div");
       div.className = "cardBox";
@@ -234,6 +245,7 @@
 
     } else {
       lock = true;
+
       setTimeout(() => {
         first.innerText = "❓";
         card.innerText = "❓";
@@ -245,29 +257,68 @@
     }
   }
 
-  // JOKER BUTTON + CAMERA
-  function reportJoker() {
-    document.getElementById("cameraBox").style.display = "block";
-    document.getElementById("msg").innerText =
-      "See your face in the mirror once, then come to talk to me😏\nClick to open front camera to see yourself first";
+  let gameOpen = false;
+
+  function toggleGame() {
+    const game = document.getElementById("game");
+    const btn = document.getElementById("gameBtn");
+
+    gameOpen = !gameOpen;
+
+    if (gameOpen) {
+      game.style.display = "block";
+      btn.innerText = "Close Game";
+      matched = 0;
+      first = null;
+      render();
+    } else {
+      game.style.display = "none";
+      btn.innerText = "Play Game";
+    }
   }
 
-  function openCamera() {
+  let camOpen = false;
+  let streamRef = null;
+
+  function toggleCamera() {
+    const box = document.getElementById("cameraBox");
     const video = document.getElementById("video");
+    const btn = document.getElementById("camBtn");
+    const msg = document.getElementById("msg");
 
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
-    })
-    .then(stream => {
-      video.srcObject = stream;
-    })
-    .catch(() => {
-      document.getElementById("msg").innerText =
-        "Camera blocked. Even your device refused this request.";
-    });
+    camOpen = !camOpen;
+
+    if (camOpen) {
+      box.style.display = "block";
+      btn.innerText = "Close Camera";
+
+      msg.innerText = "Front camera active";
+
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      })
+      .then(stream => {
+        streamRef = stream;
+        video.srcObject = stream;
+      })
+      .catch(() => {
+        msg.innerText = "Camera blocked by browser";
+        camOpen = false;
+        box.style.display = "none";
+        btn.innerText = "Open Front Camera";
+      });
+
+    } else {
+      if (streamRef) {
+        streamRef.getTracks().forEach(t => t.stop());
+      }
+
+      video.srcObject = null;
+      box.style.display = "none";
+      btn.innerText = "Open Front Camera";
+    }
   }
-
 </script>
 
 </body>
