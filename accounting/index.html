@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizLedger — Billing & Journal</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #f5f2ee;
+  --bg2: #ede9e3;
+  --surface: #ffffff;
+  --surface2: #faf8f5;
+  --border: #ddd8d0;
+  --text: #1a1714;
+  --text2: #6b6560;
+  --text3: #9b948d;
+  --accent: #c4622d;
+  --accent2: #e8956a;
+  --accent-bg: #fdf0e8;
+  --green: #2d7a4f;
+  --green-bg: #e8f5ee;
+  --red: #c42d2d;
+  --red-bg: #fde8e8;
+  --blue: #2d4fc4;
+  --blue-bg: #e8edfb;
+  --shadow: 0 1px 3px rgba(26,23,20,0.08), 0 4px 12px rgba(26,23,20,0.04);
+  --shadow-lg: 0 8px 32px rgba(26,23,20,0.12);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --nav-w: 220px;
+}
+
+[data-theme="dark"] {
+  --bg: #141210;
+  --bg2: #1e1b18;
+  --surface: #252018;
+  --surface2: #2e2820;
+  --border: #3a342c;
+  --text: #f0ebe4;
+  --text2: #a09890;
+  --text3: #6b6560;
+  --accent: #e8956a;
+  --accent2: #c4622d;
+  --accent-bg: #2e1f14;
+  --green: #5ab87c;
+  --green-bg: #152217;
+  --red: #e87070;
+  --red-bg: #2e1515;
+  --blue: #7090e8;
+  --blue-bg: #151d2e;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── Layout ─────────────────────────────── */
+#app { display: flex; height: 100vh; overflow: hidden; }
+
+nav#sidebar {
+  width: var(--nav-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.25s ease;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+.sidebar-logo p {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-family: 'DM Mono', monospace;
+}
+
+nav#sidebar ul { list-style: none; padding: 12px 10px; flex: 1; }
+nav#sidebar ul li { margin-bottom: 2px; }
+nav#sidebar ul li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+nav#sidebar ul li a:hover { background: var(--bg2); color: var(--text); }
+nav#sidebar ul li a.active { background: var(--accent-bg); color: var(--accent); }
+nav#sidebar ul li a .icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+.sidebar-footer button {
+  flex: 1;
+  padding: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.sidebar-footer button:hover { background: var(--bg2); color: var(--text); }
+
+main#content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: var(--bg);
+}
+
+/* ─── Mobile nav toggle ──────────────────── */
+#menu-btn {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 200;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+@media (max-width: 700px) {
+  #menu-btn { display: block; }
+  nav#sidebar {
+    position: fixed; top: 0; left: 0; height: 100%;
+    transform: translateX(-100%);
+  }
+  nav#sidebar.open { transform: translateX(0); }
+  main#content { padding: 20px 16px; padding-top: 56px; }
+}
+
+/* ─── Page header ────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.page-header h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--text);
+}
+.page-header p { color: var(--text2); font-size: 13px; margin-top: 2px; }
+
+/* ─── Cards ──────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+/* ─── Buttons ────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+.btn-green:hover { background: var(--green); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 7px 8px; }
+
+/* ─── Form elements ──────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  transition: border-color 0.15s;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+textarea { resize: vertical; min-height: 72px; }
+input[type="file"] { padding: 6px; }
+
+/* ─── Tables ─────────────────────────────── */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+table th {
+  background: var(--bg2);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+table td {
+  padding: 11px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px;
+  color: var(--text);
+}
+table tr:hover td { background: var(--surface2); }
+table .mono { font-family: 'DM Mono', monospace; font-size: 12.5px; }
+table .amount { text-align: right; font-family: 'DM Mono', monospace; }
+
+/* ─── Badge ──────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-orange { background: var(--accent-bg); color: var(--accent); }
+
+/* ─── Stats grid ─────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); font-weight: 600; }
+.stat-card .value { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; margin: 4px 0 2px; color: var(--text); }
+.stat-card .sub { font-size: 11.5px; color: var(--text2); }
+
+/* ─── Search box ─────────────────────────── */
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 34px; }
+.search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+
+/* ─── Autocomplete dropdown ──────────────── */
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  max-height: 180px;
+  overflow-y: auto;
+  display: none;
+}
+.autocomplete-list.open { display: block; }
+.autocomplete-list li {
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  list-style: none;
+  border-bottom: 1px solid var(--border);
+}
+.autocomplete-list li:last-child { border-bottom: none; }
+.autocomplete-list li:hover { background: var(--accent-bg); color: var(--accent); }
+.autocomplete-list li.add-new { color: var(--accent); font-weight: 600; }
+
+/* ─── Invoice items table ────────────────── */
+.items-table { width: 100%; border-collapse: collapse; }
+.items-table th {
+  background: var(--bg2);
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text2);
+  text-align: left;
+}
+.items-table td { padding: 6px 4px; border-bottom: 1px solid var(--border); }
+.items-table td input { padding: 7px 9px; font-size: 13px; }
+.items-table .total-col { text-align: right; font-family: 'DM Mono', monospace; padding-right: 10px; font-size: 13px; color: var(--text); }
+
+/* ─── Total box ──────────────────────────── */
+.total-box {
+  background: var(--bg2);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-top: 10px;
+}
+.total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13.5px; }
+.total-row.grand { font-weight: 700; font-size: 16px; color: var(--accent); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; font-family: 'Fraunces', serif; }
+.total-row span:last-child { font-family: 'DM Mono', monospace; }
+
+/* ─── Modals ─────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal h3 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 18px; }
+.modal .close-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 18px; color: var(--text2);
+}
+
+/* ─── Sections ───────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ─── Print ──────────────────────────────── */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area {
+    position: fixed; inset: 0;
+    width: 210mm; min-height: 297mm;
+    padding: 15mm 20mm;
+    background: #fff; color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11pt;
+  }
+}
+
+#print-area { display: none; }
+
+.print-invoice {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 20mm;
+  background: #fff;
+  color: #000;
+  font-size: 10pt;
+  font-family: 'DM Sans', sans-serif;
+}
+.print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1714; padding-bottom: 10px; margin-bottom: 14px; }
+.print-company h1 { font-family: 'Fraunces', serif; font-size: 22pt; font-weight: 700; color: #c4622d; }
+.print-company p { font-size: 9pt; color: #555; margin-top: 2px; }
+.print-inv-info { text-align: right; }
+.print-inv-info .inv-no { font-family: 'DM Mono', monospace; font-size: 14pt; font-weight: 700; }
+.print-inv-info p { font-size: 9pt; color: #555; }
+.print-party { margin: 10px 0; font-size: 9.5pt; }
+.print-party strong { display: block; margin-bottom: 3px; font-size: 10pt; }
+.print-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
+.print-table th { background: #1a1714; color: #fff; padding: 6px 8px; text-align: left; }
+.print-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
+.print-table .r { text-align: right; }
+.print-totals { width: 200px; margin-left: auto; margin-top: 8px; }
+.print-totals tr td { padding: 3px 6px; font-size: 9.5pt; }
+.print-totals .grand td { font-weight: 700; font-size: 11pt; border-top: 2px solid #1a1714; }
+.print-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8.5pt; color: #777; display: flex; justify-content: space-between; }
+
+/* ─── Divider ────────────────────────────── */
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ─── Misc ───────────────────────────────── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
+.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+.empty-state p { font-size: 14px; }
+
+.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
+.ml-auto { margin-left: auto; }
+.text-right { text-align: right; }
+.text-green { color: var(--green); }
+.text-red { color: var(--red); }
+.text-accent { color: var(--accent); }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* ─── Inline note ────────────────────────── */
+.inline-info {
+  background: var(--blue-bg);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  margin-bottom: 12px;
+}
+
+.setting-section { margin-bottom: 24px; }
+.setting-section h3 { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* logo preview */
+#logo-preview { max-width: 100px; max-height: 60px; border-radius: 4px; border: 1px solid var(--border); }
+</style>
+</head>
+<body data-theme="light">
+
+<button id="menu-btn" onclick="toggleNav()">☰</button>
+
+<div id="app">
+<!-- ─── Sidebar ─────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <h1>BizLedger</h1>
+    <p class="mono" id="nav-company-name">Your Company</p>
+  </div>
+  <ul>
+    <li><a href="#" class="active" onclick="nav('dashboard',this)"><span class="icon">📊</span> Dashboard</a></li>
+    <li><a href="#" onclick="nav('invoice',this)"><span class="icon">🧾</span> New Invoice</a></li>
+    <li><a href="#" onclick="nav('invoices',this)"><span class="icon">📋</span> Invoices</a></li>
+    <li><a href="#" onclick="nav('parties',this)"><span class="icon">👥</span> Parties</a></li>
+    <li><a href="#" onclick="nav('payments',this)"><span class="icon">💰</span> Payments</a></li>
+    <li><a href="#" onclick="nav('journal',this)"><span class="icon">📒</span> Journal</a></li>
+    <li><a href="#" onclick="nav('settings',this)"><span class="icon">⚙️</span> Settings</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button onclick="exportBackup()">💾 Backup</button>
+    <button onclick="document.getElementById('restore-file').click()">📂 Restore</button>
+    <input type="file" id="restore-file" accept=".json" style="display:none" onchange="importBackup(this)">
+  </div>
+</nav>
+
+<!-- ─── Main Content ───────────────────── -->
+<main id="content">
+
+<!-- Dashboard -->
+<div id="sec-dashboard" class="section active">
+  <div class="page-header">
+    <div><h2>Dashboard</h2><p id="dash-date" class="mono"></p></div>
+    <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Dark Mode</button>
+  </div>
+  <div class="stats-grid" id="dash-stats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Recent Invoices</div>
+      <div id="dash-recent-invoices"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Top Parties by Due</div>
+      <div id="dash-top-due"></div>
+    </div>
+  </div>
+</div>
+
+<!-- New Invoice -->
+<div id="sec-invoice" class="section">
+  <div class="page-header">
+    <div><h2 id="inv-form-title">New Invoice</h2><p>Create a sales invoice</p></div>
+    <button class="btn btn-secondary" onclick="resetInvoiceForm()">+ New</button>
+  </div>
+  <div class="card">
+    <div class="form-row" style="margin-bottom:16px">
+      <div class="form-group" style="margin-bottom:0">
+        <label>Invoice No.</label>
+        <input type="text" id="inv-no" placeholder="Auto-generated" readonly style="background:var(--bg2)">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Date (BS)</label>
+        <input type="text" id="inv-date-bs" readonly style="background:var(--bg2)">
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:16px">
+      <div class="form-group autocomplete-wrap" style="margin-bottom:0">
+        <label>Party / Customer</label>
+        <input type="text" id="inv-party-input" placeholder="Search or type party name..." autocomplete="off" oninput="acParty(this,'inv-party-id','inv-ac')">
+        <input type="hidden" id="inv-party-id">
+        <ul class="autocomplete-list" id="inv-ac"></ul>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Note / Description</label>
+        <input type="text" id="inv-note" placeholder="Optional note">
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;margin-bottom:12px">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="min-width:160px">Item Name</th>
+            <th style="min-width:80px">Qty</th>
+            <th style="min-width:90px">Rate (Rs.)</th>
+            <th style="min-width:90px">Discount (%)</th>
+            <th style="min-width:90px;text-align:right">Amount</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="inv-items-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="addInvItem()">+ Add Item</button>
+
+    <div style="max-width:320px;margin-left:auto;margin-top:12px">
+      <div class="total-box">
+        <div class="total-row"><span>Subtotal</span><span id="inv-subtotal">0.00</span></div>
+        <div class="total-row"><span>Total Discount</span><span id="inv-total-disc">0.00</span></div>
+        <div class="total-row grand"><span>Net Total</span><span id="inv-net-total">0.00</span></div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="flex-gap">
+      <button class="btn btn-primary" onclick="saveInvoice()">💾 Save Invoice</button>
+      <button class="btn btn-secondary" onclick="printCurrentInvoice()">🖨 Print</button>
+    </div>
+    <input type="hidden" id="inv-editing-id">
+  </div>
+</div>
+
+<!-- Invoices List -->
+<div id="sec-invoices" class="section">
+  <div class="page-header">
+    <div><h2>Invoices</h2><p>All saved invoices</p></div>
+    <div class="flex-gap">
+      <div class="search-wrap"><input type="text" id="inv-search" placeholder="Search invoices..." oninput="renderInvoicesTable()" style="width:200px"></div>
+      <button class="btn btn-primary" onclick="nav('invoice',null)">+ New Invoice</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Inv. No</th><th>Date (BS)</th><th>Party</th><th>Items</th><th class="amount">Total (Rs.)</th><th>Status</th><th>Actions</th></tr></the
