@@ -385,13 +385,13 @@ table .amount { text-align: right; font-family: 'DM Mono', monospace; }
 .section.active { display: block; }
 
 /* ─── Print ──────────────────────────────── */
+@page { size: A4 portrait; margin: 50mm; }
+
 @media print {
   body * { visibility: hidden; }
   #print-area, #print-area * { visibility: visible; }
   #print-area {
     position: fixed; inset: 0;
-    width: 210mm; min-height: 297mm;
-    padding: 15mm 20mm;
     background: #fff; color: #000;
     font-family: 'DM Sans', sans-serif;
     font-size: 11pt;
@@ -401,19 +401,17 @@ table .amount { text-align: right; font-family: 'DM Mono', monospace; }
 #print-area { display: none; }
 
 .print-invoice {
-  width: 210mm;
-  min-height: 297mm;
-  padding: 15mm 20mm;
+  width: 100%;
   background: #fff;
   color: #000;
   font-size: 10pt;
   font-family: 'DM Sans', sans-serif;
 }
 .print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1714; padding-bottom: 10px; margin-bottom: 14px; }
-.print-company h1 { font-family: 'Fraunces', serif; font-size: 22pt; font-weight: 700; color: #c4622d; }
+.print-company h1 { font-family: 'Fraunces', serif; font-size: 20pt; font-weight: 700; color: #c4622d; }
 .print-company p { font-size: 9pt; color: #555; margin-top: 2px; }
 .print-inv-info { text-align: right; }
-.print-inv-info .inv-no { font-family: 'DM Mono', monospace; font-size: 14pt; font-weight: 700; }
+.print-inv-info .inv-no { font-family: 'DM Mono', monospace; font-size: 13pt; font-weight: 700; }
 .print-inv-info p { font-size: 9pt; color: #555; }
 .print-party { margin: 10px 0; font-size: 9.5pt; }
 .print-party strong { display: block; margin-bottom: 3px; font-size: 10pt; }
@@ -421,10 +419,10 @@ table .amount { text-align: right; font-family: 'DM Mono', monospace; }
 .print-table th { background: #1a1714; color: #fff; padding: 6px 8px; text-align: left; }
 .print-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
 .print-table .r { text-align: right; }
-.print-totals { width: 200px; margin-left: auto; margin-top: 8px; }
-.print-totals tr td { padding: 3px 6px; font-size: 9.5pt; }
-.print-totals .grand td { font-weight: 700; font-size: 11pt; border-top: 2px solid #1a1714; }
-.print-footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8.5pt; color: #777; display: flex; justify-content: space-between; }
+.print-totals { width: 210px; margin-left: auto; margin-top: 8px; }
+.print-totals tr td { padding: 4px 6px; font-size: 9.5pt; }
+.print-totals .grand td { font-weight: 700; font-size: 12pt; border-top: 2px solid #1a1714; padding-top: 6px; }
+.print-footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8.5pt; color: #777; display: flex; justify-content: space-between; }
 
 /* ─── Divider ────────────────────────────── */
 hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
@@ -522,8 +520,18 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
         <input type="text" id="inv-no" placeholder="Auto-generated" readonly style="background:var(--bg2)">
       </div>
       <div class="form-group" style="margin-bottom:0">
-        <label>Date (BS)</label>
-        <input type="text" id="inv-date-bs" readonly style="background:var(--bg2)">
+        <label>Date (BS) <span id="inv-date-fetch-status" style="font-size:10px;font-weight:400;color:var(--text3);margin-left:4px"></span></label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="inv-date-bs" placeholder="YYYY-MM-DD" style="flex:1" oninput="syncBSPicker(this.value)">
+          <button type="button" class="btn btn-secondary btn-sm btn-icon" title="Pick BS date" onclick="toggleBSPicker()" style="flex-shrink:0">📅</button>
+        </div>
+        <div id="bs-picker" style="display:none;margin-top:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div><label style="font-size:10px">Year</label><select id="bsp-year" onchange="applyBSPicker()" style="padding:5px 6px;font-size:12px"></select></div>
+            <div><label style="font-size:10px">Month</label><select id="bsp-month" onchange="applyBSPicker()" style="padding:5px 6px;font-size:12px"></select></div>
+            <div><label style="font-size:10px">Day</label><select id="bsp-day" onchange="applyBSPicker()" style="padding:5px 6px;font-size:12px"></select></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="form-row" style="margin-bottom:16px">
@@ -558,9 +566,17 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
 
     <div style="max-width:320px;margin-left:auto;margin-top:12px">
       <div class="total-box">
-        <div class="total-row"><span>Subtotal</span><span id="inv-subtotal">0.00</span></div>
-        <div class="total-row"><span>Total Discount</span><span id="inv-total-disc">0.00</span></div>
-        <div class="total-row grand"><span>Net Total</span><span id="inv-net-total">0.00</span></div>
+        <div class="total-row"><span>Subtotal</span><span id="inv-subtotal">0</span></div>
+        <div class="total-row"><span>Total Discount</span><span id="inv-total-disc">0</span></div>
+        <div class="total-row grand"><span>Net Total</span><span id="inv-net-total">0</span></div>
+      </div>
+      <div style="margin-top:10px;background:var(--accent-bg);border:1px solid var(--accent2);border-radius:var(--radius-sm);padding:10px 12px">
+        <label style="color:var(--accent)">Grand Total on Invoice (customizable)</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <input type="number" id="inv-grand-total" placeholder="Leave blank to use Net Total" step="1" min="0" style="flex:1;border-color:var(--accent2)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('inv-grand-total').value=''" title="Reset to auto">↺</button>
+        </div>
+        <div style="font-size:11px;color:var(--accent);margin-top:4px">Override the printed total. Leave blank to use calculated net total.</div>
       </div>
     </div>
 
@@ -584,4 +600,1017 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Inv. No</th><th>Date (BS)</th><th>Party</th><th>Items</th><th class="amount">Total (Rs.)</th><th>Status</th><th>Actions</th></tr></the
+      <thead><tr><th>Inv. No</th><th>Date (BS)</th><th>Party</th><th>Items</th><th class="amount">Total (Rs.)</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="invoices-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Parties -->
+<div id="sec-parties" class="section">
+  <div class="page-header">
+    <div><h2>Parties</h2><p>Manage customers & vendors</p></div>
+    <button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+  </div>
+  <div class="search-wrap" style="margin-bottom:16px"><input type="text" id="party-search" placeholder="Search parties..." oninput="renderPartiesTable()" style="max-width:300px"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="amount">Total Billed</th><th class="amount">Total Received</th><th class="amount">Due</th><th>Actions</th></tr></thead>
+      <tbody id="parties-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Payments -->
+<div id="sec-payments" class="section">
+  <div class="page-header">
+    <div><h2>Payments</h2><p>Record amount received</p></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <h3 style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:16px">Receive Payment</h3>
+      <div class="form-group autocomplete-wrap">
+        <label>Select Party</label>
+        <input type="text" id="pay-party-input" placeholder="Search party..." autocomplete="off" oninput="acParty(this,'pay-party-id','pay-ac');loadPartyBalance()">
+        <input type="hidden" id="pay-party-id">
+        <ul class="autocomplete-list" id="pay-ac"></ul>
+      </div>
+      <div class="card" style="background:var(--bg2);margin-bottom:14px">
+        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Billed</span><span class="mono" id="pay-billed">Rs. 0.00</span></div>
+        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Received</span><span class="mono" id="pay-received-so-far">Rs. 0.00</span></div>
+        <div class="total-row" style="font-size:13px;font-weight:700;color:var(--red)"><span>Due Amount</span><span class="mono" id="pay-due">Rs. 0.00</span></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Amount Received</label>
+          <input type="number" id="pay-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Discount (Rs.)</label>
+          <input type="number" id="pay-discount" placeholder="0.00" min="0" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select id="pay-method">
+          <option value="Cash">Cash</option>
+          <option value="eSewa">eSewa</option>
+          <option value="Others">Others</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="pay-note" placeholder="Optional note">
+      </div>
+      <button class="btn btn-primary" onclick="savePayment()" style="width:100%">💰 Save Payment</button>
+    </div>
+    <div class="card">
+      <div style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:16px">Payment History</div>
+      <div id="payment-history"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Journal -->
+<div id="sec-journal" class="section">
+  <div class="page-header">
+    <div><h2>Journal</h2><p>Double-entry bookkeeping</p></div>
+    <div class="flex-gap">
+      <div class="search-wrap"><input type="text" id="jrn-search" placeholder="Search journal..." oninput="renderJournal()" style="width:180px"></div>
+      <button class="btn btn-green" onclick="exportJournalXLSX()">📊 Export Excel</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date (BS)</th><th>Party</th><th>Description</th><th>Account</th><th class="amount">Debit (Rs.)</th><th class="amount">Credit (Rs.)</th></tr></thead>
+      <tbody id="journal-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="sec-settings" class="section">
+  <div class="page-header"><h2>Settings</h2></div>
+  <div class="card" style="max-width:540px">
+    <div class="setting-section">
+      <h3>🏢 Company Info</h3>
+      <div class="form-group"><label>Company Name</label><input type="text" id="set-company" placeholder="Your Business Name"></div>
+      <div class="form-group"><label>Address</label><input type="text" id="set-address" placeholder="Street, City"></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="set-phone" placeholder="+977-..."></div>
+      <div class="form-group"><label>Username (for print footer)</label><input type="text" id="set-username" placeholder="Your name"></div>
+      <div class="form-group" style="background:var(--accent-bg); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--accent2)">
+        <label style="color:var(--accent); font-weight:700">📅 Today's Date (BS)</label>
+        <input type="text" id="set-today-date-bs" placeholder="YYYY-MM-DD" style="border-color:var(--accent2)">
+        <span style="font-size:11px; color:var(--text2); display:block; margin-top:4px">This locked date will run globally on invoices, logs, and dashboards until you manually edit it here.</span>
+      </div>
+    </div>
+    <div class="setting-section">
+      <h3>🖼 Logo</h3>
+      <div class="form-group">
+        <input type="file" id="set-logo" accept="image/*" onchange="handleLogo(this)">
+        <div style="margin-top:8px"><img id="logo-preview" style="display:none"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ─── Party Modal ─────────────────────── -->
+<div class="modal-overlay" id="party-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('party-modal')">✕</button>
+    <h3 id="party-modal-title">Add Party</h3>
+    <div class="form-group"><label>Name *</label><input type="text" id="pm-name" placeholder="Party / Customer name"></div>
+    <div class="form-group"><label>Phone</label><input type="text" id="pm-phone" placeholder="+977-..."></div>
+    <div class="form-group"><label>Address</label><input type="text" id="pm-address" placeholder="City / Address"></div>
+    <input type="hidden" id="pm-id">
+    <div class="flex-gap">
+      <button class="btn btn-primary" onclick="saveParty()">💾 Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('party-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Print area ──────────────────────── -->
+<div id="print-area"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// NEPALI DATE (Bikram Sambat) converter
+// ═══════════════════════════════════════════
+const BS_MONTHS = ['Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+const BS_MONTHS_NP = ['बैशाख','जेठ','असार','श्रावण','भाद्र','आश्विन','कार्तिक','मंसिर','पुस','माघ','फाल्गुन','चैत्र'];
+
+// Days in each BS year/month (1970-2090)
+const bs_data = {
+  2000:[30,32,31,32,31,30,30,30,29,30,29,31],
+  2001:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2002:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2003:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2004:[30,32,31,32,31,30,30,30,29,30,29,31],
+  2005:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2006:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2007:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2008:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2009:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2010:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2011:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2012:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2013:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2014:[30,32,31,32,31,30,30,30,29,30,29,31],
+  2015:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2016:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2017:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2018:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2019:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2020:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2021:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2022:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2023:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2024:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2025:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2026:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2027:[30,32,31,32,31,30,30,30,29,30,29,31],
+  2028:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2029:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2030:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2031:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2032:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2033:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2034:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2035:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2036:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2037:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2038:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2039:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2040:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2041:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2042:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2043:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2044:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2045:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2046:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2047:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2048:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2049:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2050:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2051:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2052:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2053:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2054:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2055:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2056:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2057:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2058:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2059:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2060:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2061:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2062:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2063:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2064:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2065:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2066:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2067:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2068:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2069:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2070:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2071:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2072:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2073:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2074:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2075:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2076:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2077:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2078:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2079:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2080:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2081:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2082:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2083:[31,31,32,32,31,30,30,29,30,29,30,30],
+};
+
+function adToBS(adYear, adMonth, adDay) {
+  const adDate = new Date(adYear, adMonth - 1, adDay);
+  const adEpoch = new Date(1944, 0, 1);
+  let diff = Math.floor((adDate - adEpoch) / 86400000);
+  let bsYear = 2000, bsMonth = 9, bsDay = 17;
+  const years = Object.keys(bs_data).map(Number).sort((a,b)=>a-b);
+  for (const y of years) {
+    const daysInYear = bs_data[y].reduce((a,b)=>a+b,0);
+    if (diff >= daysInYear) { diff -= daysInYear; bsYear++; }
+    else {
+      for (let m = 0; m < 12; m++) {
+        if (diff >= bs_data[y][m]) { diff -= bs_data[y][m]; bsMonth = m+2; }
+        else { bsDay += diff; if (bsDay > bs_data[y][m]) { bsDay -= bs_data[y][m]; bsMonth++; } break; }
+      }
+      break;
+    }
+  }
+  return { year: bsYear, month: bsMonth, day: bsDay };
+}
+
+// ═══════════════════════════════════════════
+// GET TODAY'S DESIRED FUNCTIONAL SYSTEM DATE
+// ═══════════════════════════════════════════
+function getGlobalTodayBSDate() {
+  const s = DB.settings();
+  if (s && s.todayDateBS && s.todayDateBS.trim() !== '') {
+    return s.todayDateBS.trim();
+  }
+  return getNepaliDate(new Date());
+}
+
+async function fetchTodayBSDate(fieldId) {
+  const status = document.getElementById('inv-date-fetch-status');
+  // Since user specified a global locked date configuration option, prioritize it
+  const currentGlobal = getGlobalTodayBSDate();
+  document.getElementById(fieldId).value = currentGlobal;
+  syncBSPicker(currentGlobal);
+  if(status) {
+    status.textContent = '🔒 configured from settings';
+    setTimeout(()=>{ if(status) status.textContent=''; }, 3000);
+  }
+}
+
+// ═══════════════════════════════════════════
+// BS DATE PICKER HELPERS
+// ═══════════════════════════════════════════
+const BS_YEAR_MIN = 2070, BS_YEAR_MAX = 2083;
+
+function toggleBSPicker() {
+  const picker = document.getElementById('bs-picker');
+  if(!picker) return;
+  const open = picker.style.display === 'block';
+  if(!open) {
+    buildBSPickerOptions();
+    const cur = document.getElementById('inv-date-bs').value;
+    syncBSPicker(cur);
+  }
+  picker.style.display = open ? 'none' : 'block';
+}
+
+function buildBSPickerOptions() {
+  const ysel = document.getElementById('bsp-year');
+  const msel = document.getElementById('bsp-month');
+  if(ysel.options.length) return; // already built
+  for(let y=BS_YEAR_MIN; y<=BS_YEAR_MAX; y++) {
+    const o=document.createElement('option'); o.value=y; o.textContent=y; ysel.appendChild(o);
+  }
+  BS_MONTHS.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i+1; o.textContent=`${i+1} - ${m}`; msel.appendChild(o); });
+  rebuildDays();
+}
+
+function rebuildDays() {
+  const ysel=document.getElementById('bsp-year');
+  const msel=document.getElementById('bsp-month');
+  const dsel=document.getElementById('bsp-day');
+  if(!ysel||!msel||!dsel) return;
+  const y=parseInt(ysel.value), m=parseInt(msel.value);
+  const maxDay = (bs_data[y]&&bs_data[y][m-1]) ? bs_data[y][m-1] : 32;
+  const curDay = parseInt(dsel.value)||1;
+  dsel.innerHTML='';
+  for(let d=1;d<=maxDay;d++){ const o=document.createElement('option'); o.value=d; o.textContent=d; dsel.appendChild(o); }
+  dsel.value = Math.min(curDay, maxDay);
+}
+
+function syncBSPicker(val) {
+  if(!val) return;
+  const parts = val.split('-');
+  if(parts.length!==3) return;
+  const y=parseInt(parts[0]), m=parseInt(parts[1]), d=parseInt(parts[2]);
+  if(!y||!m||!d) return;
+  buildBSPickerOptions();
+  const ysel=document.getElementById('bsp-year');
+  const msel=document.getElementById('bsp-month');
+  const dsel=document.getElementById('bsp-day');
+  if(ysel) ysel.value=y;
+  if(msel) msel.value=m;
+  rebuildDays();
+  if(dsel) dsel.value=d;
+}
+
+function applyBSPicker() {
+  rebuildDays();
+  const y=document.getElementById('bsp-year').value;
+  const m=String(document.getElementById('bsp-month').value).padStart(2,'0');
+  const d=String(document.getElementById('bsp-day').value).padStart(2,'0');
+  document.getElementById('inv-date-bs').value=`${y}-${m}-${d}`;
+}
+
+function getNepaliDate(date = new Date()) {
+  try {
+    const bs = adToBS(date.getFullYear(), date.getMonth()+1, date.getDate());
+    return `${bs.year}-${String(bs.month).padStart(2,'0')}-${String(bs.day).padStart(2,'0')}`;
+  } catch(e) {
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }
+}
+
+function getNepaliDateFull() {
+  try {
+    const globalBs = getGlobalTodayBSDate();
+    const parts = globalBs.split('-');
+    if(parts.length === 3) {
+      const mIdx = parseInt(parts[1]) - 1;
+      return `${BS_MONTHS[mIdx] || ''} ${parseInt(parts[2])}, ${parts[0]} BS`;
+    }
+  } catch(e) {}
+  return getNepaliDate();
+}
+
+// ═══════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════
+const DB = {
+  get: k => JSON.parse(localStorage.getItem('bl_'+k)||'null'),
+  set: (k,v) => localStorage.setItem('bl_'+k, JSON.stringify(v)),
+  invoices: () => DB.get('invoices')||[],
+  parties: () => DB.get('parties')||[],
+  payments: () => DB.get('payments')||[],
+  journal: () => DB.get('journal')||[],
+  settings: () => DB.get('settings')||{company:'BizLedger',address:'',phone:'',username:'Admin',logo:'',todayDateBS:''},
+  saveInvoices: v => DB.set('invoices',v),
+  saveParties: v => DB.set('parties',v),
+  savePayments: v => DB.set('payments',v),
+  saveJournal: v => DB.set('journal',v),
+  saveSettings: v => DB.set('settings',v),
+};
+
+function uid() { return Date.now().toString(36)+Math.random().toString(36).substr(2,5); }
+function fmt(n) { return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function fmtI(n) { return Math.round(parseFloat(n||0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function nav(sec, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+sec).classList.add('active');
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  if(el) el.classList.add('active');
+  else {
+    const link = document.querySelector(`nav a[onclick*="'${sec}'"]`);
+    if(link) link.classList.add('active');
+  }
+  document.getElementById('sidebar').classList.remove('open');
+  if(sec==='dashboard') renderDashboard();
+  if(sec==='invoices') renderInvoicesTable();
+  if(sec==='parties') renderPartiesTable();
+  if(sec==='payments') renderPaymentHistory();
+  if(sec==='journal') renderJournal();
+  if(sec==='settings') loadSettings();
+  if(sec==='invoice') initInvoiceForm();
+}
+
+function toggleNav() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════════
+let dark = localStorage.getItem('bl_dark')==='1';
+function toggleTheme() {
+  dark = !dark;
+  document.body.setAttribute('data-theme', dark?'dark':'light');
+  localStorage.setItem('bl_dark', dark?'1':'0');
+}
+if(dark) document.body.setAttribute('data-theme','dark');
+
+// ═══════════════════════════════════════════
+// AUTOCOMPLETE PARTY
+// ═══════════════════════════════════════════
+function acParty(inp, hiddenId, listId) {
+  const val = inp.value.toLowerCase();
+  const list = document.getElementById(listId);
+  const parties = DB.parties();
+  const filtered = parties.filter(p=>p.name.toLowerCase().includes(val));
+  list.innerHTML = '';
+  if(!val && !filtered.length) { list.classList.remove('open'); return; }
+  filtered.forEach(p=>{
+    const li = document.createElement('li');
+    li.textContent = p.name + (p.phone?` · ${p.phone}`:'');
+    li.onclick=()=>{ inp.value=p.name; document.getElementById(hiddenId).value=p.id; list.classList.remove('open'); if(hiddenId==='pay-party-id') loadPartyBalance(); };
+    list.appendChild(li);
+  });
+  if(val&&!parties.find(p=>p.name.toLowerCase()===val)){
+    const li=document.createElement('li'); li.className='add-new';
+    li.textContent=`+ Add "${inp.value}" as new party`;
+    li.onclick=()=>{ const id=addPartyQuick(inp.value); inp.value=inp.value; document.getElementById(hiddenId).value=id; list.classList.remove('open'); };
+    list.appendChild(li);
+  }
+  list.classList.add('open');
+  document.onclick=e=>{ if(!inp.contains(e.target)&&!list.contains(e.target)) list.classList.remove('open'); };
+}
+
+function addPartyQuick(name) {
+  const parties = DB.parties();
+  const p = {id:uid(),name:name.trim(),phone:'',address:''};
+  parties.push(p); DB.saveParties(parties);
+  return p.id;
+}
+
+// ═══════════════════════════════════════════
+// INVOICE FORM
+// ═══════════════════════════════════════════
+let invItems = [];
+let editingInvId = null;
+
+function initInvoiceForm() {
+  if(editingInvId) return; 
+  resetInvoiceForm();
+}
+
+function resetInvoiceForm() {
+  editingInvId = null;
+  document.getElementById('inv-form-title').textContent = 'New Invoice';
+  const invoices = DB.invoices();
+  const nextNo = 'INV-' + String(invoices.length+1).padStart(4,'0');
+  document.getElementById('inv-no').value = nextNo;
+  
+  // Directly pull globally assigned custom locked system date
+  const lockedDate = getGlobalTodayBSDate();
+  document.getElementById('inv-date-bs').value = lockedDate;
+  syncBSPicker(lockedDate);
+  
+  document.getElementById('inv-party-input').value = '';
+  document.getElementById('inv-party-id').value = '';
+  document.getElementById('inv-note').value = '';
+  document.getElementById('inv-editing-id').value = '';
+  document.getElementById('inv-grand-total').value = '';
+  invItems = [{}];
+  renderInvItems();
+}
+
+function addInvItem() { invItems.push({}); renderInvItems(); }
+
+function removeInvItem(idx) { if(invItems.length>1){invItems.splice(idx,1); renderInvItems();} }
+
+function renderInvItems() {
+  const tbody = document.getElementById('inv-items-body');
+  tbody.innerHTML = '';
+  invItems.forEach((item,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${item.name||''}" placeholder="Item name" oninput="invItems[${i}].name=this.value"></td>
+      <td><input type="number" value="${item.qty||''}" placeholder="1" min="0" step="any" oninput="invItems[${i}].qty=this.value;calcInvRow(${i})"></td>
+      <td><input type="number" value="${item.rate||''}" placeholder="0.00" min="0" step="any" oninput="invItems[${i}].rate=this.value;calcInvRow(${i})"></td>
+      <td><input type="number" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any" oninput="invItems[${i}].disc=this.value;calcInvRow(${i})"></td>
+      <td class="total-col" id="inv-row-total-${i}">${fmt(item.total||0)}</td>
+      <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeInvItem(${i})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  calcInvTotals();
+}
+
+// 🌐 Rest of code remains structurally intact 
+function calcInvRow(i) {
+  const item = invItems[i];
+  const qty = parseFloat(item.qty)||0;
+  const rate = parseFloat(item.rate)||0;
+  const disc = parseFloat(item.disc)||0;
+  const gross = qty*rate;
+  const discAmt = gross*(disc/100);
+  item.total = gross-discAmt;
+  item.discAmt = discAmt;
+  const el = document.getElementById(`inv-row-total-${i}`);
+  if(el) el.textContent = fmtI(item.total);
+  calcInvTotals();
+}
+
+function calcInvTotals() {
+  let sub=0, disc=0;
+  invItems.forEach(item=>{
+    const qty = parseFloat(item.qty)||0;
+    const rate = parseFloat(item.rate)||0;
+    sub += qty*rate;
+    disc += parseFloat(item.discAmt)||0;
+  });
+  document.getElementById('inv-subtotal').textContent = fmtI(sub);
+  document.getElementById('inv-total-disc').textContent = fmtI(disc);
+  document.getElementById('inv-net-total').textContent = fmtI(sub-disc);
+  const gt = document.getElementById('inv-grand-total');
+  if(gt && gt.value==='') gt.placeholder = `Leave blank to use: ${fmtI(sub-disc)}`;
+}
+
+function saveInvoice() {
+  const partyId = document.getElementById('inv-party-id').value;
+  const partyName = document.getElementById('inv-party-input').value.trim();
+  if(!partyName) { alert('Please select or enter a party name.'); return; }
+  
+  let pid = partyId;
+  if(!pid) { pid = addPartyQuick(partyName); document.getElementById('inv-party-id').value = pid; }
+
+  const validItems = invItems.filter(i=>(i.name||'').trim() && parseFloat(i.qty)>0 && parseFloat(i.rate)>0);
+  if(!validItems.length) { alert('Please add at least one valid item.'); return; }
+
+  let sub=0,disc=0;
+  validItems.forEach(i=>{ sub+=parseFloat(i.qty)*parseFloat(i.rate); disc+=parseFloat(i.discAmt||0); });
+  const net = sub-disc;
+  const gtVal = document.getElementById('inv-grand-total').value;
+  const grandTotal = gtVal!=='' ? Math.round(parseFloat(gtVal)) : Math.round(net);
+
+  const invoices = DB.invoices();
+  const invNo = document.getElementById('inv-no').value;
+  const dateBS = document.getElementById('inv-date-bs').value;
+
+  if(editingInvId) {
+    const idx = invoices.findIndex(i=>i.id===editingInvId);
+    if(idx>-1){
+      invoices[idx] = {...invoices[idx], invNo, dateBS, partyId:pid, partyName, note:document.getElementById('inv-note').value, items:validItems, sub, disc, net, grandTotal};
+      DB.saveInvoices(invoices);
+      addJournalEntry(dateBS, partyName, `Sales Invoice ${invNo}`, 'Accounts Receivable', 'Sales', grandTotal, invoices[idx].id, true, 'invoice');
+      alert('Invoice updated!');
+    }
+  } else {
+    const inv = { id:uid(), invNo, dateBS, partyId:pid, partyName, note:document.getElementById('inv-note').value, items:validItems, sub, disc, net, grandTotal, createdAt:Date.now() };
+    invoices.push(inv);
+    DB.saveInvoices(invoices);
+    addJournalEntry(dateBS, partyName, `Sales Invoice ${invNo}`, 'Accounts Receivable', 'Sales', grandTotal, inv.id, false, 'invoice');
+    alert('Invoice saved!');
+  }
+  editingInvId = null;
+  resetInvoiceForm();
+  nav('invoices', null);
+}
+
+function renderInvoicesTable() {
+  const q = (document.getElementById('inv-search')||{value:''}).value.toLowerCase();
+  const tbody = document.getElementById('invoices-tbody');
+  const invoices = DB.invoices().filter(i=>
+    !q || i.invNo.toLowerCase().includes(q) || (i.partyName||'').toLowerCase().includes(q)
+  ).reverse();
+  tbody.innerHTML = '';
+  if(!invoices.length){ tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices yet. Create your first invoice!</p></div></td></tr>`; return; }
+  invoices.forEach(inv=>{
+    const paid = getTotalPaid(inv.partyId);
+    const billed = getTotalBilled(inv.partyId);
+    const due = billed - paid;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${inv.invNo}</td>
+      <td class="mono">${inv.dateBS}</td>
+      <td>${inv.partyName||''}</td>
+      <td>${(inv.items||[]).length} item(s)</td>
+      <td class="amount">Rs. ${fmt(inv.net)}</td>
+      <td><span class="badge ${due>0?'badge-red':'badge-green'}">${due>0?'Due':'Settled'}</span></td>
+      <td>
+        <div class="flex-gap">
+          <button class="btn btn-secondary btn-sm" onclick="editInvoice('${inv.id}')">✏️</button>
+          <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">🖨</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${inv.id}')">🗑</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function editInvoice(id) {
+  const inv = DB.invoices().find(i=>i.id===id);
+  if(!inv) return;
+  editingInvId = id;
+  nav('invoice', null);
+  setTimeout(()=>{
+    document.getElementById('inv-form-title').textContent = 'Edit Invoice';
+    document.getElementById('inv-no').value = inv.invNo;
+    document.getElementById('inv-date-bs').value = inv.dateBS;
+    syncBSPicker(inv.dateBS);
+    document.getElementById('inv-party-input').value = inv.partyName||'';
+    document.getElementById('inv-party-id').value = inv.partyId||'';
+    document.getElementById('inv-note').value = inv.note||'';
+    document.getElementById('inv-editing-id').value = id;
+    const gt = document.getElementById('inv-grand-total');
+    if(gt) gt.value = (inv.grandTotal !== undefined && inv.grandTotal !== Math.round(inv.net)) ? inv.grandTotal : '';
+    invItems = (inv.items||[]).map(i=>({...i}));
+    if(!invItems.length) invItems=[{}];
+    renderInvItems();
+    invItems.forEach((_,i)=>calcInvRow(i));
+  },50);
+}
+
+function deleteInvoice(id) {
+  if(!confirm('Delete this invoice?')) return;
+  const invoices = DB.invoices().filter(i=>i.id!==id);
+  DB.saveInvoices(invoices);
+  const journal = DB.journal().filter(j=>j.refId!==id);
+  DB.saveJournal(journal);
+  renderInvoicesTable();
+}
+
+function openPartyModal(id) {
+  const modal = document.getElementById('party-modal');
+  if(id) {
+    const p = DB.parties().find(x=>x.id===id);
+    if(p){
+      document.getElementById('party-modal-title').textContent='Edit Party';
+      document.getElementById('pm-name').value=p.name;
+      document.getElementById('pm-phone').value=p.phone||'';
+      document.getElementById('pm-address').value=p.address||'';
+      document.getElementById('pm-id').value=p.id;
+    }
+  } else {
+    document.getElementById('party-modal-title').textContent='Add Party';
+    document.getElementById('pm-name').value='';
+    document.getElementById('pm-phone').value='';
+    document.getElementById('pm-address').value='';
+    document.getElementById('pm-id').value='';
+  }
+  modal.classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function saveParty() {
+  const name = document.getElementById('pm-name').value.trim();
+  if(!name){ alert('Name required'); return; }
+  const parties = DB.parties();
+  const existId = document.getElementById('pm-id').value;
+  if(existId){
+    const idx = parties.findIndex(p=>p.id===existId);
+    if(idx>-1){ parties[idx].name=name; parties[idx].phone=document.getElementById('pm-phone').value; parties[idx].address=document.getElementById('pm-address').value; }
+  } else {
+    parties.push({id:uid(),name,phone:document.getElementById('pm-phone').value,address:document.getElementById('pm-address').value});
+  }
+  DB.saveParties(parties);
+  closeModal('party-modal');
+  renderPartiesTable();
+}
+
+function deleteParty(id) {
+  if(!confirm('Delete this party?')) return;
+  DB.saveParties(DB.parties().filter(p=>p.id!==id));
+  renderPartiesTable();
+}
+
+function getTotalBilled(partyId) {
+  return DB.invoices().filter(i=>i.partyId===partyId).reduce((s,i)=>s+(i.net||0),0);
+}
+function getTotalPaid(partyId) {
+  return DB.payments().filter(p=>p.partyId===partyId).reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);
+}
+
+function renderPartiesTable() {
+  const q = (document.getElementById('party-search')||{value:''}).value.toLowerCase();
+  const tbody = document.getElementById('parties-tbody');
+  const parties = DB.parties().filter(p=>!q||p.name.toLowerCase().includes(q)||(p.phone||'').includes(q));
+  tbody.innerHTML = '';
+  if(!parties.length){ tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div><p>No parties yet.</p></div></td></tr>`; return; }
+  parties.forEach(p=>{
+    const billed = getTotalBilled(p.id);
+    const paid = getTotalPaid(p.id);
+    const due = billed-paid;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${p.name}</strong></td>
+      <td>${p.phone||'-'}</td>
+      <td>${p.address||'-'}</td>
+      <td class="amount">Rs. ${fmt(billed)}</td>
+      <td class="amount">Rs. ${fmt(paid)}</td>
+      <td class="amount ${due>0?'text-red':'text-green'}">Rs. ${fmt(due)}</td>
+      <td>
+        <div class="flex-gap">
+          <button class="btn btn-secondary btn-sm" onclick="openPartyModal('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteParty('${p.id}')">🗑</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function loadPartyBalance() {
+  const pid = document.getElementById('pay-party-id').value;
+  if(!pid){ document.getElementById('pay-billed').textContent='Rs. 0.00'; document.getElementById('pay-received-so-far').textContent='Rs. 0.00'; document.getElementById('pay-due').textContent='Rs. 0.00'; return; }
+  const billed = getTotalBilled(pid);
+  const paid = getTotalPaid(pid);
+  document.getElementById('pay-billed').textContent = 'Rs. '+fmt(billed);
+  document.getElementById('pay-received-so-far').textContent = 'Rs. '+fmt(paid);
+  document.getElementById('pay-due').textContent = 'Rs. '+fmt(billed-paid);
+}
+
+function savePayment() {
+  const pid = document.getElementById('pay-party-id').value;
+  const pname = document.getElementById('pay-party-input').value.trim();
+  if(!pid||!pname){ alert('Please select a party.'); return; }
+  const amount = parseFloat(document.getElementById('pay-amount').value)||0;
+  if(amount<=0){ alert('Please enter a valid amount.'); return; }
+  const discount = parseFloat(document.getElementById('pay-discount').value)||0;
+  const method = document.getElementById('pay-method').value;
+  const note = document.getElementById('pay-note').value;
+  const dateBS = getGlobalTodayBSDate();
+
+  const pay = {id:uid(), partyId:pid, partyName:pname, amount, discount, method, note, dateBS, createdAt:Date.now()};
+  const payments = DB.payments();
+  payments.push(pay);
+  DB.savePayments(payments);
+
+  addJournalEntry(dateBS, pname, `Payment Received (${method})${note?': '+note:''}`, method, 'Accounts Receivable', amount, pay.id, false, 'payment');
+  if(discount>0) addJournalEntry(dateBS, pname, `Discount Allowed`, 'Discount', 'Accounts Receivable', discount, pay.id, false, 'payment');
+
+  alert('Payment saved!');
+  document.getElementById('pay-amount').value='';
+  document.getElementById('pay-discount').value='0';
+  document.getElementById('pay-note').value='';
+  loadPartyBalance();
+  renderPaymentHistory();
+}
+
+function renderPaymentHistory() {
+  const cont = document.getElementById('payment-history');
+  const payments = DB.payments().slice().reverse().slice(0,20);
+  if(!payments.length){ cont.innerHTML='<div class="empty-state"><div class="icon">💰</div><p>No payments yet.</p></div>'; return; }
+  cont.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Method</th><th class="amount">Amount</th></tr></thead><tbody>'+
+    payments.map(p=>`<tr><td class="mono">${p.dateBS}</td><td>${p.partyName}</td><td><span class="badge badge-blue">${p.method}</span></td><td class="amount">Rs. ${fmt(p.amount)}</td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+function addJournalEntry(date, party, desc, debitAcc, creditAcc, amount, refId, isUpdate, type) {
+  const journal = DB.journal();
+  if(isUpdate) {
+    const filtered = journal.filter(j=>j.refId!==refId);
+    DB.saveJournal(filtered);
+    return addJournalEntry(date, party, desc, debitAcc, creditAcc, amount, refId, false, type);
+  }
+  journal.push({id:uid(), date, party, desc, debitAcc, creditAcc, amount, refId, type: type||'invoice', createdAt:Date.now()});
+  DB.saveJournal(journal);
+}
+
+function renderJournal() {
+  const q = (document.getElementById('jrn-search')||{value:''}).value.toLowerCase();
+  const tbody = document.getElementById('journal-tbody');
+  const entries = DB.journal().filter(j=>
+    !q || (j.party||'').toLowerCase().includes(q) || (j.desc||'').toLowerCase().includes(q) || (j.debitAcc||'').toLowerCase().includes(q)
+  ).slice().reverse();
+  tbody.innerHTML = '';
+  if(!entries.length){ tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="icon">📒</div><p>No journal entries yet.</p></div></td></tr>`; return; }
+  entries.forEach(e=>{
+    const isPayment = e.type==='payment';
+    const debit  = isPayment ? '—' : `Rs. ${fmtI(e.amount)}`;
+    const credit = isPayment ? `Rs. ${fmtI(e.amount)}` : '—';
+    const debitClass  = isPayment ? 'amount' : 'amount text-red';
+    const creditClass = isPayment ? 'amount text-green' : 'amount';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${e.date}</td>
+      <td>${e.party||''}</td>
+      <td>${e.desc||''}</td>
+      <td>${e.debitAcc||''} / ${e.creditAcc||''}</td>
+      <td class="${debitClass}">${debit}</td>
+      <td class="${creditClass}">${credit}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function exportJournalXLSX() {
+  if(typeof XLSX==='undefined'){ alert('SheetJS not loaded. Check internet connection.'); return; }
+  const entries = DB.journal().slice().reverse();
+  const rows = [['Date (BS)','Party','Description','Account','Debit (Rs.)','Credit (Rs.)']];
+  entries.forEach(e=>{
+    const isPayment = e.type==='payment';
+    rows.push([e.date, e.party||'', e.desc||'', (e.debitAcc||'')+'/'+(e.creditAcc||''), isPayment?0:e.amount, isPayment?e.amount:0]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:14},{wch:20},{wch:36},{wch:22},{wch:22},{wch:14},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Journal');
+  const s = DB.settings();
+  XLSX.writeFile(wb, `${(s.company||'BizLedger').replace(/\s+/g,'_')}_Journal_${getGlobalTodayBSDate()}.xlsx`);
+}
+
+function loadSettings() {
+  const s = DB.settings();
+  document.getElementById('set-company').value = s.company||'';
+  document.getElementById('set-address').value = s.address||'';
+  document.getElementById('set-phone').value = s.phone||'';
+  document.getElementById('set-username').value = s.username||'';
+  document.getElementById('set-today-date-bs').value = s.todayDateBS || getNepaliDate(new Date());
+  if(s.logo){
+    const img = document.getElementById('logo-preview');
+    img.src = s.logo; img.style.display='block';
+  }
+}
+
+function saveSettings() {
+  const s = DB.settings();
+  s.company = document.getElementById('set-company').value.trim()||'BizLedger';
+  s.address = document.getElementById('set-address').value.trim();
+  s.phone = document.getElementById('set-phone').value.trim();
+  s.username = document.getElementById('set-username').value.trim()||'Admin';
+  s.todayDateBS = document.getElementById('set-today-date-bs').value.trim();
+  DB.saveSettings(s);
+  document.getElementById('nav-company-name').textContent = s.company;
+  alert('Settings saved!');
+}
+
+function handleLogo(inp) {
+  const file = inp.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const s = DB.settings(); s.logo = e.target.result; DB.saveSettings(s);
+    const img = document.getElementById('logo-preview');
+    img.src=e.target.result; img.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function printInvoice(id) {
+  const inv = DB.invoices().find(i=>i.id===id);
+  if(!inv) return;
+  const s = DB.settings();
+  const logoHTML = s.logo ? `<img src="${s.logo}" style="max-height:50px;max-width:80px">` : '';
+  const itemsHTML = (inv.items||[]).map(item=>`
+    <tr>
+      <td>${item.name||''}</td>
+      <td class="r">${Math.round(item.qty||0)}</td>
+      <td class="r">Rs. ${fmtI(item.rate)}</td>
+      <td class="r">${item.disc||0}%</td>
+      <td class="r">Rs. ${fmtI(item.total)}</td>
+    </tr>
+  `).join('');
+
+  const displayNet = inv.grandTotal !== undefined ? inv.grandTotal : Math.round(inv.net||0);
+  const showDisc = Math.round(inv.disc||0) > 0;
+
+  const html = `
+    <div class="print-invoice">
+      <div class="print-header">
+        <div class="print-company">
+          ${logoHTML}
+          <h1>${s.company||'Company Name'}</h1>
+          <p>${s.address||''}</p>
+          <p>${s.phone||''}</p>
+        </div>
+        <div class="print-inv-info">
+          <div class="inv-no">${inv.invNo}</div>
+          <p>Date: ${inv.dateBS} (BS)</p>
+          <p>INVOICE</p>
+        </div>
+      </div>
+      <div class="print-party">
+        <strong>Bill To:</strong>
+        ${inv.partyName||''}${inv.note?`<br><em style="color:#777">${inv.note}</em>`:''}
+      </div>
+      <table class="print-table">
+        <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Disc.</th><th class="r">Amount</th></tr></thead>
+        <tbody>${itemsHTML}</tbody>
+      </table>
+      <table class="print-totals">
+        <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
+        ${showDisc ? `<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>` : ''}
+        <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayNet)}</strong></td></tr>
+      </table>
+      <div class="print-footer">
+        <span>Printed by: ${s.username||'Admin'}</span>
+        <span>${getNepaliDateFull()}</span>
+        <span>Thank you for your business!</span>
+      </div>
+    </div>
+  `;
+  const area = document.getElementById('print-area');
+  area.innerHTML = html;
+  area.style.display='block';
+  window.print();
+  area.style.display='none';
+}
+
+function printCurrentInvoice() {
+  const partyName = document.getElementById('inv-party-input').value.trim();
+  const invNo = document.getElementById('inv-no').value;
+  const dateBS = document.getElementById('inv-date-bs').value;
+  const note = document.getElementById('inv-note').value;
+  let sub=0,disc=0;
+  const validItems = invItems.filter(i=>(i.name||'').trim());
+  validItems.forEach(i=>{ sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0); disc+=parseFloat(i.discAmt||0); });
+  const gtVal = document.getElementById('inv-grand-total').value;
+  const grandTotal = gtVal!=='' ? Math.round(parseFloat(gtVal)) : Math.round(sub-disc);
+  const fakeInv = {id:'preview',invNo,dateBS,partyName,note,items:validItems,sub,disc,net:sub-disc,grandTotal};
+  const invoices = DB.invoices();
+  invoices.push(fakeInv);
+  printInvoice('preview');
+  invoices.pop();
+}
+
+function renderDashboard() {
+  const invoices = DB.invoices();
+  const payments = DB.payments();
+  const parties = DB.parties();
+
+  const totalSales = invoices.reduce((s,i)=>s+(i.net||0),0);
+  const totalReceived = payments.reduce((s,p)=>s+(p.amount||0),0);
+  const totalDue = totalSales - totalReceived;
+  const thisMonth = getGlobalTodayBSDate().substr(0,7);
+  const monthlySales = invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).reduce((s,i)=>s+(i.net||0),0);
+
+  document.getElementById('dash-date').textContent = getNepaliDateFull();
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="label">Total Sales</div><div class="value">Rs.${fmt(totalSales)}</div><div class="sub">${invoices.length} invoices</div></div>
+    <div class="stat-card"><div class="label">Total Received</div><div class="value" style="color:var(--green)">Rs.${fmt(totalReceived)}</div><div class="sub">${payments.length} payments</div></div>
+    <div class="stat-card"><div class="label">Total Due</div><div class="value" style="color:var(--red)">Rs.${fmt(totalDue)}</div><div class="sub">Outstanding balance</div></div>
+    <div class="stat-card"><div class="label">This Month</div><div class="value" style="color:var(--accent)">Rs.${fmt(monthlySales)}</div><div class="sub">${invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).length} invoices</div></div>
+    <div class="stat-card"><div class="label">Parties</div><div class="value">${parties.length}</div><div class="sub">Customers</div></div>
+  `;
+
+  const recent = invoices.slice().reverse().slice(0,5);
+  document.getElementById('dash-recent-invoices').innerHTML = recent.length ?
+    '<div class="table-wrap"><table><thead><tr><th>No</th><th>Party</th><th class="amount">Total</th></tr></thead><tbody>'+
+    recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmt(i.net)}</td></tr>`).join('')+
+    '</tbody></table></div>' : '<div class="empty-state"><p>No invoices</p></div>';
+
+  const duelist = parties.map(p=>({name:p.name,due:getTotalBilled(p.id)-getTotalPaid(p.id)})).filter(p=>p.due>0).sort((a,b)=>b.due-a.due).slice(0,5);
+  document.getElementById('dash-top-due').innerHTML = duelist.length ?
+    '<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due</th></tr></thead><tbody>'+
+    duelist.map(p=>`<tr><td>${p.name}</td><td class="amount text-red">Rs. ${fmt(p.due)}</td></tr>`).join('')+
+    '</tbody></table></div>' : '<div class="empty-state"><p>All clear! No dues.</p></div>';
+}
+
+function exportBackup() {
+  const data = {
+    invoices: DB.invoices(),
+    parties: DB.parties(),
+    payments: DB.payments(),
+    journal: DB.journal(),
+    settings: DB.settings(),
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `BizLedger_Backup_${getGlobalTodayBSDate()}.json`;
+  a.click();
+}
+
+function importBackup(inp) {
+  const file = inp.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!confirm('This will REPLACE all current data. Continue?')) return;
+      if(data.invoices) DB.saveInvoices(data.invoices);
+      if(data.parties) DB.saveParties(data.parties);
+      if(data.payments) DB.savePayments(data.payments);
+      if(data.journal) DB.saveJournal(data.journal);
+      if(data.settings) DB.saveSettings(data.settings);
+      alert('Backup restored successfully!');
+      location.reload();
+    } catch(err) { alert('Invalid backup file.'); }
+  };
+  reader.readAsText(file);
+  inp.value='';
+}
+
+(function init() {
+  const s = DB.settings();
+  document.getElementById('nav-company-name').textContent = s.company||'Your Company';
+  renderDashboard();
+  resetInvoiceForm();
+})();
+</script>
+</body>
+</html>
