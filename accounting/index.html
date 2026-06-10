@@ -3,476 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BizLedger — Billing & Journal</title>
+<title>FinPilot — Billing & Journal</title>
+<link rel="icon" href="images/favicon.jpg" type="image/jpeg">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-:root {
-  --bg: #f5f2ee;
-  --bg2: #ede9e3;
-  --surface: #ffffff;
-  --surface2: #faf8f5;
-  --border: #ddd8d0;
-  --text: #1a1714;
-  --text2: #6b6560;
-  --text3: #9b948d;
-  --accent: #c4622d;
-  --accent2: #e8956a;
-  --accent-bg: #fdf0e8;
-  --green: #2d7a4f;
-  --green-bg: #e8f5ee;
-  --red: #c42d2d;
-  --red-bg: #fde8e8;
-  --blue: #2d4fc4;
-  --blue-bg: #e8edfb;
-  --shadow: 0 1px 3px rgba(26,23,20,0.08), 0 4px 12px rgba(26,23,20,0.04);
-  --shadow-lg: 0 8px 32px rgba(26,23,20,0.12);
-  --radius: 10px;
-  --radius-sm: 6px;
-  --nav-w: 220px;
-}
-
-[data-theme="dark"] {
-  --bg: #141210;
-  --bg2: #1e1b18;
-  --surface: #252018;
-  --surface2: #2e2820;
-  --border: #3a342c;
-  --text: #f0ebe4;
-  --text2: #a09890;
-  --text3: #6b6560;
-  --accent: #e8956a;
-  --accent2: #c4622d;
-  --accent-bg: #2e1f14;
-  --green: #5ab87c;
-  --green-bg: #152217;
-  --red: #e87070;
-  --red-bg: #2e1515;
-  --blue: #7090e8;
-  --blue-bg: #151d2e;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  height: 100%;
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* ─── Layout ─────────────────────────────── */
-#app { display: flex; height: 100vh; overflow: hidden; }
-
-nav#sidebar {
-  width: var(--nav-w);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  z-index: 100;
-  transition: transform 0.25s ease;
-}
-
-.sidebar-logo {
-  padding: 24px 20px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.sidebar-logo h1 {
-  font-family: 'Fraunces', serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: -0.3px;
-}
-.sidebar-logo p {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 2px;
-  font-family: 'DM Mono', monospace;
-}
-
-nav#sidebar ul { list-style: none; padding: 12px 10px; flex: 1; }
-nav#sidebar ul li { margin-bottom: 2px; }
-nav#sidebar ul li a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
-  color: var(--text2);
-  text-decoration: none;
-  font-size: 13.5px;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-nav#sidebar ul li a:hover { background: var(--bg2); color: var(--text); }
-nav#sidebar ul li a.active { background: var(--accent-bg); color: var(--accent); }
-nav#sidebar ul li a .icon { font-size: 16px; width: 20px; text-align: center; }
-
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 8px;
-}
-.sidebar-footer button {
-  flex: 1;
-  padding: 7px;
-  border: 1px solid var(--border);
-  background: transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--text2);
-  font-size: 12px;
-  transition: all 0.15s;
-}
-.sidebar-footer button:hover { background: var(--bg2); color: var(--text); }
-
-main#content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 28px 32px;
-  background: var(--bg);
-}
-
-/* ─── Mobile nav toggle ──────────────────── */
-#menu-btn {
-  display: none;
-  position: fixed;
-  top: 12px; left: 12px;
-  z-index: 200;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-@media (max-width: 700px) {
-  #menu-btn { display: block; }
-  nav#sidebar {
-    position: fixed; top: 0; left: 0; height: 100%;
-    transform: translateX(-100%);
-  }
-  nav#sidebar.open { transform: translateX(0); }
-  main#content { padding: 20px 16px; padding-top: 56px; }
-}
-
-/* ─── Page header ────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.page-header h2 {
-  font-family: 'Fraunces', serif;
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: -0.4px;
-  color: var(--text);
-}
-.page-header p { color: var(--text2); font-size: 13px; margin-top: 2px; }
-
-/* ─── Cards ──────────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--shadow);
-}
-
-/* ─── Buttons ────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent2); }
-.btn-secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { background: var(--border); }
-.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
-.btn-danger:hover { background: var(--red); color: #fff; }
-.btn-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
-.btn-green:hover { background: var(--green); color: #fff; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-icon { padding: 7px 8px; }
-
-/* ─── Form elements ──────────────────────── */
-.form-group { margin-bottom: 16px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
-input, select, textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface2);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13.5px;
-  transition: border-color 0.15s;
-  outline: none;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
-}
-textarea { resize: vertical; min-height: 72px; }
-input[type="file"] { padding: 6px; }
-
-/* ─── Tables ─────────────────────────────── */
-.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; }
-table th {
-  background: var(--bg2);
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text2);
-  white-space: nowrap;
-}
-table td {
-  padding: 11px 14px;
-  border-top: 1px solid var(--border);
-  font-size: 13.5px;
-  color: var(--text);
-}
-table tr:hover td { background: var(--surface2); }
-table .mono { font-family: 'DM Mono', monospace; font-size: 12.5px; }
-table .amount { text-align: right; font-family: 'DM Mono', monospace; }
-
-/* ─── Badge ──────────────────────────────── */
-.badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.badge-green { background: var(--green-bg); color: var(--green); }
-.badge-red { background: var(--red-bg); color: var(--red); }
-.badge-blue { background: var(--blue-bg); color: var(--blue); }
-.badge-orange { background: var(--accent-bg); color: var(--accent); }
-
-/* ─── Stats grid ─────────────────────────── */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  box-shadow: var(--shadow);
-}
-.stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); font-weight: 600; }
-.stat-card .value { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; margin: 4px 0 2px; color: var(--text); }
-.stat-card .sub { font-size: 11.5px; color: var(--text2); }
-
-/* ─── Search box ─────────────────────────── */
-.search-wrap { position: relative; }
-.search-wrap input { padding-left: 34px; }
-.search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
-
-/* ─── Autocomplete dropdown ──────────────── */
-.autocomplete-wrap { position: relative; }
-.autocomplete-list {
-  position: absolute;
-  top: 100%; left: 0; right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
-  z-index: 50;
-  max-height: 180px;
-  overflow-y: auto;
-  display: none;
-}
-.autocomplete-list.open { display: block; }
-.autocomplete-list li {
-  padding: 9px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  list-style: none;
-  border-bottom: 1px solid var(--border);
-}
-.autocomplete-list li:last-child { border-bottom: none; }
-.autocomplete-list li:hover { background: var(--accent-bg); color: var(--accent); }
-.autocomplete-list li.add-new { color: var(--accent); font-weight: 600; }
-
-/* ─── Invoice items table ────────────────── */
-.items-table { width: 100%; border-collapse: collapse; }
-.items-table th {
-  background: var(--bg2);
-  padding: 8px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--text2);
-  text-align: left;
-}
-.items-table td { padding: 6px 4px; border-bottom: 1px solid var(--border); }
-.items-table td input { padding: 7px 9px; font-size: 13px; }
-.items-table .total-col { text-align: right; font-family: 'DM Mono', monospace; padding-right: 10px; font-size: 13px; color: var(--text); }
-
-/* ─── Total box ──────────────────────────── */
-.total-box {
-  background: var(--bg2);
-  border-radius: var(--radius-sm);
-  padding: 14px 18px;
-  margin-top: 10px;
-}
-.total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13.5px; }
-.total-row.grand { font-weight: 700; font-size: 16px; color: var(--accent); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; font-family: 'Fraunces', serif; }
-.total-row span:last-child { font-family: 'DM Mono', monospace; }
-
-/* ─── Modals ─────────────────────────────── */
-.modal-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4);
-  z-index: 500;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 28px;
-  max-width: 560px;
-  width: 100%;
-  box-shadow: var(--shadow-lg);
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-}
-.modal h3 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 18px; }
-.modal .close-btn {
-  position: absolute; top: 16px; right: 16px;
-  background: transparent; border: none; cursor: pointer;
-  font-size: 18px; color: var(--text2);
-}
-
-/* ─── Sections ───────────────────────────── */
-.section { display: none; }
-.section.active { display: block; }
-
-/* ─── Print ──────────────────────────────── */
-@page { size: A4 portrait; margin: 50mm; }
-
-@media print {
-  body * { visibility: hidden; }
-  #print-area, #print-area * { visibility: visible; }
-  #print-area {
-    position: fixed; inset: 0;
-    background: #fff; color: #000;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11pt;
-  }
-}
-
-#print-area { display: none; }
-
-.print-invoice {
-  width: 100%;
-  background: #fff;
-  color: #000;
-  font-size: 10pt;
-  font-family: 'DM Sans', sans-serif;
-}
-.print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a1714; padding-bottom: 10px; margin-bottom: 14px; }
-.print-company h1 { font-family: 'Fraunces', serif; font-size: 20pt; font-weight: 700; color: #c4622d; }
-.print-company p { font-size: 9pt; color: #555; margin-top: 2px; }
-.print-inv-info { text-align: right; }
-.print-inv-info .inv-no { font-family: 'DM Mono', monospace; font-size: 13pt; font-weight: 700; }
-.print-inv-info p { font-size: 9pt; color: #555; }
-.print-party { margin: 10px 0; font-size: 9.5pt; }
-.print-party strong { display: block; margin-bottom: 3px; font-size: 10pt; }
-.print-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; }
-.print-table th { background: #1a1714; color: #fff; padding: 6px 8px; text-align: left; }
-.print-table td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
-.print-table .r { text-align: right; }
-.print-totals { width: 210px; margin-left: auto; margin-top: 8px; }
-.print-totals tr td { padding: 4px 6px; font-size: 9.5pt; }
-.print-totals .grand td { font-weight: 700; font-size: 12pt; border-top: 2px solid #1a1714; padding-top: 6px; }
-.print-footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 8.5pt; color: #777; display: flex; justify-content: space-between; }
-
-/* ─── Divider ────────────────────────────── */
-hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-
-/* ─── Misc ───────────────────────────────── */
-.empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
-.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
-.empty-state p { font-size: 14px; }
-
-.flex-gap { display: flex; gap: 10px; flex-wrap: wrap; }
-.ml-auto { margin-left: auto; }
-.text-right { text-align: right; }
-.text-green { color: var(--green); }
-.text-red { color: var(--red); }
-.text-accent { color: var(--accent); }
-.mono { font-family: 'DM Mono', monospace; }
-
-/* ─── Inline note ────────────────────────── */
-.inline-info {
-  background: var(--blue-bg);
-  border: 1px solid var(--blue);
-  color: var(--blue);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  font-size: 12.5px;
-  margin-bottom: 12px;
-}
-
-.setting-section { margin-bottom: 24px; }
-.setting-section h3 { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-
-/* logo preview */
-#logo-preview { max-width: 100px; max-height: 60px; border-radius: 4px; border: 1px solid var(--border); }
+:root{--bg:#f5f2ee;--bg2:#ede9e3;--surface:#fff;--surface2:#faf8f5;--border:#ddd8d0;--text:#1a1714;--text2:#6b6560;--text3:#9b948d;--accent:#c4622d;--accent2:#e8956a;--accent-bg:#fdf0e8;--green:#2d7a4f;--green-bg:#e8f5ee;--red:#c42d2d;--red-bg:#fde8e8;--blue:#2d4fc4;--blue-bg:#e8edfb;--shadow:0 1px 3px rgba(26,23,20,.08),0 4px 12px rgba(26,23,20,.04);--shadow-lg:0 8px 32px rgba(26,23,20,.12);--radius:10px;--radius-sm:6px;--nav-w:224px}
+[data-theme="dark"]{--bg:#141210;--bg2:#1e1b18;--surface:#252018;--surface2:#2e2820;--border:#3a342c;--text:#f0ebe4;--text2:#a09890;--text3:#6b6560;--accent:#e8956a;--accent2:#c4622d;--accent-bg:#2e1f14;--green:#5ab87c;--green-bg:#152217;--red:#e87070;--red-bg:#2e1515;--blue:#7090e8;--blue-bg:#151d2e;--shadow:0 1px 3px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.2);--shadow-lg:0 8px 32px rgba(0,0,0,.4)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+#app{display:flex;height:100vh;overflow:hidden}
+nav#sidebar{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:100;transition:transform .25s ease}
+.sidebar-logo{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-family:'Fraunces',serif;font-size:21px;font-weight:700;color:var(--accent);letter-spacing:-.3px}
+.sidebar-logo p{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+nav#sidebar ul{list-style:none;padding:10px 8px;flex:1;overflow-y:auto}
+nav#sidebar ul li{margin-bottom:1px}
+nav#sidebar ul li a{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:13px;font-weight:500;transition:all .15s}
+nav#sidebar ul li a:hover{background:var(--bg2);color:var(--text)}
+nav#sidebar ul li a.active{background:var(--accent-bg);color:var(--accent)}
+nav#sidebar ul li a .icon{font-size:15px;width:19px;text-align:center}
+.sidebar-footer{padding:10px;border-top:1px solid var(--border);display:flex;gap:6px}
+.sidebar-footer button{flex:1;padding:6px;border:1px solid var(--border);background:transparent;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:11px;transition:all .15s}
+.sidebar-footer button:hover{background:var(--bg2);color:var(--text)}
+main#content{flex:1;overflow-y:auto;padding:26px 30px;background:var(--bg)}
+#menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;font-size:16px}
+@media(max-width:700px){#menu-btn{display:block}nav#sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%)}nav#sidebar.open{transform:translateX(0)}main#content{padding:18px 14px;padding-top:54px}}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
+.page-header h2{font-family:'Fraunces',serif;font-size:25px;font-weight:600;letter-spacing:-.4px}
+.page-header p{color:var(--text2);font-size:13px;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}.btn-green:hover{background:var(--green);color:#fff}
+.btn-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue)}.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-icon{padding:6px 8px}
+.form-group{margin-bottom:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.form-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+label{display:block;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;transition:border-color .15s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+textarea{resize:vertical;min-height:68px}
+input[type="file"]{padding:6px}
+input[type="checkbox"]{width:auto;margin-right:6px;cursor:pointer}
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+table th{background:var(--bg2);padding:9px 13px;text-align:left;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);white-space:nowrap}
+table td{padding:10px 13px;border-top:1px solid var(--border);font-size:13.5px}
+table tr:hover td{background:var(--surface2)}
+table .mono{font-family:'DM Mono',monospace;font-size:12.5px}
+table .amount{text-align:right;font-family:'DM Mono',monospace}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-orange{background:var(--accent-bg);color:var(--accent)}
+.badge-gray{background:var(--bg2);color:var(--text2)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.stat-card .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:600}
+.stat-card .value{font-family:'Fraunces',serif;font-size:24px;font-weight:700;margin:4px 0 2px}
+.stat-card .sub{font-size:11.5px;color:var(--text2)}
+.search-wrap{position:relative}
+.search-wrap input{padding-left:32px}
+.search-wrap::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px}
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);z-index:200;max-height:200px;overflow-y:auto;display:none}
+.autocomplete-list.open{display:block}
+.autocomplete-list li{padding:9px 12px;cursor:pointer;font-size:13px;list-style:none;border-bottom:1px solid var(--border)}
+.autocomplete-list li:last-child{border-bottom:none}
+.autocomplete-list li:hover,.autocomplete-list li.highlighted{background:var(--accent-bg);color:var(--accent)}
+.autocomplete-list li.add-new{color:var(--accent);font-weight:600}
+.items-table{width:100%;border-collapse:collapse}
+.items-table th{background:var(--bg2);padding:7px 9px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);text-align:left}
+.items-table td{padding:4px 3px;border-bottom:1px solid var(--border)}
+.items-table td input{padding:7px 8px;font-size:13px}
+.items-table .total-col{text-align:right;font-family:'DM Mono',monospace;padding-right:9px;font-size:13px}
+.total-box{background:var(--bg2);border-radius:var(--radius-sm);padding:12px 16px;margin-top:8px}
+.total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13.5px}
+.total-row.grand{font-weight:700;font-size:16px;color:var(--accent);border-top:1px solid var(--border);padding-top:7px;margin-top:3px;font-family:'Fraunces',serif}
+.total-row span:last-child{font-family:'DM Mono',monospace}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);padding:26px;max-width:560px;width:100%;box-shadow:var(--shadow-lg);max-height:92vh;overflow-y:auto;position:relative}
+.modal h3{font-family:'Fraunces',serif;font-size:19px;margin-bottom:16px}
+.modal .close-btn{position:absolute;top:14px;right:14px;background:transparent;border:none;cursor:pointer;font-size:18px;color:var(--text2)}
+.section{display:none}.section.active{display:block}
+@page{size:A4 portrait;margin:50mm}
+@media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{position:fixed;inset:0;background:#fff;color:#000;font-family:'DM Sans',sans-serif;font-size:11pt}}
+#print-area{display:none}
+.print-invoice{width:100%;background:#fff;color:#000;font-size:10pt;font-family:'DM Sans',sans-serif}
+.print-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #1a1714;padding-bottom:10px;margin-bottom:14px}
+.print-company h1{font-family:'Fraunces',serif;font-size:20pt;font-weight:700;color:#c4622d}
+.print-company p{font-size:9pt;color:#555;margin-top:2px}
+.print-inv-info{text-align:right}
+.print-inv-info .inv-no{font-family:'DM Mono',monospace;font-size:13pt;font-weight:700}
+.print-inv-info p{font-size:9pt;color:#555}
+.print-paid-stamp{display:inline-block;border:3px solid #2d7a4f;color:#2d7a4f;padding:2px 10px;border-radius:4px;font-size:14pt;font-weight:700;letter-spacing:2px;transform:rotate(-8deg);margin-top:6px}
+.print-party{margin:10px 0;font-size:9.5pt}
+.print-party strong{display:block;margin-bottom:3px;font-size:10pt}
+.print-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:9.5pt}
+.print-table th{background:#1a1714;color:#fff;padding:6px 8px;text-align:left}
+.print-table td{padding:5px 8px;border-bottom:1px solid #ddd}
+.print-table .r{text-align:right}
+.print-totals{width:210px;margin-left:auto;margin-top:8px}
+.print-totals tr td{padding:4px 6px;font-size:9.5pt}
+.print-totals .grand td{font-weight:700;font-size:12pt;border-top:2px solid #1a1714;padding-top:6px}
+.print-footer{margin-top:22px;padding-top:10px;border-top:1px solid #ddd;font-size:8.5pt;color:#777;display:flex;justify-content:space-between}
+hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text3)}
+.empty-state .icon{font-size:34px;margin-bottom:10px}
+.empty-state p{font-size:14px}
+.flex-gap{display:flex;gap:8px;flex-wrap:wrap}
+.ml-auto{margin-left:auto}
+.text-right{text-align:right}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-accent{color:var(--accent)}
+.mono{font-family:'DM Mono',monospace}
+.inline-info{background:var(--blue-bg);border:1px solid var(--blue);color:var(--blue);border-radius:var(--radius-sm);padding:8px 12px;font-size:12.5px;margin-bottom:12px}
+.setting-section{margin-bottom:22px}
+.setting-section h3{font-family:'Fraunces',serif;font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+#logo-preview{max-width:100px;max-height:60px;border-radius:4px;border:1px solid var(--border)}
+.paid-checkbox-row{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);margin-top:10px}
+.paid-checkbox-row label{margin-bottom:0;text-transform:none;font-size:13.5px;font-weight:600;color:var(--green);letter-spacing:0;cursor:pointer}
 </style>
 </head>
 <body data-theme="light">
-
 <button id="menu-btn" onclick="toggleNav()">☰</button>
-
 <div id="app">
-<!-- ─── Sidebar ─────────────────────────── -->
+
+<!-- SIDEBAR -->
 <nav id="sidebar">
   <div class="sidebar-logo">
-    <h1>BizLedger</h1>
+    <h1>FinPilot</h1>
     <p class="mono" id="nav-company-name">Your Company</p>
   </div>
   <ul>
     <li><a href="#" class="active" onclick="nav('dashboard',this)"><span class="icon">📊</span> Dashboard</a></li>
     <li><a href="#" onclick="nav('invoice',this)"><span class="icon">🧾</span> New Invoice</a></li>
-    <li><a href="#" onclick="nav('invoices',this)"><span class="icon">📋</span> Invoices</a></li>
+    <li><a href="#" onclick="nav('invoices',this)"><span class="icon">📋</span> Sales Invoices</a></li>
+    <li><a href="#" onclick="nav('purchase',this)"><span class="icon">🛒</span> Purchases</a></li>
+    <li><a href="#" onclick="nav('sales-return',this)"><span class="icon">↩️</span> Sales Return</a></li>
+    <li><a href="#" onclick="nav('purchase-return',this)"><span class="icon">↪️</span> Purchase Return</a></li>
+    <li><a href="#" onclick="nav('stock',this)"><span class="icon">📦</span> Stock Items</a></li>
     <li><a href="#" onclick="nav('parties',this)"><span class="icon">👥</span> Parties</a></li>
     <li><a href="#" onclick="nav('payments',this)"><span class="icon">💰</span> Payments</a></li>
     <li><a href="#" onclick="nav('journal',this)"><span class="icon">📒</span> Journal</a></li>
@@ -485,45 +163,38 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
   </div>
 </nav>
 
-<!-- ─── Main Content ───────────────────── -->
 <main id="content">
 
-<!-- Dashboard -->
+<!-- DASHBOARD -->
 <div id="sec-dashboard" class="section active">
   <div class="page-header">
     <div><h2>Dashboard</h2><p id="dash-date" class="mono"></p></div>
     <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Dark Mode</button>
   </div>
   <div class="stats-grid" id="dash-stats"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Recent Invoices</div>
-      <div id="dash-recent-invoices"></div>
-    </div>
-    <div class="card">
-      <div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Top Parties by Due</div>
-      <div id="dash-top-due"></div>
-    </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Recent Invoices</div><div id="dash-recent-invoices"></div></div>
+    <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Top Parties by Due</div><div id="dash-top-due"></div></div>
   </div>
 </div>
 
-<!-- New Invoice -->
+<!-- NEW INVOICE -->
 <div id="sec-invoice" class="section">
   <div class="page-header">
     <div><h2 id="inv-form-title">New Invoice</h2><p>Create a sales invoice</p></div>
     <button class="btn btn-secondary" onclick="resetInvoiceForm()">+ New</button>
   </div>
   <div class="card">
-    <div class="form-row" style="margin-bottom:16px">
+    <div class="form-row" style="margin-bottom:14px">
       <div class="form-group" style="margin-bottom:0">
         <label>Invoice No.</label>
-        <input type="text" id="inv-no" placeholder="Auto-generated" readonly style="background:var(--bg2)">
+        <input type="text" id="inv-no" readonly style="background:var(--bg2)">
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>Date (BS) <span id="inv-date-fetch-status" style="font-size:10px;font-weight:400;color:var(--text3);margin-left:4px"></span></label>
         <div style="display:flex;gap:6px;align-items:center">
           <input type="text" id="inv-date-bs" placeholder="YYYY-MM-DD" style="flex:1" oninput="syncBSPicker(this.value)">
-          <button type="button" class="btn btn-secondary btn-sm btn-icon" title="Pick BS date" onclick="toggleBSPicker()" style="flex-shrink:0">📅</button>
+          <button type="button" class="btn btn-secondary btn-sm btn-icon" title="Today" onclick="fetchTodayBSDate('inv-date-bs')" style="flex-shrink:0">📅</button>
         </div>
         <div id="bs-picker" style="display:none;margin-top:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px">
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
@@ -534,10 +205,12 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
         </div>
       </div>
     </div>
-    <div class="form-row" style="margin-bottom:16px">
+    <div class="form-row" style="margin-bottom:14px">
       <div class="form-group autocomplete-wrap" style="margin-bottom:0">
         <label>Party / Customer</label>
-        <input type="text" id="inv-party-input" placeholder="Search or type party name..." autocomplete="off" oninput="acParty(this,'inv-party-id','inv-ac')">
+        <input type="text" id="inv-party-input" placeholder="Search or type party name..." autocomplete="off"
+          oninput="acParty(this,'inv-party-id','inv-ac')"
+          onkeydown="acKeydown(event,'inv-ac',this,'inv-party-id',null)">
         <input type="hidden" id="inv-party-id">
         <ul class="autocomplete-list" id="inv-ac"></ul>
       </div>
@@ -546,25 +219,23 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
         <input type="text" id="inv-note" placeholder="Optional note">
       </div>
     </div>
-
-    <div style="overflow-x:auto;margin-bottom:12px">
+    <div style="overflow-x:auto;margin-bottom:10px">
       <table class="items-table">
         <thead>
           <tr>
-            <th style="min-width:160px">Item Name</th>
-            <th style="min-width:80px">Qty</th>
+            <th style="min-width:175px">Item Name</th>
+            <th style="min-width:75px">Qty</th>
             <th style="min-width:90px">Rate (Rs.)</th>
             <th style="min-width:90px">Discount (%)</th>
             <th style="min-width:90px;text-align:right">Amount</th>
-            <th style="width:36px"></th>
+            <th style="width:34px"></th>
           </tr>
         </thead>
         <tbody id="inv-items-body"></tbody>
       </table>
     </div>
     <button class="btn btn-secondary btn-sm" onclick="addInvItem()">+ Add Item</button>
-
-    <div style="max-width:320px;margin-left:auto;margin-top:12px">
+    <div style="max-width:320px;margin-left:auto;margin-top:10px">
       <div class="total-box">
         <div class="total-row"><span>Subtotal</span><span id="inv-subtotal">0</span></div>
         <div class="total-row"><span>Total Discount</span><span id="inv-total-disc">0</span></div>
@@ -573,28 +244,40 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
       <div style="margin-top:10px;background:var(--accent-bg);border:1px solid var(--accent2);border-radius:var(--radius-sm);padding:10px 12px">
         <label style="color:var(--accent)">Grand Total on Invoice (customizable)</label>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <input type="number" id="inv-grand-total" placeholder="Leave blank to use Net Total" step="1" min="0" style="flex:1;border-color:var(--accent2)">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('inv-grand-total').value=''" title="Reset to auto">↺</button>
+          <input type="number" id="inv-grand-total" placeholder="Leave blank = Net Total" step="1" min="0" style="flex:1;border-color:var(--accent2)">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('inv-grand-total').value=''" title="Reset">↺</button>
         </div>
-        <div style="font-size:11px;color:var(--accent);margin-top:4px">Override the printed total. Leave blank to use calculated net total.</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:3px">Override the printed total. Leave blank to use net total.</div>
+      </div>
+      <div class="paid-checkbox-row">
+        <input type="checkbox" id="inv-paid-check" onchange="onPaidCheckChange()">
+        <label for="inv-paid-check">✅ Mark as Paid (auto-record payment)</label>
+      </div>
+      <div id="inv-paid-method-row" style="display:none;margin-top:8px">
+        <label>Payment Method</label>
+        <select id="inv-paid-method">
+          <option value="Cash">Cash</option>
+          <option value="eSewa">eSewa</option>
+          <option value="Others">Others</option>
+        </select>
       </div>
     </div>
-
     <hr class="divider">
     <div class="flex-gap">
       <button class="btn btn-primary" onclick="saveInvoice()">💾 Save Invoice</button>
       <button class="btn btn-secondary" onclick="printCurrentInvoice()">🖨 Print</button>
+      <button class="btn btn-blue" onclick="saveInvoiceAsImage()">🖼 Save as Image</button>
     </div>
     <input type="hidden" id="inv-editing-id">
   </div>
 </div>
 
-<!-- Invoices List -->
+<!-- INVOICES LIST -->
 <div id="sec-invoices" class="section">
   <div class="page-header">
-    <div><h2>Invoices</h2><p>All saved invoices</p></div>
+    <div><h2>Sales Invoices</h2><p>All saved invoices</p></div>
     <div class="flex-gap">
-      <div class="search-wrap"><input type="text" id="inv-search" placeholder="Search invoices..." oninput="renderInvoicesTable()" style="width:200px"></div>
+      <div class="search-wrap"><input type="text" id="inv-search" placeholder="Search..." oninput="renderInvoicesTable()" style="width:190px"></div>
       <button class="btn btn-primary" onclick="nav('invoice',null)">+ New Invoice</button>
     </div>
   </div>
@@ -606,51 +289,108 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
   </div>
 </div>
 
-<!-- Parties -->
-<div id="sec-parties" class="section">
+<!-- PURCHASES -->
+<div id="sec-purchase" class="section">
   <div class="page-header">
-    <div><h2>Parties</h2><p>Manage customers & vendors</p></div>
-    <button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+    <div><h2>Purchases</h2><p>Record purchase bills</p></div>
+    <button class="btn btn-primary" onclick="openVoucherModal('purchase')">+ New Purchase</button>
   </div>
-  <div class="search-wrap" style="margin-bottom:16px"><input type="text" id="party-search" placeholder="Search parties..." oninput="renderPartiesTable()" style="max-width:300px"></div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="amount">Total Billed</th><th class="amount">Total Received</th><th class="amount">Due</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Bill No</th><th>Date (BS)</th><th>Party (Supplier)</th><th>Items</th><th class="amount">Total (Rs.)</th><th>Actions</th></tr></thead>
+      <tbody id="purchase-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SALES RETURN -->
+<div id="sec-sales-return" class="section">
+  <div class="page-header">
+    <div><h2>Sales Return</h2><p>Record returned sales</p></div>
+    <button class="btn btn-primary" onclick="openVoucherModal('sales-return')">+ New Sales Return</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Return No</th><th>Date (BS)</th><th>Party</th><th>Ref Invoice</th><th class="amount">Total (Rs.)</th><th>Actions</th></tr></thead>
+      <tbody id="sales-return-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PURCHASE RETURN -->
+<div id="sec-purchase-return" class="section">
+  <div class="page-header">
+    <div><h2>Purchase Return</h2><p>Record returned purchases</p></div>
+    <button class="btn btn-primary" onclick="openVoucherModal('purchase-return')">+ New Purchase Return</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Return No</th><th>Date (BS)</th><th>Party (Supplier)</th><th>Ref Bill</th><th class="amount">Total (Rs.)</th><th>Actions</th></tr></thead>
+      <tbody id="purchase-return-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- STOCK ITEMS -->
+<div id="sec-stock" class="section">
+  <div class="page-header">
+    <div><h2>Stock Items</h2><p>Auto-populated from invoices & purchases</p></div>
+    <button class="btn btn-primary" onclick="openStockModal()">+ Add Item</button>
+  </div>
+  <div class="search-wrap" style="margin-bottom:14px"><input type="text" id="stock-search" placeholder="Search items..." oninput="renderStockTable()" style="max-width:280px"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Item Name</th><th class="amount">Last Rate (Rs.)</th><th>Last Updated</th><th>Actions</th></tr></thead>
+      <tbody id="stock-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PARTIES -->
+<div id="sec-parties" class="section">
+  <div class="page-header">
+    <div><h2>Parties</h2><p>Customers & vendors</p></div>
+    <button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+  </div>
+  <div class="search-wrap" style="margin-bottom:14px"><input type="text" id="party-search" placeholder="Search parties..." oninput="renderPartiesTable()" style="max-width:280px"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="amount">Billed</th><th class="amount">Received</th><th class="amount">Due</th><th>Actions</th></tr></thead>
       <tbody id="parties-tbody"></tbody>
     </table>
   </div>
 </div>
 
-<!-- Payments -->
+<!-- PAYMENTS -->
 <div id="sec-payments" class="section">
-  <div class="page-header">
-    <div><h2>Payments</h2><p>Record amount received</p></div>
-  </div>
+  <div class="page-header"><div><h2>Payments</h2><p>Record amount received</p></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
     <div class="card">
-      <h3 style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:16px">Receive Payment</h3>
+      <h3 style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:14px" id="pay-form-title">Receive Payment</h3>
       <div class="form-group autocomplete-wrap">
         <label>Select Party</label>
-        <input type="text" id="pay-party-input" placeholder="Search party..." autocomplete="off" oninput="acParty(this,'pay-party-id','pay-ac');loadPartyBalance()">
+        <input type="text" id="pay-party-input" placeholder="Search party..." autocomplete="off"
+          oninput="acParty(this,'pay-party-id','pay-ac');loadPartyBalance()"
+          onkeydown="acKeydown(event,'pay-ac',this,'pay-party-id','loadPartyBalance')">
         <input type="hidden" id="pay-party-id">
         <ul class="autocomplete-list" id="pay-ac"></ul>
       </div>
-      <div class="card" style="background:var(--bg2);margin-bottom:14px">
-        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Billed</span><span class="mono" id="pay-billed">Rs. 0.00</span></div>
-        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Received</span><span class="mono" id="pay-received-so-far">Rs. 0.00</span></div>
-        <div class="total-row" style="font-size:13px;font-weight:700;color:var(--red)"><span>Due Amount</span><span class="mono" id="pay-due">Rs. 0.00</span></div>
+      <div class="card" style="background:var(--bg2);margin-bottom:12px;padding:12px 14px">
+        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Billed</span><span class="mono" id="pay-billed">Rs. 0</span></div>
+        <div class="total-row" style="font-size:13px"><span style="color:var(--text2)">Total Received</span><span class="mono" id="pay-received-so-far">Rs. 0</span></div>
+        <div class="total-row" style="font-size:13px;font-weight:700;color:var(--red)"><span>Due Amount</span><span class="mono" id="pay-due">Rs. 0</span></div>
       </div>
       <div class="form-row">
         <div class="form-group" style="margin-bottom:0">
           <label>Amount Received</label>
-          <input type="number" id="pay-amount" placeholder="0.00" min="0" step="0.01">
+          <input type="number" id="pay-amount" placeholder="0" min="0" step="1">
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label>Discount (Rs.)</label>
-          <input type="number" id="pay-discount" placeholder="0.00" min="0" step="0.01" value="0">
+          <input type="number" id="pay-discount" placeholder="0" min="0" step="1" value="0">
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-top:12px">
         <label>Payment Method</label>
         <select id="pay-method">
           <option value="Cash">Cash</option>
@@ -659,24 +399,32 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
         </select>
       </div>
       <div class="form-group">
+        <label>Date (BS)</label>
+        <input type="text" id="pay-date-bs" placeholder="YYYY-MM-DD">
+      </div>
+      <div class="form-group">
         <label>Note</label>
         <input type="text" id="pay-note" placeholder="Optional note">
       </div>
-      <button class="btn btn-primary" onclick="savePayment()" style="width:100%">💰 Save Payment</button>
+      <input type="hidden" id="pay-editing-id">
+      <div class="flex-gap">
+        <button class="btn btn-primary" onclick="savePayment()" style="flex:1">💰 Save Payment</button>
+        <button class="btn btn-secondary" id="pay-cancel-edit" style="display:none" onclick="cancelEditPayment()">Cancel</button>
+      </div>
     </div>
     <div class="card">
-      <div style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:16px">Payment History</div>
+      <div style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:14px">Payment History</div>
       <div id="payment-history"></div>
     </div>
   </div>
 </div>
 
-<!-- Journal -->
+<!-- JOURNAL -->
 <div id="sec-journal" class="section">
   <div class="page-header">
     <div><h2>Journal</h2><p>Double-entry bookkeeping</p></div>
     <div class="flex-gap">
-      <div class="search-wrap"><input type="text" id="jrn-search" placeholder="Search journal..." oninput="renderJournal()" style="width:180px"></div>
+      <div class="search-wrap"><input type="text" id="jrn-search" placeholder="Search journal..." oninput="renderJournal()" style="width:175px"></div>
       <button class="btn btn-green" onclick="exportJournalXLSX()">📊 Export Excel</button>
     </div>
   </div>
@@ -688,7 +436,7 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
   </div>
 </div>
 
-<!-- Settings -->
+<!-- SETTINGS -->
 <div id="sec-settings" class="section">
   <div class="page-header"><h2>Settings</h2></div>
   <div class="card" style="max-width:540px">
@@ -698,10 +446,16 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
       <div class="form-group"><label>Address</label><input type="text" id="set-address" placeholder="Street, City"></div>
       <div class="form-group"><label>Phone</label><input type="text" id="set-phone" placeholder="+977-..."></div>
       <div class="form-group"><label>Username (for print footer)</label><input type="text" id="set-username" placeholder="Your name"></div>
-      <div class="form-group" style="background:var(--accent-bg); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--accent2)">
-        <label style="color:var(--accent); font-weight:700">📅 Today's Date (BS)</label>
-        <input type="text" id="set-today-date-bs" placeholder="YYYY-MM-DD" style="border-color:var(--accent2)">
-        <span style="font-size:11px; color:var(--text2); display:block; margin-top:4px">This locked date will run globally on invoices, logs, and dashboards until you manually edit it here.</span>
+    </div>
+    <div class="setting-section">
+      <h3>📅 Default Invoice Date</h3>
+      <div class="form-group">
+        <label>Today's Date (BS) — used as default for new invoices</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="set-today-bs" placeholder="YYYY-MM-DD" style="flex:1">
+          <button class="btn btn-secondary btn-sm" onclick="fetchTodayBSDate('set-today-bs')">Fetch Today</button>
+        </div>
+        <div style="font-size:11.5px;color:var(--text2);margin-top:4px">New invoices will use this date. Update daily or click Fetch Today.</div>
       </div>
     </div>
     <div class="setting-section">
@@ -718,12 +472,12 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
 </main>
 </div>
 
-<!-- ─── Party Modal ─────────────────────── -->
+<!-- PARTY MODAL -->
 <div class="modal-overlay" id="party-modal">
   <div class="modal">
     <button class="close-btn" onclick="closeModal('party-modal')">✕</button>
     <h3 id="party-modal-title">Add Party</h3>
-    <div class="form-group"><label>Name *</label><input type="text" id="pm-name" placeholder="Party / Customer name"></div>
+    <div class="form-group"><label>Name *</label><input type="text" id="pm-name" placeholder="Party name"></div>
     <div class="form-group"><label>Phone</label><input type="text" id="pm-phone" placeholder="+977-..."></div>
     <div class="form-group"><label>Address</label><input type="text" id="pm-address" placeholder="City / Address"></div>
     <input type="hidden" id="pm-id">
@@ -734,205 +488,231 @@ hr.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; 
   </div>
 </div>
 
-<!-- ─── Print area ──────────────────────── -->
+<!-- STOCK ITEM MODAL -->
+<div class="modal-overlay" id="stock-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('stock-modal')">✕</button>
+    <h3 id="stock-modal-title">Add Stock Item</h3>
+    <div class="form-group"><label>Item Name *</label><input type="text" id="sm-name" placeholder="Item name"></div>
+    <div class="form-group"><label>Rate (Rs.)</label><input type="number" id="sm-rate" placeholder="0" min="0" step="1"></div>
+    <div class="form-group"><label>Unit</label><input type="text" id="sm-unit" placeholder="pcs / kg / litre..."></div>
+    <div class="form-group"><label>Description</label><input type="text" id="sm-desc" placeholder="Optional"></div>
+    <input type="hidden" id="sm-id">
+    <div class="flex-gap">
+      <button class="btn btn-primary" onclick="saveStockItem()">💾 Save</button>
+      <button class="btn btn-secondary" onclick="closeModal('stock-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOUCHER MODAL (Purchase / Sales Return / Purchase Return) -->
+<div class="modal-overlay" id="voucher-modal">
+  <div class="modal" style="max-width:680px">
+    <button class="close-btn" onclick="closeModal('voucher-modal')">✕</button>
+    <h3 id="voucher-modal-title">New Purchase</h3>
+    <input type="hidden" id="vm-type">
+    <input type="hidden" id="vm-editing-id">
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group" style="margin-bottom:0"><label>Bill / Ref No.</label><input type="text" id="vm-no" placeholder="Auto"></div>
+      <div class="form-group" style="margin-bottom:0"><label>Date (BS)</label><input type="text" id="vm-date" placeholder="YYYY-MM-DD"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group autocomplete-wrap" style="margin-bottom:0">
+        <label>Party</label>
+        <input type="text" id="vm-party-input" placeholder="Search party..." autocomplete="off"
+          oninput="acParty(this,'vm-party-id','vm-ac')"
+          onkeydown="acKeydown(event,'vm-ac',this,'vm-party-id',null)">
+        <input type="hidden" id="vm-party-id">
+        <ul class="autocomplete-list" id="vm-ac"></ul>
+      </div>
+      <div class="form-group" style="margin-bottom:0"><label>Ref Invoice / Bill</label><input type="text" id="vm-ref" placeholder="Optional reference"></div>
+    </div>
+    <div style="overflow-x:auto;margin-bottom:8px">
+      <table class="items-table">
+        <thead><tr><th style="min-width:160px">Item</th><th style="min-width:70px">Qty</th><th style="min-width:85px">Rate</th><th style="min-width:85px">Disc%</th><th style="min-width:80px;text-align:right">Amount</th><th style="width:32px"></th></tr></thead>
+        <tbody id="vm-items-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="addVmItem()">+ Add Item</button>
+    <div style="max-width:260px;margin-left:auto;margin-top:8px">
+      <div class="total-box">
+        <div class="total-row"><span>Subtotal</span><span id="vm-subtotal">0</span></div>
+        <div class="total-row grand"><span>Total</span><span id="vm-total">0</span></div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn btn-primary" onclick="saveVoucher()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
 <div id="print-area"></div>
 
 <script>
-// ═══════════════════════════════════════════
-// NEPALI DATE (Bikram Sambat) converter
-// ═══════════════════════════════════════════
-const BS_MONTHS = ['Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
-const BS_MONTHS_NP = ['बैशाख','जेठ','असार','श्रावण','भाद्र','आश्विन','कार्तिक','मंसिर','पुस','माघ','फाल्गुन','चैत्र'];
-
-// Days in each BS year/month (1970-2090)
-const bs_data = {
-  2000:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2001:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2002:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2003:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2004:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2005:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2006:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2007:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2008:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2009:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2010:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2011:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2012:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2013:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2014:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2015:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2016:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2017:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2018:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2019:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2020:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2021:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2022:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2023:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2024:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2025:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2026:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2027:[30,32,31,32,31,30,30,30,29,30,29,31],
-  2028:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2029:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2030:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2031:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2032:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2033:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2034:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2035:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2036:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2037:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2038:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2039:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2040:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2041:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2042:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2043:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2044:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2045:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2046:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2047:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2048:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2049:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2050:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2051:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2052:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2053:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2054:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2055:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2056:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2057:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2058:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2059:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2060:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2061:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2062:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2063:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2064:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2065:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2066:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2067:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2068:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2069:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2070:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2071:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2072:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2073:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2074:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2075:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2076:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2077:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2078:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2079:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2080:[31,31,32,32,31,30,30,29,30,29,30,30],
-  2081:[31,32,31,32,31,30,30,30,29,30,29,31],
-  2082:[31,31,32,31,31,31,30,29,30,29,30,30],
-  2083:[31,31,32,32,31,30,30,29,30,29,30,30],
+// ══════════════════════════════════════════════════════
+// BS DATE DATA & CONVERTER
+// ══════════════════════════════════════════════════════
+const BS_MONTHS=['Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+const bs_data={
+  2000:[30,32,31,32,31,30,30,30,29,30,29,31],2001:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2002:[31,31,32,32,31,30,30,29,30,29,30,30],2003:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2004:[30,32,31,32,31,30,30,30,29,30,29,31],2005:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2006:[31,31,32,32,31,30,30,29,30,29,30,30],2007:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2008:[31,31,32,31,31,31,30,29,30,29,30,30],2009:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2010:[31,32,31,32,31,30,30,30,29,30,29,31],2011:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2012:[31,31,32,32,31,30,30,29,30,29,30,30],2013:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2014:[30,32,31,32,31,30,30,30,29,30,29,31],2015:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2016:[31,31,32,32,31,30,30,29,30,29,30,30],2017:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2018:[31,31,32,31,31,31,30,29,30,29,30,30],2019:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2020:[31,32,31,32,31,30,30,30,29,30,29,31],2021:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2022:[31,31,32,32,31,30,30,29,30,29,30,30],2023:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2024:[31,31,32,31,31,31,30,29,30,29,30,30],2025:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2026:[31,32,31,32,31,30,30,30,29,30,29,31],2027:[30,32,31,32,31,30,30,30,29,30,29,31],
+  2028:[31,31,32,31,31,31,30,29,30,29,30,30],2029:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2030:[31,32,31,32,31,30,30,30,29,30,29,31],2031:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2032:[31,31,32,32,31,30,30,29,30,29,30,30],2033:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2034:[31,31,32,31,31,31,30,29,30,29,30,30],2035:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2036:[31,32,31,32,31,30,30,30,29,30,29,31],2037:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2038:[31,31,32,32,31,30,30,29,30,29,30,30],2039:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2040:[31,31,32,31,31,31,30,29,30,29,30,30],2041:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2042:[31,32,31,32,31,30,30,30,29,30,29,31],2043:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2044:[31,31,32,32,31,30,30,29,30,29,30,30],2045:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2046:[31,31,32,31,31,31,30,29,30,29,30,30],2047:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2048:[31,32,31,32,31,30,30,30,29,30,29,31],2049:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2050:[31,31,32,32,31,30,30,29,30,29,30,30],2051:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2052:[31,31,32,31,31,31,30,29,30,29,30,30],2053:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2054:[31,32,31,32,31,30,30,30,29,30,29,31],2055:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2056:[31,31,32,32,31,30,30,29,30,29,30,30],2057:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2058:[31,31,32,31,31,31,30,29,30,29,30,30],2059:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2060:[31,32,31,32,31,30,30,30,29,30,29,31],2061:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2062:[31,31,32,32,31,30,30,29,30,29,30,30],2063:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2064:[31,31,32,31,31,31,30,29,30,29,30,30],2065:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2066:[31,32,31,32,31,30,30,30,29,30,29,31],2067:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2068:[31,31,32,32,31,30,30,29,30,29,30,30],2069:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2070:[31,31,32,31,31,31,30,29,30,29,30,30],2071:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2072:[31,32,31,32,31,30,30,30,29,30,29,31],2073:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2074:[31,31,32,32,31,30,30,29,30,29,30,30],2075:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2076:[31,31,32,31,31,31,30,29,30,29,30,30],2077:[31,31,32,32,31,30,30,29,30,29,30,30],
+  2078:[31,32,31,32,31,30,30,30,29,30,29,31],2079:[31,31,32,31,31,31,30,29,30,29,30,30],
+  2080:[31,31,32,32,31,30,30,29,30,29,30,30],2081:[31,32,31,32,31,30,30,30,29,30,29,31],
+  2082:[31,31,32,31,31,31,30,29,30,29,30,30],2083:[31,31,32,32,31,30,30,29,30,29,30,30]
 };
 
-function adToBS(adYear, adMonth, adDay) {
-  const adDate = new Date(adYear, adMonth - 1, adDay);
-  const adEpoch = new Date(1944, 0, 1);
-  let diff = Math.floor((adDate - adEpoch) / 86400000);
-  let bsYear = 2000, bsMonth = 9, bsDay = 17;
-  const years = Object.keys(bs_data).map(Number).sort((a,b)=>a-b);
-  for (const y of years) {
-    const daysInYear = bs_data[y].reduce((a,b)=>a+b,0);
-    if (diff >= daysInYear) { diff -= daysInYear; bsYear++; }
-    else {
-      for (let m = 0; m < 12; m++) {
-        if (diff >= bs_data[y][m]) { diff -= bs_data[y][m]; bsMonth = m+2; }
-        else { bsDay += diff; if (bsDay > bs_data[y][m]) { bsDay -= bs_data[y][m]; bsMonth++; } break; }
+function adToBS(y,m,d){
+  const adDate=new Date(y,m-1,d);
+  const adEpoch=new Date(1944,0,1);
+  let diff=Math.floor((adDate-adEpoch)/86400000);
+  let bsYear=2000,bsMonth=9,bsDay=17;
+  const years=Object.keys(bs_data).map(Number).sort((a,b)=>a-b);
+  for(const yr of years){
+    const diy=bs_data[yr].reduce((a,b)=>a+b,0);
+    if(diff>=diy){diff-=diy;bsYear++;}
+    else{
+      for(let mo=0;mo<12;mo++){
+        if(diff>=bs_data[yr][mo]){diff-=bs_data[yr][mo];bsMonth=mo+2;}
+        else{bsDay+=diff;if(bsDay>bs_data[yr][mo]){bsDay-=bs_data[yr][mo];bsMonth++;}break;}
       }
       break;
     }
   }
-  return { year: bsYear, month: bsMonth, day: bsDay };
+  return{year:bsYear,month:bsMonth,day:bsDay};
 }
 
-// ═══════════════════════════════════════════
-// GET TODAY'S DESIRED FUNCTIONAL SYSTEM DATE
-// ═══════════════════════════════════════════
-function getGlobalTodayBSDate() {
-  const s = DB.settings();
-  if (s && s.todayDateBS && s.todayDateBS.trim() !== '') {
-    return s.todayDateBS.trim();
-  }
-  return getNepaliDate(new Date());
+function getNepaliDate(date=new Date()){
+  try{const b=adToBS(date.getFullYear(),date.getMonth()+1,date.getDate());return`${b.year}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;}
+  catch(e){return`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
+}
+function getNepaliDateFull(date=new Date()){
+  try{const b=adToBS(date.getFullYear(),date.getMonth()+1,date.getDate());return`${BS_MONTHS[b.month-1]} ${b.day}, ${b.year} BS`;}
+  catch(e){return date.toLocaleDateString();}
 }
 
-async function fetchTodayBSDate(fieldId) {
-  const status = document.getElementById('inv-date-fetch-status');
-  // Since user specified a global locked date configuration option, prioritize it
-  const currentGlobal = getGlobalTodayBSDate();
-  document.getElementById(fieldId).value = currentGlobal;
-  syncBSPicker(currentGlobal);
-  if(status) {
-    status.textContent = '🔒 configured from settings';
-    setTimeout(()=>{ if(status) status.textContent=''; }, 3000);
+// ══════════════════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════════════════
+const DB={
+  get:k=>JSON.parse(localStorage.getItem('fp_'+k)||'null'),
+  set:(k,v)=>localStorage.setItem('fp_'+k,JSON.stringify(v)),
+  invoices:()=>DB.get('invoices')||[],
+  parties:()=>DB.get('parties')||[],
+  payments:()=>DB.get('payments')||[],
+  journal:()=>DB.get('journal')||[],
+  settings:()=>DB.get('settings')||{company:'FinPilot',address:'',phone:'',username:'Admin',logo:'',todayBS:''},
+  vouchers:()=>DB.get('vouchers')||[],
+  stock:()=>DB.get('stock')||[],
+  saveInvoices:v=>DB.set('invoices',v),
+  saveParties:v=>DB.set('parties',v),
+  savePayments:v=>DB.set('payments',v),
+  saveJournal:v=>DB.set('journal',v),
+  saveSettings:v=>DB.set('settings',v),
+  saveVouchers:v=>DB.set('vouchers',v),
+  saveStock:v=>DB.set('stock',v),
+};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+function fmt(n){return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtI(n){return Math.round(parseFloat(n||0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+
+// ══════════════════════════════════════════════════════
+// FETCH TODAY'S DATE
+// ══════════════════════════════════════════════════════
+async function fetchTodayBSDate(fieldId){
+  const status=document.getElementById('inv-date-fetch-status');
+  if(status) status.textContent='⏳';
+  try{
+    const res=await fetch('https://worldtimeapi.org/api/timezone/Asia/Kathmandu');
+    if(!res.ok) throw new Error();
+    const data=await res.json();
+    const d=new Date(data.datetime);
+    const bs=getNepaliDate(d);
+    const el=document.getElementById(fieldId);
+    if(el){el.value=bs;syncBSPicker(bs);}
+    if(status){status.textContent='✅';setTimeout(()=>{status.textContent='';},2500);}
+  }catch(e){
+    const bs=getNepaliDate(new Date());
+    const el=document.getElementById(fieldId);
+    if(el){el.value=bs;syncBSPicker(bs);}
+    if(status){status.textContent='📴 device';setTimeout(()=>{status.textContent='';},3000);}
   }
 }
 
-// ═══════════════════════════════════════════
-// BS DATE PICKER HELPERS
-// ═══════════════════════════════════════════
-const BS_YEAR_MIN = 2070, BS_YEAR_MAX = 2083;
-
-function toggleBSPicker() {
-  const picker = document.getElementById('bs-picker');
-  if(!picker) return;
-  const open = picker.style.display === 'block';
-  if(!open) {
-    buildBSPickerOptions();
-    const cur = document.getElementById('inv-date-bs').value;
-    syncBSPicker(cur);
-  }
-  picker.style.display = open ? 'none' : 'block';
+// ══════════════════════════════════════════════════════
+// BS DATE PICKER
+// ══════════════════════════════════════════════════════
+const BS_YEAR_MIN=2070,BS_YEAR_MAX=2083;
+function toggleBSPicker(){
+  const p=document.getElementById('bs-picker');if(!p)return;
+  const open=p.style.display==='block';
+  if(!open){buildBSPickerOptions();syncBSPicker(document.getElementById('inv-date-bs').value);}
+  p.style.display=open?'none':'block';
 }
-
-function buildBSPickerOptions() {
-  const ysel = document.getElementById('bsp-year');
-  const msel = document.getElementById('bsp-month');
-  if(ysel.options.length) return; // already built
-  for(let y=BS_YEAR_MIN; y<=BS_YEAR_MAX; y++) {
-    const o=document.createElement('option'); o.value=y; o.textContent=y; ysel.appendChild(o);
-  }
-  BS_MONTHS.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i+1; o.textContent=`${i+1} - ${m}`; msel.appendChild(o); });
+function buildBSPickerOptions(){
+  const y=document.getElementById('bsp-year');
+  const m=document.getElementById('bsp-month');
+  if(y.options.length)return;
+  for(let i=BS_YEAR_MIN;i<=BS_YEAR_MAX;i++){const o=document.createElement('option');o.value=i;o.textContent=i;y.appendChild(o);}
+  BS_MONTHS.forEach((mn,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=`${i+1} - ${mn}`;m.appendChild(o);});
   rebuildDays();
 }
-
-function rebuildDays() {
-  const ysel=document.getElementById('bsp-year');
-  const msel=document.getElementById('bsp-month');
-  const dsel=document.getElementById('bsp-day');
-  if(!ysel||!msel||!dsel) return;
-  const y=parseInt(ysel.value), m=parseInt(msel.value);
-  const maxDay = (bs_data[y]&&bs_data[y][m-1]) ? bs_data[y][m-1] : 32;
-  const curDay = parseInt(dsel.value)||1;
-  dsel.innerHTML='';
-  for(let d=1;d<=maxDay;d++){ const o=document.createElement('option'); o.value=d; o.textContent=d; dsel.appendChild(o); }
-  dsel.value = Math.min(curDay, maxDay);
+function rebuildDays(){
+  const y=document.getElementById('bsp-year');const m=document.getElementById('bsp-month');const d=document.getElementById('bsp-day');
+  if(!y||!m||!d)return;
+  const yr=parseInt(y.value),mo=parseInt(m.value);
+  const max=(bs_data[yr]&&bs_data[yr][mo-1])?bs_data[yr][mo-1]:32;
+  const cur=parseInt(d.value)||1;
+  d.innerHTML='';
+  for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;d.appendChild(o);}
+  d.value=Math.min(cur,max);
 }
-
-function syncBSPicker(val) {
-  if(!val) return;
-  const parts = val.split('-');
-  if(parts.length!==3) return;
-  const y=parseInt(parts[0]), m=parseInt(parts[1]), d=parseInt(parts[2]);
-  if(!y||!m||!d) return;
+function syncBSPicker(val){
+  if(!val)return;const p=val.split('-');if(p.length!==3)return;
+  const y=parseInt(p[0]),m=parseInt(p[1]),d=parseInt(p[2]);if(!y||!m||!d)return;
   buildBSPickerOptions();
-  const ysel=document.getElementById('bsp-year');
-  const msel=document.getElementById('bsp-month');
-  const dsel=document.getElementById('bsp-day');
-  if(ysel) ysel.value=y;
-  if(msel) msel.value=m;
-  rebuildDays();
-  if(dsel) dsel.value=d;
+  const ys=document.getElementById('bsp-year');const ms=document.getElementById('bsp-month');const ds=document.getElementById('bsp-day');
+  if(ys)ys.value=y;if(ms)ms.value=m;rebuildDays();if(ds)ds.value=d;
 }
-
-function applyBSPicker() {
+function applyBSPicker(){
   rebuildDays();
   const y=document.getElementById('bsp-year').value;
   const m=String(document.getElementById('bsp-month').value).padStart(2,'0');
@@ -940,166 +720,240 @@ function applyBSPicker() {
   document.getElementById('inv-date-bs').value=`${y}-${m}-${d}`;
 }
 
-function getNepaliDate(date = new Date()) {
-  try {
-    const bs = adToBS(date.getFullYear(), date.getMonth()+1, date.getDate());
-    return `${bs.year}-${String(bs.month).padStart(2,'0')}-${String(bs.day).padStart(2,'0')}`;
-  } catch(e) {
-    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-  }
-}
-
-function getNepaliDateFull() {
-  try {
-    const globalBs = getGlobalTodayBSDate();
-    const parts = globalBs.split('-');
-    if(parts.length === 3) {
-      const mIdx = parseInt(parts[1]) - 1;
-      return `${BS_MONTHS[mIdx] || ''} ${parseInt(parts[2])}, ${parts[0]} BS`;
-    }
-  } catch(e) {}
-  return getNepaliDate();
-}
-
-// ═══════════════════════════════════════════
-// DATA STORE
-// ═══════════════════════════════════════════
-const DB = {
-  get: k => JSON.parse(localStorage.getItem('bl_'+k)||'null'),
-  set: (k,v) => localStorage.setItem('bl_'+k, JSON.stringify(v)),
-  invoices: () => DB.get('invoices')||[],
-  parties: () => DB.get('parties')||[],
-  payments: () => DB.get('payments')||[],
-  journal: () => DB.get('journal')||[],
-  settings: () => DB.get('settings')||{company:'BizLedger',address:'',phone:'',username:'Admin',logo:'',todayDateBS:''},
-  saveInvoices: v => DB.set('invoices',v),
-  saveParties: v => DB.set('parties',v),
-  savePayments: v => DB.set('payments',v),
-  saveJournal: v => DB.set('journal',v),
-  saveSettings: v => DB.set('settings',v),
-};
-
-function uid() { return Date.now().toString(36)+Math.random().toString(36).substr(2,5); }
-function fmt(n) { return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
-function fmtI(n) { return Math.round(parseFloat(n||0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════
-function nav(sec, el) {
+// ══════════════════════════════════════════════════════
+function nav(sec,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
-  if(el) el.classList.add('active');
-  else {
-    const link = document.querySelector(`nav a[onclick*="'${sec}'"]`);
-    if(link) link.classList.add('active');
-  }
+  if(el)el.classList.add('active');
+  else{const lk=document.querySelector(`nav a[onclick*="'${sec}'"]`);if(lk)lk.classList.add('active');}
   document.getElementById('sidebar').classList.remove('open');
-  if(sec==='dashboard') renderDashboard();
-  if(sec==='invoices') renderInvoicesTable();
-  if(sec==='parties') renderPartiesTable();
-  if(sec==='payments') renderPaymentHistory();
-  if(sec==='journal') renderJournal();
-  if(sec==='settings') loadSettings();
-  if(sec==='invoice') initInvoiceForm();
+  if(sec==='dashboard')renderDashboard();
+  if(sec==='invoices')renderInvoicesTable();
+  if(sec==='parties')renderPartiesTable();
+  if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
+  if(sec==='journal')renderJournal();
+  if(sec==='settings')loadSettings();
+  if(sec==='invoice')initInvoiceForm();
+  if(sec==='purchase')renderVouchersTable('purchase');
+  if(sec==='sales-return')renderVouchersTable('sales-return');
+  if(sec==='purchase-return')renderVouchersTable('purchase-return');
+  if(sec==='stock')renderStockTable();
 }
+function toggleNav(){document.getElementById('sidebar').classList.toggle('open');}
 
-function toggleNav() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // DARK MODE
-// ═══════════════════════════════════════════
-let dark = localStorage.getItem('bl_dark')==='1';
-function toggleTheme() {
-  dark = !dark;
-  document.body.setAttribute('data-theme', dark?'dark':'light');
-  localStorage.setItem('bl_dark', dark?'1':'0');
-}
-if(dark) document.body.setAttribute('data-theme','dark');
+// ══════════════════════════════════════════════════════
+let dark=localStorage.getItem('fp_dark')==='1';
+function toggleTheme(){dark=!dark;document.body.setAttribute('data-theme',dark?'dark':'light');localStorage.setItem('fp_dark',dark?'1':'0');}
+if(dark)document.body.setAttribute('data-theme','dark');
 
-// ═══════════════════════════════════════════
-// AUTOCOMPLETE PARTY
-// ═══════════════════════════════════════════
-function acParty(inp, hiddenId, listId) {
-  const val = inp.value.toLowerCase();
-  const list = document.getElementById(listId);
-  const parties = DB.parties();
-  const filtered = parties.filter(p=>p.name.toLowerCase().includes(val));
-  list.innerHTML = '';
-  if(!val && !filtered.length) { list.classList.remove('open'); return; }
-  filtered.forEach(p=>{
-    const li = document.createElement('li');
-    li.textContent = p.name + (p.phone?` · ${p.phone}`:'');
-    li.onclick=()=>{ inp.value=p.name; document.getElementById(hiddenId).value=p.id; list.classList.remove('open'); if(hiddenId==='pay-party-id') loadPartyBalance(); };
+// ══════════════════════════════════════════════════════
+// AUTOCOMPLETE — PARTY
+// ══════════════════════════════════════════════════════
+function acParty(inp,hiddenId,listId){
+  const val=inp.value.toLowerCase();
+  const list=document.getElementById(listId);
+  const parties=DB.parties();
+  const filtered=parties.filter(p=>p.name.toLowerCase().includes(val));
+  list.innerHTML='';
+  if(!val&&!filtered.length){list.classList.remove('open');return;}
+  filtered.forEach((p,idx)=>{
+    const li=document.createElement('li');
+    li.textContent=p.name+(p.phone?` · ${p.phone}`:'');
+    li.dataset.idx=idx;
+    li.onclick=()=>{inp.value=p.name;document.getElementById(hiddenId).value=p.id;list.classList.remove('open');if(hiddenId==='pay-party-id')loadPartyBalance();};
     list.appendChild(li);
   });
   if(val&&!parties.find(p=>p.name.toLowerCase()===val)){
-    const li=document.createElement('li'); li.className='add-new';
+    const li=document.createElement('li');li.className='add-new';
     li.textContent=`+ Add "${inp.value}" as new party`;
-    li.onclick=()=>{ const id=addPartyQuick(inp.value); inp.value=inp.value; document.getElementById(hiddenId).value=id; list.classList.remove('open'); };
+    li.onclick=()=>{const id=addPartyQuick(inp.value);inp.value=inp.value;document.getElementById(hiddenId).value=id;list.classList.remove('open');};
     list.appendChild(li);
   }
   list.classList.add('open');
-  document.onclick=e=>{ if(!inp.contains(e.target)&&!list.contains(e.target)) list.classList.remove('open'); };
+  list._highlighted=-1;
+  document.onclick=e=>{if(!inp.contains(e.target)&&!list.contains(e.target))list.classList.remove('open');};
 }
 
-function addPartyQuick(name) {
-  const parties = DB.parties();
-  const p = {id:uid(),name:name.trim(),phone:'',address:''};
-  parties.push(p); DB.saveParties(parties);
-  return p.id;
+function acKeydown(event,listId,inp,hiddenId,onSelectCb){
+  const list=document.getElementById(listId);
+  const items=[...list.querySelectorAll('li:not(.add-new)')];
+  if(!list.classList.contains('open')){
+    if(event.key==='ArrowDown'){acParty(inp,hiddenId,listId);}
+    return;
+  }
+  if(event.key==='ArrowDown'){
+    event.preventDefault();
+    list._highlighted=(list._highlighted===undefined?-1:list._highlighted);
+    list._highlighted=Math.min(list._highlighted+1,items.length-1);
+    items.forEach((li,i)=>li.classList.toggle('highlighted',i===list._highlighted));
+  }else if(event.key==='ArrowUp'){
+    event.preventDefault();
+    list._highlighted=Math.max((list._highlighted||0)-1,0);
+    items.forEach((li,i)=>li.classList.toggle('highlighted',i===list._highlighted));
+  }else if(event.key==='Enter'){
+    event.preventDefault();
+    const hi=list._highlighted>=0?list._highlighted:0;
+    if(items[hi]){items[hi].click();}
+    else if(items[0]){items[0].click();}
+    if(onSelectCb&&window[onSelectCb])window[onSelectCb]();
+  }else if(event.key==='Escape'){list.classList.remove('open');}
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// AUTOCOMPLETE — STOCK ITEM (for invoice rows)
+// ══════════════════════════════════════════════════════
+let _acItemList=null;
+function acItem(inp,rowIdx){
+  const val=inp.value.toLowerCase();
+  // close any other open list
+  if(_acItemList&&_acItemList!==inp._acList){_acItemList.classList.remove('open');_acItemList.innerHTML='';}
+  let list=inp._acList;
+  if(!list){
+    list=document.createElement('ul');
+    list.className='autocomplete-list';
+    list.style.zIndex='300';
+    inp.parentNode.style.position='relative';
+    inp.parentNode.appendChild(list);
+    inp._acList=list;
+    _acItemList=list;
+  }
+  const items=DB.stock();
+  const filtered=items.filter(s=>s.name.toLowerCase().includes(val));
+  list.innerHTML='';
+  list._highlighted=-1;
+  filtered.forEach((s,i)=>{
+    const li=document.createElement('li');
+    li.textContent=s.name+(s.rate?` — Rs. ${fmtI(s.rate)}`:'')+( s.unit?` (${s.unit})`:'');
+    li.dataset.idx=i;
+    li.onclick=()=>{
+      inp.value=s.name;invItems[rowIdx].name=s.name;
+      if(s.rate&&!invItems[rowIdx].rate){
+        invItems[rowIdx].rate=s.rate;
+        const rateInp=inp.closest('tr').querySelector('input[type="number"]');
+        if(rateInp)rateInp.value=s.rate;
+        calcInvRow(rowIdx);
+      }
+      list.classList.remove('open');
+      // focus qty
+      const tds=inp.closest('tr').querySelectorAll('td input');
+      if(tds[1])tds[1].focus();
+    };
+    list.appendChild(li);
+  });
+  if(val&&!items.find(s=>s.name.toLowerCase()===val)){
+    const li=document.createElement('li');li.className='add-new';
+    li.textContent=`+ Create item "${inp.value}"`;
+    li.onclick=()=>{autoCreateStockItem(inp.value,rowIdx);list.classList.remove('open');};
+    list.appendChild(li);
+  }
+  list.classList.toggle('open',!!(val||filtered.length));
+  inp.onkeydown=e=>acItemKeydown(e,list,inp,rowIdx);
+  document.onclick=ev=>{if(!inp.contains(ev.target)&&!list.contains(ev.target))list.classList.remove('open');};
+}
+
+function acItemKeydown(e,list,inp,rowIdx){
+  const items=[...list.querySelectorAll('li:not(.add-new)')];
+  if(e.key==='ArrowDown'){e.preventDefault();list._highlighted=Math.min((list._highlighted||0)+1,items.length-1);items.forEach((li,i)=>li.classList.toggle('highlighted',i===list._highlighted));}
+  else if(e.key==='ArrowUp'){e.preventDefault();list._highlighted=Math.max((list._highlighted||0)-1,0);items.forEach((li,i)=>li.classList.toggle('highlighted',i===list._highlighted));}
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    const hi=(list._highlighted||0)>=0?list._highlighted:0;
+    if(items[hi])items[hi].click();
+    else if(inp.value.trim()){invItems[rowIdx].name=inp.value.trim();autoCreateStockItem(inp.value.trim(),rowIdx);list.classList.remove('open');}
+    // focus qty
+    const tds=inp.closest('tr').querySelectorAll('td input');
+    if(tds[1])tds[1].focus();
+  }else if(e.key==='Tab'){list.classList.remove('open');}
+}
+
+function autoCreateStockItem(name,rowIdx){
+  const stock=DB.stock();
+  if(!stock.find(s=>s.name.toLowerCase()===name.toLowerCase())){
+    stock.push({id:uid(),name:name.trim(),rate:invItems[rowIdx]?.rate||0,unit:'',desc:'',updatedAt:getNepaliDate()});
+    DB.saveStock(stock);
+  }
+}
+
+function addPartyQuick(name){
+  const p={id:uid(),name:name.trim(),phone:'',address:''};
+  const parties=DB.parties();parties.push(p);DB.saveParties(parties);return p.id;
+}
+
+// ══════════════════════════════════════════════════════
 // INVOICE FORM
-// ═══════════════════════════════════════════
-let invItems = [];
-let editingInvId = null;
+// ══════════════════════════════════════════════════════
+let invItems=[],editingInvId=null;
 
-function initInvoiceForm() {
-  if(editingInvId) return; 
-  resetInvoiceForm();
+function initInvoiceForm(){if(editingInvId)return;resetInvoiceForm();}
+
+function getDefaultInvoiceDate(){
+  const s=DB.settings();
+  if(s.todayBS)return s.todayBS;
+  const last=DB.invoices().slice(-1)[0];
+  if(last&&last.dateBS)return last.dateBS;
+  return getNepaliDate();
 }
 
-function resetInvoiceForm() {
-  editingInvId = null;
-  document.getElementById('inv-form-title').textContent = 'New Invoice';
-  const invoices = DB.invoices();
-  const nextNo = 'INV-' + String(invoices.length+1).padStart(4,'0');
-  document.getElementById('inv-no').value = nextNo;
-  
-  // Directly pull globally assigned custom locked system date
-  const lockedDate = getGlobalTodayBSDate();
-  document.getElementById('inv-date-bs').value = lockedDate;
-  syncBSPicker(lockedDate);
-  
-  document.getElementById('inv-party-input').value = '';
-  document.getElementById('inv-party-id').value = '';
-  document.getElementById('inv-note').value = '';
-  document.getElementById('inv-editing-id').value = '';
-  document.getElementById('inv-grand-total').value = '';
-  invItems = [{}];
+function resetInvoiceForm(){
+  editingInvId=null;
+  document.getElementById('inv-form-title').textContent='New Invoice';
+  const invs=DB.invoices();
+  document.getElementById('inv-no').value='INV-'+String(invs.length+1).padStart(4,'0');
+  const d=getDefaultInvoiceDate();
+  document.getElementById('inv-date-bs').value=d;
+  syncBSPicker(d);
+  const status=document.getElementById('inv-date-fetch-status');
+  const last=DB.invoices().slice(-1)[0];
+  if(status){
+    status.textContent=last&&last.dateBS?'📋 last inv':'';
+    setTimeout(()=>{if(status)status.textContent='';},2500);
+  }
+  document.getElementById('inv-party-input').value='';
+  document.getElementById('inv-party-id').value='';
+  document.getElementById('inv-note').value='';
+  document.getElementById('inv-editing-id').value='';
+  document.getElementById('inv-grand-total').value='';
+  document.getElementById('inv-paid-check').checked=false;
+  onPaidCheckChange();
+  invItems=[{}];
   renderInvItems();
 }
 
-function addInvItem() { invItems.push({}); renderInvItems(); }
+function onPaidCheckChange(){
+  const checked=document.getElementById('inv-paid-check').checked;
+  document.getElementById('inv-paid-method-row').style.display=checked?'block':'none';
+}
 
-function removeInvItem(idx) { if(invItems.length>1){invItems.splice(idx,1); renderInvItems();} }
+function addInvItem(){invItems.push({});renderInvItems();}
+function removeInvItem(idx){if(invItems.length>1){invItems.splice(idx,1);renderInvItems();}}
 
-function renderInvItems() {
-  const tbody = document.getElementById('inv-items-body');
-  tbody.innerHTML = '';
+function renderInvItems(){
+  const tbody=document.getElementById('inv-items-body');
+  tbody.innerHTML='';
   invItems.forEach((item,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="text" value="${item.name||''}" placeholder="Item name" oninput="invItems[${i}].name=this.value"></td>
-      <td><input type="number" value="${item.qty||''}" placeholder="1" min="0" step="any" oninput="invItems[${i}].qty=this.value;calcInvRow(${i})"></td>
-      <td><input type="number" value="${item.rate||''}" placeholder="0.00" min="0" step="any" oninput="invItems[${i}].rate=this.value;calcInvRow(${i})"></td>
-      <td><input type="number" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any" oninput="invItems[${i}].disc=this.value;calcInvRow(${i})"></td>
-      <td class="total-col" id="inv-row-total-${i}">${fmt(item.total||0)}</td>
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="position:relative">
+        <input type="text" value="${escH(item.name||'')}" placeholder="Item name" autocomplete="off"
+          oninput="invItems[${i}].name=this.value;acItem(this,${i})"
+          onkeydown="invItemTabEnter(event,this,${i},'name')"
+          onfocus="acItem(this,${i})">
+      </td>
+      <td><input type="number" value="${item.qty||''}" placeholder="1" min="0" step="any"
+        oninput="invItems[${i}].qty=this.value;calcInvRow(${i})"
+        onkeydown="invItemTabEnter(event,this,${i},'qty')"></td>
+      <td><input type="number" value="${item.rate||''}" placeholder="0" min="0" step="any"
+        oninput="invItems[${i}].rate=this.value;calcInvRow(${i})"
+        onkeydown="invItemTabEnter(event,this,${i},'rate')"></td>
+      <td><input type="number" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any"
+        oninput="invItems[${i}].disc=this.value;calcInvRow(${i})"
+        onkeydown="invItemTabEnter(event,this,${i},'disc')"></td>
+      <td class="total-col" id="inv-row-total-${i}">${fmtI(item.total||0)}</td>
       <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeInvItem(${i})">✕</button></td>
     `;
     tbody.appendChild(tr);
@@ -1107,101 +961,168 @@ function renderInvItems() {
   calcInvTotals();
 }
 
-// 🌐 Rest of code remains structurally intact 
-function calcInvRow(i) {
-  const item = invItems[i];
-  const qty = parseFloat(item.qty)||0;
-  const rate = parseFloat(item.rate)||0;
-  const disc = parseFloat(item.disc)||0;
-  const gross = qty*rate;
-  const discAmt = gross*(disc/100);
-  item.total = gross-discAmt;
-  item.discAmt = discAmt;
-  const el = document.getElementById(`inv-row-total-${i}`);
-  if(el) el.textContent = fmtI(item.total);
-  calcInvTotals();
-}
-
-function calcInvTotals() {
-  let sub=0, disc=0;
-  invItems.forEach(item=>{
-    const qty = parseFloat(item.qty)||0;
-    const rate = parseFloat(item.rate)||0;
-    sub += qty*rate;
-    disc += parseFloat(item.discAmt)||0;
-  });
-  document.getElementById('inv-subtotal').textContent = fmtI(sub);
-  document.getElementById('inv-total-disc').textContent = fmtI(disc);
-  document.getElementById('inv-net-total').textContent = fmtI(sub-disc);
-  const gt = document.getElementById('inv-grand-total');
-  if(gt && gt.value==='') gt.placeholder = `Leave blank to use: ${fmtI(sub-disc)}`;
-}
-
-function saveInvoice() {
-  const partyId = document.getElementById('inv-party-id').value;
-  const partyName = document.getElementById('inv-party-input').value.trim();
-  if(!partyName) { alert('Please select or enter a party name.'); return; }
-  
-  let pid = partyId;
-  if(!pid) { pid = addPartyQuick(partyName); document.getElementById('inv-party-id').value = pid; }
-
-  const validItems = invItems.filter(i=>(i.name||'').trim() && parseFloat(i.qty)>0 && parseFloat(i.rate)>0);
-  if(!validItems.length) { alert('Please add at least one valid item.'); return; }
-
-  let sub=0,disc=0;
-  validItems.forEach(i=>{ sub+=parseFloat(i.qty)*parseFloat(i.rate); disc+=parseFloat(i.discAmt||0); });
-  const net = sub-disc;
-  const gtVal = document.getElementById('inv-grand-total').value;
-  const grandTotal = gtVal!=='' ? Math.round(parseFloat(gtVal)) : Math.round(net);
-
-  const invoices = DB.invoices();
-  const invNo = document.getElementById('inv-no').value;
-  const dateBS = document.getElementById('inv-date-bs').value;
-
-  if(editingInvId) {
-    const idx = invoices.findIndex(i=>i.id===editingInvId);
-    if(idx>-1){
-      invoices[idx] = {...invoices[idx], invNo, dateBS, partyId:pid, partyName, note:document.getElementById('inv-note').value, items:validItems, sub, disc, net, grandTotal};
-      DB.saveInvoices(invoices);
-      addJournalEntry(dateBS, partyName, `Sales Invoice ${invNo}`, 'Accounts Receivable', 'Sales', grandTotal, invoices[idx].id, true, 'invoice');
-      alert('Invoice updated!');
-    }
-  } else {
-    const inv = { id:uid(), invNo, dateBS, partyId:pid, partyName, note:document.getElementById('inv-note').value, items:validItems, sub, disc, net, grandTotal, createdAt:Date.now() };
-    invoices.push(inv);
-    DB.saveInvoices(invoices);
-    addJournalEntry(dateBS, partyName, `Sales Invoice ${invNo}`, 'Accounts Receivable', 'Sales', grandTotal, inv.id, false, 'invoice');
-    alert('Invoice saved!');
+function invItemTabEnter(e,inp,rowIdx,field){
+  if(e.key==='Tab'){
+    // default tab — browser handles it naturally; just close item AC
+    if(inp._acList)inp._acList.classList.remove('open');
+    return;
   }
-  editingInvId = null;
-  resetInvoiceForm();
-  nav('invoices', null);
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(field==='disc'){
+      // last field — add new row and focus its name
+      addInvItem();
+      setTimeout(()=>{
+        const rows=document.querySelectorAll('#inv-items-body tr');
+        const lastRow=rows[rows.length-1];
+        if(lastRow){const ni=lastRow.querySelector('input[type="text"]');if(ni)ni.focus();}
+      },30);
+    }else{
+      // move to next input in row
+      const fields=['name','qty','rate','disc'];
+      const nextField=fields[fields.indexOf(field)+1];
+      if(nextField){
+        const tds=inp.closest('tr').querySelectorAll('td input');
+        const idx=fields.indexOf(nextField);
+        if(tds[idx])tds[idx].focus();
+      }
+    }
+  }
 }
 
-function renderInvoicesTable() {
-  const q = (document.getElementById('inv-search')||{value:''}).value.toLowerCase();
-  const tbody = document.getElementById('invoices-tbody');
-  const invoices = DB.invoices().filter(i=>
-    !q || i.invNo.toLowerCase().includes(q) || (i.partyName||'').toLowerCase().includes(q)
-  ).reverse();
-  tbody.innerHTML = '';
-  if(!invoices.length){ tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices yet. Create your first invoice!</p></div></td></tr>`; return; }
+function escH(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+function calcInvRow(i){
+  const item=invItems[i];
+  const qty=parseFloat(item.qty)||0;
+  const rate=parseFloat(item.rate)||0;
+  const disc=parseFloat(item.disc)||0;
+  const gross=qty*rate;
+  const discAmt=gross*(disc/100);
+  item.total=gross-discAmt;item.discAmt=discAmt;
+  const el=document.getElementById(`inv-row-total-${i}`);
+  if(el)el.textContent=fmtI(item.total);
+  calcInvTotals();
+  // update stock rate if item name matches
+  if((item.name||'').trim()&&rate>0) updateStockRate(item.name.trim(),rate);
+}
+
+function calcInvTotals(){
+  let sub=0,disc=0;
+  invItems.forEach(item=>{
+    sub+=parseFloat(item.qty||0)*parseFloat(item.rate||0);
+    disc+=parseFloat(item.discAmt||0);
+  });
+  document.getElementById('inv-subtotal').textContent=fmtI(sub);
+  document.getElementById('inv-total-disc').textContent=fmtI(disc);
+  document.getElementById('inv-net-total').textContent=fmtI(sub-disc);
+  const gt=document.getElementById('inv-grand-total');
+  if(gt&&gt.value==='')gt.placeholder=`Blank = ${fmtI(sub-disc)}`;
+}
+
+function saveInvoice(){
+  const partyName=document.getElementById('inv-party-input').value.trim();
+  if(!partyName){alert('Please select or enter a party name.');return;}
+  let pid=document.getElementById('inv-party-id').value;
+  if(!pid){pid=addPartyQuick(partyName);document.getElementById('inv-party-id').value=pid;}
+  const validItems=invItems.filter(i=>(i.name||'').trim()&&parseFloat(i.qty)>0&&parseFloat(i.rate)>0);
+  if(!validItems.length){alert('Please add at least one valid item.');return;}
+  let sub=0,disc=0;
+  validItems.forEach(i=>{sub+=parseFloat(i.qty)*parseFloat(i.rate);disc+=parseFloat(i.discAmt||0);});
+  const net=sub-disc;
+  const gtVal=document.getElementById('inv-grand-total').value;
+  const grandTotal=gtVal!==''?Math.round(parseFloat(gtVal)):Math.round(net);
+  const invNo=document.getElementById('inv-no').value;
+  const dateBS=document.getElementById('inv-date-bs').value;
+  const note=document.getElementById('inv-note').value;
+  const isPaid=document.getElementById('inv-paid-check').checked;
+  const payMethod=document.getElementById('inv-paid-method').value;
+
+  // Auto-register stock items
+  validItems.forEach(item=>{
+    syncStockFromItem(item.name.trim(),parseFloat(item.rate)||0,dateBS);
+  });
+
+  const invoices=DB.invoices();
+  if(editingInvId){
+    const idx=invoices.findIndex(i=>i.id===editingInvId);
+    if(idx>-1){
+      const oldPaid=invoices[idx].paid;
+      invoices[idx]={...invoices[idx],invNo,dateBS,partyId:pid,partyName,note,items:validItems,sub,disc,net,grandTotal,paid:isPaid};
+      DB.saveInvoices(invoices);
+      addJournalEntry(dateBS,partyName,`Sales Invoice ${invNo}`,'Accounts Receivable','Sales',grandTotal,invoices[idx].id,true,'invoice');
+      if(isPaid&&!oldPaid){
+        recordPaymentForInvoice(pid,partyName,grandTotal,payMethod,dateBS,invoices[idx].id);
+      }
+    }
+  }else{
+    const inv={id:uid(),invNo,dateBS,partyId:pid,partyName,note,items:validItems,sub,disc,net,grandTotal,paid:isPaid,createdAt:Date.now()};
+    invoices.push(inv);DB.saveInvoices(invoices);
+    addJournalEntry(dateBS,partyName,`Sales Invoice ${invNo}`,'Accounts Receivable','Sales',grandTotal,inv.id,false,'invoice');
+    if(isPaid){
+      recordPaymentForInvoice(pid,partyName,grandTotal,payMethod,dateBS,inv.id);
+    }
+  }
+  editingInvId=null;
+  resetInvoiceForm();
+  nav('invoices',null);
+}
+
+function recordPaymentForInvoice(pid,pname,amount,method,dateBS,invId){
+  const pay={id:uid(),partyId:pid,partyName:pname,amount,discount:0,method,note:'Auto (paid on invoice)',dateBS,refInvId:invId,createdAt:Date.now()};
+  const payments=DB.payments();payments.push(pay);DB.savePayments(payments);
+  addJournalEntry(dateBS,pname,`Payment on Invoice (${method})`,method,'Accounts Receivable',amount,pay.id,false,'payment');
+}
+
+// ══════════════════════════════════════════════════════
+// STOCK SYNC
+// ══════════════════════════════════════════════════════
+function syncStockFromItem(name,rate,dateBS){
+  if(!name)return;
+  const stock=DB.stock();
+  const existing=stock.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  if(existing){
+    if(rate>0)existing.rate=rate;
+    existing.updatedAt=dateBS||getNepaliDate();
+    DB.saveStock(stock);
+  }else{
+    stock.push({id:uid(),name,rate:rate||0,unit:'',desc:'',updatedAt:dateBS||getNepaliDate()});
+    DB.saveStock(stock);
+  }
+}
+
+function updateStockRate(name,rate){
+  if(!name||!rate)return;
+  const stock=DB.stock();
+  const ex=stock.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  if(ex){ex.rate=rate;ex.updatedAt=getNepaliDate();DB.saveStock(stock);}
+  else{stock.push({id:uid(),name,rate,unit:'',desc:'',updatedAt:getNepaliDate()});DB.saveStock(stock);}
+}
+
+// ══════════════════════════════════════════════════════
+// INVOICES LIST
+// ══════════════════════════════════════════════════════
+function renderInvoicesTable(){
+  const q=(document.getElementById('inv-search')||{value:''}).value.toLowerCase();
+  const tbody=document.getElementById('invoices-tbody');
+  const invoices=DB.invoices().filter(i=>!q||i.invNo.toLowerCase().includes(q)||(i.partyName||'').toLowerCase().includes(q)).slice().reverse();
+  tbody.innerHTML='';
+  if(!invoices.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices yet.</p></div></td></tr>`;return;}
   invoices.forEach(inv=>{
-    const paid = getTotalPaid(inv.partyId);
-    const billed = getTotalBilled(inv.partyId);
-    const due = billed - paid;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+    const tr=document.createElement('tr');
+    const statusBadge=inv.paid?'<span class="badge badge-green">✅ Paid</span>':'<span class="badge badge-red">Due</span>';
+    tr.innerHTML=`
       <td class="mono">${inv.invNo}</td>
       <td class="mono">${inv.dateBS}</td>
       <td>${inv.partyName||''}</td>
       <td>${(inv.items||[]).length} item(s)</td>
-      <td class="amount">Rs. ${fmt(inv.net)}</td>
-      <td><span class="badge ${due>0?'badge-red':'badge-green'}">${due>0?'Due':'Settled'}</span></td>
+      <td class="amount">Rs. ${fmtI(inv.grandTotal||inv.net)}</td>
+      <td>${statusBadge}</td>
       <td>
         <div class="flex-gap">
           <button class="btn btn-secondary btn-sm" onclick="editInvoice('${inv.id}')">✏️</button>
           <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">🖨</button>
+          <button class="btn btn-blue btn-sm" onclick="saveInvoiceAsImageById('${inv.id}')">🖼</button>
           <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${inv.id}')">🗑</button>
         </div>
       </td>
@@ -1210,406 +1131,565 @@ function renderInvoicesTable() {
   });
 }
 
-function editInvoice(id) {
-  const inv = DB.invoices().find(i=>i.id===id);
-  if(!inv) return;
-  editingInvId = id;
-  nav('invoice', null);
+function editInvoice(id){
+  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
+  editingInvId=id;nav('invoice',null);
   setTimeout(()=>{
-    document.getElementById('inv-form-title').textContent = 'Edit Invoice';
-    document.getElementById('inv-no').value = inv.invNo;
-    document.getElementById('inv-date-bs').value = inv.dateBS;
-    syncBSPicker(inv.dateBS);
-    document.getElementById('inv-party-input').value = inv.partyName||'';
-    document.getElementById('inv-party-id').value = inv.partyId||'';
-    document.getElementById('inv-note').value = inv.note||'';
-    document.getElementById('inv-editing-id').value = id;
-    const gt = document.getElementById('inv-grand-total');
-    if(gt) gt.value = (inv.grandTotal !== undefined && inv.grandTotal !== Math.round(inv.net)) ? inv.grandTotal : '';
-    invItems = (inv.items||[]).map(i=>({...i}));
-    if(!invItems.length) invItems=[{}];
-    renderInvItems();
-    invItems.forEach((_,i)=>calcInvRow(i));
+    document.getElementById('inv-form-title').textContent='Edit Invoice';
+    document.getElementById('inv-no').value=inv.invNo;
+    document.getElementById('inv-date-bs').value=inv.dateBS;syncBSPicker(inv.dateBS);
+    document.getElementById('inv-party-input').value=inv.partyName||'';
+    document.getElementById('inv-party-id').value=inv.partyId||'';
+    document.getElementById('inv-note').value=inv.note||'';
+    document.getElementById('inv-editing-id').value=id;
+    document.getElementById('inv-paid-check').checked=!!inv.paid;onPaidCheckChange();
+    const gt=document.getElementById('inv-grand-total');
+    if(gt)gt.value=(inv.grandTotal!==undefined&&inv.grandTotal!==Math.round(inv.net))?inv.grandTotal:'';
+    invItems=(inv.items||[]).map(i=>({...i}));
+    if(!invItems.length)invItems=[{}];
+    renderInvItems();invItems.forEach((_,i)=>calcInvRow(i));
   },50);
 }
 
-function deleteInvoice(id) {
-  if(!confirm('Delete this invoice?')) return;
-  const invoices = DB.invoices().filter(i=>i.id!==id);
-  DB.saveInvoices(invoices);
-  const journal = DB.journal().filter(j=>j.refId!==id);
-  DB.saveJournal(journal);
+function deleteInvoice(id){
+  if(!confirm('Delete this invoice?'))return;
+  DB.saveInvoices(DB.invoices().filter(i=>i.id!==id));
+  DB.saveJournal(DB.journal().filter(j=>j.refId!==id));
   renderInvoicesTable();
 }
 
-function openPartyModal(id) {
-  const modal = document.getElementById('party-modal');
-  if(id) {
-    const p = DB.parties().find(x=>x.id===id);
-    if(p){
-      document.getElementById('party-modal-title').textContent='Edit Party';
-      document.getElementById('pm-name').value=p.name;
-      document.getElementById('pm-phone').value=p.phone||'';
-      document.getElementById('pm-address').value=p.address||'';
-      document.getElementById('pm-id').value=p.id;
-    }
-  } else {
-    document.getElementById('party-modal-title').textContent='Add Party';
-    document.getElementById('pm-name').value='';
-    document.getElementById('pm-phone').value='';
-    document.getElementById('pm-address').value='';
-    document.getElementById('pm-id').value='';
+// ══════════════════════════════════════════════════════
+// PARTIES
+// ══════════════════════════════════════════════════════
+function openPartyModal(id){
+  if(id){
+    const p=DB.parties().find(x=>x.id===id);
+    if(p){document.getElementById('party-modal-title').textContent='Edit Party';document.getElementById('pm-name').value=p.name;document.getElementById('pm-phone').value=p.phone||'';document.getElementById('pm-address').value=p.address||'';document.getElementById('pm-id').value=p.id;}
+  }else{
+    document.getElementById('party-modal-title').textContent='Add Party';document.getElementById('pm-name').value='';document.getElementById('pm-phone').value='';document.getElementById('pm-address').value='';document.getElementById('pm-id').value='';
   }
-  modal.classList.add('open');
+  document.getElementById('party-modal').classList.add('open');
 }
-
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function saveParty() {
-  const name = document.getElementById('pm-name').value.trim();
-  if(!name){ alert('Name required'); return; }
-  const parties = DB.parties();
-  const existId = document.getElementById('pm-id').value;
-  if(existId){
-    const idx = parties.findIndex(p=>p.id===existId);
-    if(idx>-1){ parties[idx].name=name; parties[idx].phone=document.getElementById('pm-phone').value; parties[idx].address=document.getElementById('pm-address').value; }
-  } else {
-    parties.push({id:uid(),name,phone:document.getElementById('pm-phone').value,address:document.getElementById('pm-address').value});
-  }
-  DB.saveParties(parties);
-  closeModal('party-modal');
-  renderPartiesTable();
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function saveParty(){
+  const name=document.getElementById('pm-name').value.trim();if(!name){alert('Name required');return;}
+  const parties=DB.parties();const eid=document.getElementById('pm-id').value;
+  if(eid){const idx=parties.findIndex(p=>p.id===eid);if(idx>-1){parties[idx].name=name;parties[idx].phone=document.getElementById('pm-phone').value;parties[idx].address=document.getElementById('pm-address').value;}}
+  else{parties.push({id:uid(),name,phone:document.getElementById('pm-phone').value,address:document.getElementById('pm-address').value});}
+  DB.saveParties(parties);closeModal('party-modal');renderPartiesTable();
 }
-
-function deleteParty(id) {
-  if(!confirm('Delete this party?')) return;
-  DB.saveParties(DB.parties().filter(p=>p.id!==id));
-  renderPartiesTable();
-}
-
-function getTotalBilled(partyId) {
-  return DB.invoices().filter(i=>i.partyId===partyId).reduce((s,i)=>s+(i.net||0),0);
-}
-function getTotalPaid(partyId) {
-  return DB.payments().filter(p=>p.partyId===partyId).reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);
-}
-
-function renderPartiesTable() {
-  const q = (document.getElementById('party-search')||{value:''}).value.toLowerCase();
-  const tbody = document.getElementById('parties-tbody');
-  const parties = DB.parties().filter(p=>!q||p.name.toLowerCase().includes(q)||(p.phone||'').includes(q));
-  tbody.innerHTML = '';
-  if(!parties.length){ tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div><p>No parties yet.</p></div></td></tr>`; return; }
+function deleteParty(id){if(!confirm('Delete this party?'))return;DB.saveParties(DB.parties().filter(p=>p.id!==id));renderPartiesTable();}
+function getTotalBilled(pid){return DB.invoices().filter(i=>i.partyId===pid).reduce((s,i)=>s+(i.grandTotal||i.net||0),0);}
+function getTotalPaid(pid){return DB.payments().filter(p=>p.partyId===pid).reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);}
+function renderPartiesTable(){
+  const q=(document.getElementById('party-search')||{value:''}).value.toLowerCase();
+  const tbody=document.getElementById('parties-tbody');
+  const parties=DB.parties().filter(p=>!q||p.name.toLowerCase().includes(q)||(p.phone||'').includes(q));
+  tbody.innerHTML='';
+  if(!parties.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div><p>No parties yet.</p></div></td></tr>`;return;}
   parties.forEach(p=>{
-    const billed = getTotalBilled(p.id);
-    const paid = getTotalPaid(p.id);
-    const due = billed-paid;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${p.name}</strong></td>
-      <td>${p.phone||'-'}</td>
-      <td>${p.address||'-'}</td>
-      <td class="amount">Rs. ${fmt(billed)}</td>
-      <td class="amount">Rs. ${fmt(paid)}</td>
-      <td class="amount ${due>0?'text-red':'text-green'}">Rs. ${fmt(due)}</td>
-      <td>
-        <div class="flex-gap">
-          <button class="btn btn-secondary btn-sm" onclick="openPartyModal('${p.id}')">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteParty('${p.id}')">🗑</button>
-        </div>
-      </td>
-    `;
+    const b=getTotalBilled(p.id),pa=getTotalPaid(p.id),due=b-pa;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${p.name}</strong></td><td>${p.phone||'-'}</td><td>${p.address||'-'}</td><td class="amount">Rs. ${fmtI(b)}</td><td class="amount">Rs. ${fmtI(pa)}</td><td class="amount ${due>0?'text-red':'text-green'}">Rs. ${fmtI(due)}</td><td><div class="flex-gap"><button class="btn btn-secondary btn-sm" onclick="openPartyModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteParty('${p.id}')">🗑</button></div></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function loadPartyBalance() {
-  const pid = document.getElementById('pay-party-id').value;
-  if(!pid){ document.getElementById('pay-billed').textContent='Rs. 0.00'; document.getElementById('pay-received-so-far').textContent='Rs. 0.00'; document.getElementById('pay-due').textContent='Rs. 0.00'; return; }
-  const billed = getTotalBilled(pid);
-  const paid = getTotalPaid(pid);
-  document.getElementById('pay-billed').textContent = 'Rs. '+fmt(billed);
-  document.getElementById('pay-received-so-far').textContent = 'Rs. '+fmt(paid);
-  document.getElementById('pay-due').textContent = 'Rs. '+fmt(billed-paid);
+// ══════════════════════════════════════════════════════
+// PAYMENTS
+// ══════════════════════════════════════════════════════
+function initPaymentDate(){
+  const el=document.getElementById('pay-date-bs');
+  if(el&&!el.value){const s=DB.settings();el.value=s.todayBS||getNepaliDate();}
 }
+function loadPartyBalance(){
+  const pid=document.getElementById('pay-party-id').value;
+  if(!pid){document.getElementById('pay-billed').textContent='Rs. 0';document.getElementById('pay-received-so-far').textContent='Rs. 0';document.getElementById('pay-due').textContent='Rs. 0';return;}
+  const b=getTotalBilled(pid),pa=getTotalPaid(pid);
+  document.getElementById('pay-billed').textContent='Rs. '+fmtI(b);
+  document.getElementById('pay-received-so-far').textContent='Rs. '+fmtI(pa);
+  document.getElementById('pay-due').textContent='Rs. '+fmtI(b-pa);
+}
+function savePayment(){
+  const pid=document.getElementById('pay-party-id').value;
+  const pname=document.getElementById('pay-party-input').value.trim();
+  if(!pid||!pname){alert('Please select a party.');return;}
+  const amount=parseFloat(document.getElementById('pay-amount').value)||0;
+  if(amount<=0){alert('Please enter a valid amount.');return;}
+  const discount=parseFloat(document.getElementById('pay-discount').value)||0;
+  const method=document.getElementById('pay-method').value;
+  const note=document.getElementById('pay-note').value;
+  const dateBS=document.getElementById('pay-date-bs').value||getNepaliDate();
+  const editId=document.getElementById('pay-editing-id').value;
 
-function savePayment() {
-  const pid = document.getElementById('pay-party-id').value;
-  const pname = document.getElementById('pay-party-input').value.trim();
-  if(!pid||!pname){ alert('Please select a party.'); return; }
-  const amount = parseFloat(document.getElementById('pay-amount').value)||0;
-  if(amount<=0){ alert('Please enter a valid amount.'); return; }
-  const discount = parseFloat(document.getElementById('pay-discount').value)||0;
-  const method = document.getElementById('pay-method').value;
-  const note = document.getElementById('pay-note').value;
-  const dateBS = getGlobalTodayBSDate();
-
-  const pay = {id:uid(), partyId:pid, partyName:pname, amount, discount, method, note, dateBS, createdAt:Date.now()};
-  const payments = DB.payments();
-  payments.push(pay);
-  DB.savePayments(payments);
-
-  addJournalEntry(dateBS, pname, `Payment Received (${method})${note?': '+note:''}`, method, 'Accounts Receivable', amount, pay.id, false, 'payment');
-  if(discount>0) addJournalEntry(dateBS, pname, `Discount Allowed`, 'Discount', 'Accounts Receivable', discount, pay.id, false, 'payment');
-
-  alert('Payment saved!');
-  document.getElementById('pay-amount').value='';
-  document.getElementById('pay-discount').value='0';
-  document.getElementById('pay-note').value='';
+  const payments=DB.payments();
+  if(editId){
+    const idx=payments.findIndex(p=>p.id===editId);
+    if(idx>-1){
+      const old=payments[idx];
+      payments[idx]={...old,partyId:pid,partyName:pname,amount,discount,method,note,dateBS};
+      DB.savePayments(payments);
+      // Update journal
+      DB.saveJournal(DB.journal().filter(j=>j.refId!==editId));
+      addJournalEntry(dateBS,pname,`Payment Received (${method})${note?': '+note:''}`,method,'Accounts Receivable',amount,editId,false,'payment');
+      if(discount>0)addJournalEntry(dateBS,pname,'Discount Allowed','Discount','Accounts Receivable',discount,editId,false,'payment');
+    }
+  }else{
+    const pay={id:uid(),partyId:pid,partyName:pname,amount,discount,method,note,dateBS,createdAt:Date.now()};
+    payments.push(pay);DB.savePayments(payments);
+    addJournalEntry(dateBS,pname,`Payment Received (${method})${note?': '+note:''}`,method,'Accounts Receivable',amount,pay.id,false,'payment');
+    if(discount>0)addJournalEntry(dateBS,pname,'Discount Allowed','Discount','Accounts Receivable',discount,pay.id,false,'payment');
+  }
+  cancelEditPayment();
   loadPartyBalance();
   renderPaymentHistory();
 }
-
-function renderPaymentHistory() {
-  const cont = document.getElementById('payment-history');
-  const payments = DB.payments().slice().reverse().slice(0,20);
-  if(!payments.length){ cont.innerHTML='<div class="empty-state"><div class="icon">💰</div><p>No payments yet.</p></div>'; return; }
-  cont.innerHTML = '<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Method</th><th class="amount">Amount</th></tr></thead><tbody>'+
-    payments.map(p=>`<tr><td class="mono">${p.dateBS}</td><td>${p.partyName}</td><td><span class="badge badge-blue">${p.method}</span></td><td class="amount">Rs. ${fmt(p.amount)}</td></tr>`).join('')+
+function cancelEditPayment(){
+  document.getElementById('pay-editing-id').value='';
+  document.getElementById('pay-amount').value='';
+  document.getElementById('pay-discount').value='0';
+  document.getElementById('pay-note').value='';
+  document.getElementById('pay-form-title').textContent='Receive Payment';
+  document.getElementById('pay-cancel-edit').style.display='none';
+}
+function editPayment(id){
+  const p=DB.payments().find(x=>x.id===id);if(!p)return;
+  document.getElementById('pay-party-input').value=p.partyName||'';
+  document.getElementById('pay-party-id').value=p.partyId||'';
+  document.getElementById('pay-amount').value=p.amount||'';
+  document.getElementById('pay-discount').value=p.discount||'0';
+  document.getElementById('pay-method').value=p.method||'Cash';
+  document.getElementById('pay-note').value=p.note||'';
+  document.getElementById('pay-date-bs').value=p.dateBS||'';
+  document.getElementById('pay-editing-id').value=id;
+  document.getElementById('pay-form-title').textContent='Edit Payment';
+  document.getElementById('pay-cancel-edit').style.display='inline-flex';
+  loadPartyBalance();
+  document.getElementById('pay-party-input').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function deletePayment(id){
+  if(!confirm('Delete this payment?'))return;
+  DB.savePayments(DB.payments().filter(p=>p.id!==id));
+  DB.saveJournal(DB.journal().filter(j=>j.refId!==id));
+  renderPaymentHistory();loadPartyBalance();
+}
+function renderPaymentHistory(){
+  const cont=document.getElementById('payment-history');
+  const payments=DB.payments().slice().reverse();
+  if(!payments.length){cont.innerHTML='<div class="empty-state"><div class="icon">💰</div><p>No payments yet.</p></div>';return;}
+  cont.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Method</th><th class="amount">Amount</th><th>Actions</th></tr></thead><tbody>'+
+    payments.map(p=>`<tr><td class="mono">${p.dateBS}</td><td>${p.partyName}</td><td><span class="badge badge-blue">${p.method}</span></td><td class="amount">Rs. ${fmtI(p.amount)}</td><td><div class="flex-gap"><button class="btn btn-secondary btn-sm" onclick="editPayment('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button></div></td></tr>`).join('')+
     '</tbody></table></div>';
 }
 
-function addJournalEntry(date, party, desc, debitAcc, creditAcc, amount, refId, isUpdate, type) {
-  const journal = DB.journal();
-  if(isUpdate) {
-    const filtered = journal.filter(j=>j.refId!==refId);
-    DB.saveJournal(filtered);
-    return addJournalEntry(date, party, desc, debitAcc, creditAcc, amount, refId, false, type);
-  }
-  journal.push({id:uid(), date, party, desc, debitAcc, creditAcc, amount, refId, type: type||'invoice', createdAt:Date.now()});
+// ══════════════════════════════════════════════════════
+// JOURNAL
+// ══════════════════════════════════════════════════════
+function addJournalEntry(date,party,desc,debitAcc,creditAcc,amount,refId,isUpdate,type){
+  const journal=DB.journal();
+  if(isUpdate){DB.saveJournal(journal.filter(j=>j.refId!==refId));return addJournalEntry(date,party,desc,debitAcc,creditAcc,amount,refId,false,type);}
+  journal.push({id:uid(),date,party,desc,debitAcc,creditAcc,amount,refId,type:type||'invoice',createdAt:Date.now()});
   DB.saveJournal(journal);
 }
-
-function renderJournal() {
-  const q = (document.getElementById('jrn-search')||{value:''}).value.toLowerCase();
-  const tbody = document.getElementById('journal-tbody');
-  const entries = DB.journal().filter(j=>
-    !q || (j.party||'').toLowerCase().includes(q) || (j.desc||'').toLowerCase().includes(q) || (j.debitAcc||'').toLowerCase().includes(q)
-  ).slice().reverse();
-  tbody.innerHTML = '';
-  if(!entries.length){ tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="icon">📒</div><p>No journal entries yet.</p></div></td></tr>`; return; }
+function renderJournal(){
+  const q=(document.getElementById('jrn-search')||{value:''}).value.toLowerCase();
+  const tbody=document.getElementById('journal-tbody');
+  const entries=DB.journal().filter(j=>!q||(j.party||'').toLowerCase().includes(q)||(j.desc||'').toLowerCase().includes(q)||(j.debitAcc||'').toLowerCase().includes(q)).slice().reverse();
+  tbody.innerHTML='';
+  if(!entries.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="icon">📒</div><p>No journal entries yet.</p></div></td></tr>`;return;}
   entries.forEach(e=>{
-    const isPayment = e.type==='payment';
-    const debit  = isPayment ? '—' : `Rs. ${fmtI(e.amount)}`;
-    const credit = isPayment ? `Rs. ${fmtI(e.amount)}` : '—';
-    const debitClass  = isPayment ? 'amount' : 'amount text-red';
-    const creditClass = isPayment ? 'amount text-green' : 'amount';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="mono">${e.date}</td>
-      <td>${e.party||''}</td>
-      <td>${e.desc||''}</td>
-      <td>${e.debitAcc||''} / ${e.creditAcc||''}</td>
-      <td class="${debitClass}">${debit}</td>
-      <td class="${creditClass}">${credit}</td>
-    `;
+    const isPay=e.type==='payment';
+    const dr=isPay?'—':`Rs. ${fmtI(e.amount)}`;
+    const cr=isPay?`Rs. ${fmtI(e.amount)}`:'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mono">${e.date}</td><td>${e.party||''}</td><td>${e.desc||''}</td><td>${e.debitAcc||''}/${e.creditAcc||''}</td><td class="amount ${isPay?'':'text-red'}">${dr}</td><td class="amount ${isPay?'text-green':''}">${cr}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function exportJournalXLSX(){
+  if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
+  const entries=DB.journal().slice().reverse();
+  const rows=[['Date (BS)','Party','Description','Account','Debit (Rs.)','Credit (Rs.)']];
+  entries.forEach(e=>{
+    const isPay=e.type==='payment';
+    rows.push([e.date,e.party||'',e.desc||'',(e.debitAcc||'')+'/'+( e.creditAcc||''),isPay?0:e.amount,isPay?e.amount:0]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:14},{wch:20},{wch:36},{wch:24},{wch:14},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Journal');
+  const s=DB.settings();
+  XLSX.writeFile(wb,`${(s.company||'FinPilot').replace(/\s+/g,'_')}_Journal_${getNepaliDate()}.xlsx`);
+}
+
+// ══════════════════════════════════════════════════════
+// STOCK ITEMS
+// ══════════════════════════════════════════════════════
+function openStockModal(id){
+  if(id){
+    const s=DB.stock().find(x=>x.id===id);
+    if(s){document.getElementById('stock-modal-title').textContent='Edit Item';document.getElementById('sm-name').value=s.name;document.getElementById('sm-rate').value=s.rate||'';document.getElementById('sm-unit').value=s.unit||'';document.getElementById('sm-desc').value=s.desc||'';document.getElementById('sm-id').value=s.id;}
+  }else{
+    document.getElementById('stock-modal-title').textContent='Add Stock Item';document.getElementById('sm-name').value='';document.getElementById('sm-rate').value='';document.getElementById('sm-unit').value='';document.getElementById('sm-desc').value='';document.getElementById('sm-id').value='';
+  }
+  document.getElementById('stock-modal').classList.add('open');
+}
+function saveStockItem(){
+  const name=document.getElementById('sm-name').value.trim();if(!name){alert('Name required');return;}
+  const stock=DB.stock();const eid=document.getElementById('sm-id').value;
+  const item={name,rate:parseFloat(document.getElementById('sm-rate').value)||0,unit:document.getElementById('sm-unit').value,desc:document.getElementById('sm-desc').value,updatedAt:getNepaliDate()};
+  if(eid){const idx=stock.findIndex(s=>s.id===eid);if(idx>-1){stock[idx]={...stock[idx],...item};}}
+  else{stock.push({id:uid(),...item});}
+  DB.saveStock(stock);closeModal('stock-modal');renderStockTable();
+}
+function deleteStockItem(id){if(!confirm('Delete?'))return;DB.saveStock(DB.stock().filter(s=>s.id!==id));renderStockTable();}
+function renderStockTable(){
+  const q=(document.getElementById('stock-search')||{value:''}).value.toLowerCase();
+  const tbody=document.getElementById('stock-tbody');
+  const items=DB.stock().filter(s=>!q||s.name.toLowerCase().includes(q));
+  tbody.innerHTML='';
+  if(!items.length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="icon">📦</div><p>No stock items yet. They auto-populate from invoices.</p></div></td></tr>`;return;}
+  items.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${s.name}</strong>${s.unit?` <span style="color:var(--text3);font-size:11px">(${s.unit})</span>`:''}</td><td class="amount">Rs. ${fmtI(s.rate)}</td><td class="mono">${s.updatedAt||'-'}</td><td><div class="flex-gap"><button class="btn btn-secondary btn-sm" onclick="openStockModal('${s.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteStockItem('${s.id}')">🗑</button></div></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function exportJournalXLSX() {
-  if(typeof XLSX==='undefined'){ alert('SheetJS not loaded. Check internet connection.'); return; }
-  const entries = DB.journal().slice().reverse();
-  const rows = [['Date (BS)','Party','Description','Account','Debit (Rs.)','Credit (Rs.)']];
-  entries.forEach(e=>{
-    const isPayment = e.type==='payment';
-    rows.push([e.date, e.party||'', e.desc||'', (e.debitAcc||'')+'/'+(e.creditAcc||''), isPayment?0:e.amount, isPayment?e.amount:0]);
-  });
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:14},{wch:20},{wch:36},{wch:22},{wch:22},{wch:14},{wch:14}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Journal');
-  const s = DB.settings();
-  XLSX.writeFile(wb, `${(s.company||'BizLedger').replace(/\s+/g,'_')}_Journal_${getGlobalTodayBSDate()}.xlsx`);
-}
+// ══════════════════════════════════════════════════════
+// VOUCHER MODAL (Purchase / Sales Return / Purchase Return)
+// ══════════════════════════════════════════════════════
+let vmItems=[];
+const voucherLabels={'purchase':'Purchase','sales-return':'Sales Return','purchase-return':'Purchase Return'};
+const voucherPrefixes={'purchase':'PUR-','sales-return':'SR-','purchase-return':'PR-'};
 
-function loadSettings() {
-  const s = DB.settings();
-  document.getElementById('set-company').value = s.company||'';
-  document.getElementById('set-address').value = s.address||'';
-  document.getElementById('set-phone').value = s.phone||'';
-  document.getElementById('set-username').value = s.username||'';
-  document.getElementById('set-today-date-bs').value = s.todayDateBS || getNepaliDate(new Date());
-  if(s.logo){
-    const img = document.getElementById('logo-preview');
-    img.src = s.logo; img.style.display='block';
+function openVoucherModal(type,id){
+  const s=DB.settings();
+  document.getElementById('vm-type').value=type;
+  document.getElementById('voucher-modal-title').textContent=(id?'Edit ':'New ')+voucherLabels[type];
+  const vouchers=DB.vouchers().filter(v=>v.type===type);
+  if(id){
+    const v=vouchers.find(x=>x.id===id)||DB.vouchers().find(x=>x.id===id);
+    if(v){
+      document.getElementById('vm-no').value=v.refNo||'';
+      document.getElementById('vm-date').value=v.dateBS||'';
+      document.getElementById('vm-party-input').value=v.partyName||'';
+      document.getElementById('vm-party-id').value=v.partyId||'';
+      document.getElementById('vm-ref').value=v.ref||'';
+      document.getElementById('vm-editing-id').value=id;
+      vmItems=(v.items||[]).map(i=>({...i}));
+    }
+  }else{
+    const nextNo=voucherPrefixes[type]+String(vouchers.length+1).padStart(4,'0');
+    document.getElementById('vm-no').value=nextNo;
+    document.getElementById('vm-date').value=s.todayBS||getNepaliDate();
+    document.getElementById('vm-party-input').value='';
+    document.getElementById('vm-party-id').value='';
+    document.getElementById('vm-ref').value='';
+    document.getElementById('vm-editing-id').value='';
+    vmItems=[{}];
   }
+  renderVmItems();
+  document.getElementById('voucher-modal').classList.add('open');
 }
 
-function saveSettings() {
-  const s = DB.settings();
-  s.company = document.getElementById('set-company').value.trim()||'BizLedger';
-  s.address = document.getElementById('set-address').value.trim();
-  s.phone = document.getElementById('set-phone').value.trim();
-  s.username = document.getElementById('set-username').value.trim()||'Admin';
-  s.todayDateBS = document.getElementById('set-today-date-bs').value.trim();
+function addVmItem(){vmItems.push({});renderVmItems();}
+function removeVmItem(i){if(vmItems.length>1){vmItems.splice(i,1);renderVmItems();}}
+
+function renderVmItems(){
+  const tbody=document.getElementById('vm-items-body');
+  tbody.innerHTML='';
+  vmItems.forEach((item,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input type="text" value="${escH(item.name||'')}" placeholder="Item" oninput="vmItems[${i}].name=this.value"></td>
+    <td><input type="number" value="${item.qty||''}" placeholder="1" min="0" step="any" oninput="vmItems[${i}].qty=this.value;calcVmRow(${i})"></td>
+    <td><input type="number" value="${item.rate||''}" placeholder="0" min="0" step="any" oninput="vmItems[${i}].rate=this.value;calcVmRow(${i})"></td>
+    <td><input type="number" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any" oninput="vmItems[${i}].disc=this.value;calcVmRow(${i})"></td>
+    <td class="total-col" id="vm-row-total-${i}">${fmtI(item.total||0)}</td>
+    <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeVmItem(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  calcVmTotals();
+}
+function calcVmRow(i){
+  const item=vmItems[i];const qty=parseFloat(item.qty)||0;const rate=parseFloat(item.rate)||0;
+  const gross=qty*rate;const da=gross*(parseFloat(item.disc)||0)/100;
+  item.total=gross-da;item.discAmt=da;
+  const el=document.getElementById(`vm-row-total-${i}`);if(el)el.textContent=fmtI(item.total);
+  calcVmTotals();
+}
+function calcVmTotals(){
+  let sub=0;vmItems.forEach(i=>{sub+=parseFloat(i.total||0);});
+  document.getElementById('vm-subtotal').textContent=fmtI(sub);
+  document.getElementById('vm-total').textContent=fmtI(sub);
+}
+function saveVoucher(){
+  const type=document.getElementById('vm-type').value;
+  const pname=document.getElementById('vm-party-input').value.trim();
+  const validItems=vmItems.filter(i=>(i.name||'').trim()&&parseFloat(i.qty)>0&&parseFloat(i.rate)>0);
+  if(!validItems.length){alert('Add at least one valid item.');return;}
+  let pid=document.getElementById('vm-party-id').value;
+  if(pname&&!pid)pid=addPartyQuick(pname);
+  const total=validItems.reduce((s,i)=>s+(i.total||0),0);
+  const dateBS=document.getElementById('vm-date').value||getNepaliDate();
+  const refNo=document.getElementById('vm-no').value;
+  const ref=document.getElementById('vm-ref').value;
+  const editId=document.getElementById('vm-editing-id').value;
+  const vouchers=DB.vouchers();
+  // sync stock
+  if(type==='purchase'){validItems.forEach(item=>syncStockFromItem(item.name.trim(),parseFloat(item.rate)||0,dateBS));}
+  const typeLabels={'purchase':['Purchases','Accounts Payable'],'sales-return':['Sales Return','Accounts Receivable'],'purchase-return':['Accounts Payable','Purchase Return']};
+  const [drAcc,crAcc]=typeLabels[type]||['Debit','Credit'];
+  if(editId){
+    const idx=vouchers.findIndex(v=>v.id===editId);
+    if(idx>-1){vouchers[idx]={...vouchers[idx],type,refNo,dateBS,partyId:pid,partyName:pname,items:validItems,total,ref};DB.saveVouchers(vouchers);addJournalEntry(dateBS,pname,`${voucherLabels[type]} ${refNo}`,drAcc,crAcc,Math.round(total),editId,true,type);}
+  }else{
+    const v={id:uid(),type,refNo,dateBS,partyId:pid,partyName:pname,items:validItems,total,ref,createdAt:Date.now()};
+    vouchers.push(v);DB.saveVouchers(vouchers);
+    addJournalEntry(dateBS,pname,`${voucherLabels[type]} ${refNo}`,drAcc,crAcc,Math.round(total),v.id,false,type);
+  }
+  closeModal('voucher-modal');
+  renderVouchersTable(type);
+}
+function renderVouchersTable(type){
+  const tbodyId={'purchase':'purchase-tbody','sales-return':'sales-return-tbody','purchase-return':'purchase-return-tbody'}[type];
+  if(!tbodyId)return;
+  const tbody=document.getElementById(tbodyId);if(!tbody)return;
+  const vouchers=DB.vouchers().filter(v=>v.type===type).slice().reverse();
+  tbody.innerHTML='';
+  if(!vouchers.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="icon">📄</div><p>No ${voucherLabels[type]} entries yet.</p></div></td></tr>`;return;}
+  vouchers.forEach(v=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mono">${v.refNo}</td><td class="mono">${v.dateBS}</td><td>${v.partyName||'-'}</td><td>${v.ref||'-'}</td><td class="amount">Rs. ${fmtI(v.total)}</td><td><div class="flex-gap"><button class="btn btn-secondary btn-sm" onclick="openVoucherModal('${type}','${v.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}','${type}')">🗑</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function deleteVoucher(id,type){
+  if(!confirm('Delete?'))return;
+  DB.saveVouchers(DB.vouchers().filter(v=>v.id!==id));
+  DB.saveJournal(DB.journal().filter(j=>j.refId!==id));
+  renderVouchersTable(type);
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function loadSettings(){
+  const s=DB.settings();
+  document.getElementById('set-company').value=s.company||'';
+  document.getElementById('set-address').value=s.address||'';
+  document.getElementById('set-phone').value=s.phone||'';
+  document.getElementById('set-username').value=s.username||'';
+  document.getElementById('set-today-bs').value=s.todayBS||'';
+  if(s.logo){const img=document.getElementById('logo-preview');img.src=s.logo;img.style.display='block';}
+}
+function saveSettings(){
+  const s=DB.settings();
+  s.company=document.getElementById('set-company').value.trim()||'FinPilot';
+  s.address=document.getElementById('set-address').value.trim();
+  s.phone=document.getElementById('set-phone').value.trim();
+  s.username=document.getElementById('set-username').value.trim()||'Admin';
+  s.todayBS=document.getElementById('set-today-bs').value.trim();
   DB.saveSettings(s);
-  document.getElementById('nav-company-name').textContent = s.company;
+  document.getElementById('nav-company-name').textContent=s.company;
   alert('Settings saved!');
 }
-
-function handleLogo(inp) {
-  const file = inp.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    const s = DB.settings(); s.logo = e.target.result; DB.saveSettings(s);
-    const img = document.getElementById('logo-preview');
-    img.src=e.target.result; img.style.display='block';
-  };
+function handleLogo(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{const s=DB.settings();s.logo=e.target.result;DB.saveSettings(s);const img=document.getElementById('logo-preview');img.src=e.target.result;img.style.display='block';};
   reader.readAsDataURL(file);
 }
 
-function printInvoice(id) {
-  const inv = DB.invoices().find(i=>i.id===id);
-  if(!inv) return;
-  const s = DB.settings();
-  const logoHTML = s.logo ? `<img src="${s.logo}" style="max-height:50px;max-width:80px">` : '';
-  const itemsHTML = (inv.items||[]).map(item=>`
-    <tr>
-      <td>${item.name||''}</td>
-      <td class="r">${Math.round(item.qty||0)}</td>
-      <td class="r">Rs. ${fmtI(item.rate)}</td>
-      <td class="r">${item.disc||0}%</td>
-      <td class="r">Rs. ${fmtI(item.total)}</td>
-    </tr>
-  `).join('');
-
-  const displayNet = inv.grandTotal !== undefined ? inv.grandTotal : Math.round(inv.net||0);
-  const showDisc = Math.round(inv.disc||0) > 0;
-
-  const html = `
-    <div class="print-invoice">
-      <div class="print-header">
-        <div class="print-company">
-          ${logoHTML}
-          <h1>${s.company||'Company Name'}</h1>
-          <p>${s.address||''}</p>
-          <p>${s.phone||''}</p>
-        </div>
-        <div class="print-inv-info">
-          <div class="inv-no">${inv.invNo}</div>
-          <p>Date: ${inv.dateBS} (BS)</p>
-          <p>INVOICE</p>
-        </div>
-      </div>
-      <div class="print-party">
-        <strong>Bill To:</strong>
-        ${inv.partyName||''}${inv.note?`<br><em style="color:#777">${inv.note}</em>`:''}
-      </div>
-      <table class="print-table">
-        <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Disc.</th><th class="r">Amount</th></tr></thead>
-        <tbody>${itemsHTML}</tbody>
-      </table>
-      <table class="print-totals">
-        <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
-        ${showDisc ? `<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>` : ''}
-        <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayNet)}</strong></td></tr>
-      </table>
-      <div class="print-footer">
-        <span>Printed by: ${s.username||'Admin'}</span>
-        <span>${getNepaliDateFull()}</span>
-        <span>Thank you for your business!</span>
-      </div>
+// ══════════════════════════════════════════════════════
+// PRINT INVOICE
+// ══════════════════════════════════════════════════════
+function buildInvoiceHTML(inv){
+  const s=DB.settings();
+  const hasDisc=Math.round(inv.disc||0)>0;
+  const logoHTML=s.logo?`<img src="${s.logo}" style="max-height:50px;max-width:80px">`:'';
+  const discTh=hasDisc?'<th class="r">Disc.</th>':'';
+  const itemsHTML=(inv.items||[]).map(item=>{
+    const discTd=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
+    return`<tr><td>${item.name||''}</td><td class="r">${Math.round(item.qty||0)}</td><td class="r">Rs. ${fmtI(item.rate)}</td>${discTd}<td class="r">Rs. ${fmtI(item.total)}</td></tr>`;
+  }).join('');
+  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
+  const paidStamp=inv.paid?`<div class="print-paid-stamp">PAID</div>`:'';
+  return`<div class="print-invoice">
+    <div class="print-header">
+      <div class="print-company">${logoHTML}<h1>${s.company||'Company'}</h1><p>${s.address||''}</p><p>${s.phone||''}</p></div>
+      <div class="print-inv-info"><div class="inv-no">${inv.invNo}</div><p>Date: ${inv.dateBS} (BS)</p><p>INVOICE</p>${paidStamp}</div>
     </div>
-  `;
-  const area = document.getElementById('print-area');
-  area.innerHTML = html;
-  area.style.display='block';
-  window.print();
-  area.style.display='none';
+    <div class="print-party"><strong>Bill To:</strong>${inv.partyName||''}${inv.note?`<br><em style="color:#777">${inv.note}</em>`:''}</div>
+    <table class="print-table">
+      <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate</th>${discTh}<th class="r">Amount</th></tr></thead>
+      <tbody>${itemsHTML}</tbody>
+    </table>
+    <table class="print-totals">
+      <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
+      ${hasDisc?`<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>`:''}
+      <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayTotal)}</strong></td></tr>
+    </table>
+    <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>${getNepaliDateFull()}</span><span>Thank you!</span></div>
+  </div>`;
 }
 
-function printCurrentInvoice() {
-  const partyName = document.getElementById('inv-party-input').value.trim();
-  const invNo = document.getElementById('inv-no').value;
-  const dateBS = document.getElementById('inv-date-bs').value;
-  const note = document.getElementById('inv-note').value;
+function printInvoice(id){
+  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
+  const area=document.getElementById('print-area');
+  area.innerHTML=buildInvoiceHTML(inv);area.style.display='block';
+  window.print();area.style.display='none';
+}
+
+function printCurrentInvoice(){
+  const partyName=document.getElementById('inv-party-input').value.trim();
+  const invNo=document.getElementById('inv-no').value;
+  const dateBS=document.getElementById('inv-date-bs').value;
+  const note=document.getElementById('inv-note').value;
+  const isPaid=document.getElementById('inv-paid-check').checked;
   let sub=0,disc=0;
-  const validItems = invItems.filter(i=>(i.name||'').trim());
-  validItems.forEach(i=>{ sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0); disc+=parseFloat(i.discAmt||0); });
-  const gtVal = document.getElementById('inv-grand-total').value;
-  const grandTotal = gtVal!=='' ? Math.round(parseFloat(gtVal)) : Math.round(sub-disc);
-  const fakeInv = {id:'preview',invNo,dateBS,partyName,note,items:validItems,sub,disc,net:sub-disc,grandTotal};
-  const invoices = DB.invoices();
-  invoices.push(fakeInv);
-  printInvoice('preview');
-  invoices.pop();
+  const validItems=invItems.filter(i=>(i.name||'').trim());
+  validItems.forEach(i=>{sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0);disc+=parseFloat(i.discAmt||0);});
+  const gtVal=document.getElementById('inv-grand-total').value;
+  const grandTotal=gtVal!==''?Math.round(parseFloat(gtVal)):Math.round(sub-disc);
+  const fakeInv={id:'preview',invNo,dateBS,partyName,note,items:validItems,sub,disc,net:sub-disc,grandTotal,paid:isPaid};
+  const area=document.getElementById('print-area');
+  area.innerHTML=buildInvoiceHTML(fakeInv);area.style.display='block';
+  window.print();area.style.display='none';
 }
 
-function renderDashboard() {
-  const invoices = DB.invoices();
-  const payments = DB.payments();
-  const parties = DB.parties();
+// ══════════════════════════════════════════════════════
+// SAVE INVOICE AS IMAGE
+// ══════════════════════════════════════════════════════
+function saveInvoiceAsImageById(id){
+  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
+  renderAndDownloadInvoiceImage(inv);
+}
 
-  const totalSales = invoices.reduce((s,i)=>s+(i.net||0),0);
-  const totalReceived = payments.reduce((s,p)=>s+(p.amount||0),0);
-  const totalDue = totalSales - totalReceived;
-  const thisMonth = getGlobalTodayBSDate().substr(0,7);
-  const monthlySales = invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).reduce((s,i)=>s+(i.net||0),0);
+function saveInvoiceAsImage(){
+  const partyName=document.getElementById('inv-party-input').value.trim();
+  const invNo=document.getElementById('inv-no').value;
+  const dateBS=document.getElementById('inv-date-bs').value;
+  const note=document.getElementById('inv-note').value;
+  const isPaid=document.getElementById('inv-paid-check').checked;
+  let sub=0,disc=0;
+  const vItems=invItems.filter(i=>(i.name||'').trim());
+  vItems.forEach(i=>{sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0);disc+=parseFloat(i.discAmt||0);});
+  const gtVal=document.getElementById('inv-grand-total').value;
+  const grandTotal=gtVal!==''?Math.round(parseFloat(gtVal)):Math.round(sub-disc);
+  renderAndDownloadInvoiceImage({id:'preview',invNo,dateBS,partyName,note,items:vItems,sub,disc,net:sub-disc,grandTotal,paid:isPaid});
+}
 
-  document.getElementById('dash-date').textContent = getNepaliDateFull();
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card"><div class="label">Total Sales</div><div class="value">Rs.${fmt(totalSales)}</div><div class="sub">${invoices.length} invoices</div></div>
-    <div class="stat-card"><div class="label">Total Received</div><div class="value" style="color:var(--green)">Rs.${fmt(totalReceived)}</div><div class="sub">${payments.length} payments</div></div>
-    <div class="stat-card"><div class="label">Total Due</div><div class="value" style="color:var(--red)">Rs.${fmt(totalDue)}</div><div class="sub">Outstanding balance</div></div>
-    <div class="stat-card"><div class="label">This Month</div><div class="value" style="color:var(--accent)">Rs.${fmt(monthlySales)}</div><div class="sub">${invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).length} invoices</div></div>
+function renderAndDownloadInvoiceImage(inv){
+  const s=DB.settings();
+  // Use a hidden iframe-like div, render, use html2canvas-equivalent via Canvas API
+  const area=document.getElementById('print-area');
+  const html=buildInvoiceHTML(inv);
+  // Wrap in a fixed-size A4-like container
+  area.innerHTML=`<div id="img-render-box" style="width:794px;padding:96px;background:#fff;font-family:DM Sans,sans-serif;color:#000;position:relative;">${html}</div>`;
+  area.style.display='block';
+  const box=document.getElementById('img-render-box');
+  // Use native browser rendering + SVG foreignObject trick
+  const w=box.scrollWidth,h=box.scrollHeight;
+  const data=new XMLSerializer().serializeToString((() => {
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    svg.setAttribute('width',w);svg.setAttribute('height',h);
+    const fo=document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+    fo.setAttribute('width','100%');fo.setAttribute('height','100%');
+    const div=document.createElement('div');
+    div.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
+    div.innerHTML=`<style>*{box-sizing:border-box;font-family:Arial,sans-serif}body{margin:0}</style>`+box.outerHTML;
+    fo.appendChild(div);svg.appendChild(fo);return svg;
+  })());
+  const blob=new Blob([data],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement('canvas');
+    canvas.width=w*2;canvas.height=h*2;
+    const ctx=canvas.getContext('2d');
+    ctx.scale(2,2);ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    area.style.display='none';area.innerHTML='';
+    canvas.toBlob(b=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);
+      const fname=`${(s.company||'FinPilot').replace(/\s+/g,'_')}_${inv.invNo}_${inv.dateBS}.png`;
+      a.download=fname;a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    },'image/png');
+  };
+  img.onerror=()=>{area.style.display='none';area.innerHTML='';alert('Image export failed. Try the Print option instead.');};
+  img.src=url;
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+function renderDashboard(){
+  const invoices=DB.invoices();const payments=DB.payments();const parties=DB.parties();
+  const totalSales=invoices.reduce((s,i)=>s+(i.grandTotal||i.net||0),0);
+  const totalReceived=payments.reduce((s,p)=>s+(p.amount||0),0);
+  const totalDue=totalSales-totalReceived;
+  const s=DB.settings();
+  const thisMonth=(s.todayBS||getNepaliDate()).substr(0,7);
+  const monthlySales=invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).reduce((s2,i)=>s2+(i.grandTotal||i.net||0),0);
+  document.getElementById('dash-date').textContent=getNepaliDateFull();
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card"><div class="label">Total Sales</div><div class="value">Rs.${fmtI(totalSales)}</div><div class="sub">${invoices.length} invoices</div></div>
+    <div class="stat-card"><div class="label">Received</div><div class="value" style="color:var(--green)">Rs.${fmtI(totalReceived)}</div><div class="sub">${payments.length} payments</div></div>
+    <div class="stat-card"><div class="label">Due</div><div class="value" style="color:var(--red)">Rs.${fmtI(totalDue)}</div><div class="sub">Outstanding</div></div>
+    <div class="stat-card"><div class="label">This Month</div><div class="value" style="color:var(--accent)">Rs.${fmtI(monthlySales)}</div><div class="sub">${invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).length} invoices</div></div>
     <div class="stat-card"><div class="label">Parties</div><div class="value">${parties.length}</div><div class="sub">Customers</div></div>
+    <div class="stat-card"><div class="label">Stock Items</div><div class="value">${DB.stock().length}</div><div class="sub">Products</div></div>
   `;
-
-  const recent = invoices.slice().reverse().slice(0,5);
-  document.getElementById('dash-recent-invoices').innerHTML = recent.length ?
-    '<div class="table-wrap"><table><thead><tr><th>No</th><th>Party</th><th class="amount">Total</th></tr></thead><tbody>'+
-    recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmt(i.net)}</td></tr>`).join('')+
-    '</tbody></table></div>' : '<div class="empty-state"><p>No invoices</p></div>';
-
-  const duelist = parties.map(p=>({name:p.name,due:getTotalBilled(p.id)-getTotalPaid(p.id)})).filter(p=>p.due>0).sort((a,b)=>b.due-a.due).slice(0,5);
-  document.getElementById('dash-top-due').innerHTML = duelist.length ?
-    '<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due</th></tr></thead><tbody>'+
-    duelist.map(p=>`<tr><td>${p.name}</td><td class="amount text-red">Rs. ${fmt(p.due)}</td></tr>`).join('')+
-    '</tbody></table></div>' : '<div class="empty-state"><p>All clear! No dues.</p></div>';
+  const recent=invoices.slice().reverse().slice(0,5);
+  document.getElementById('dash-recent-invoices').innerHTML=recent.length?'<div class="table-wrap"><table><thead><tr><th>No</th><th>Party</th><th class="amount">Total</th><th>Status</th></tr></thead><tbody>'+
+    recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmtI(i.grandTotal||i.net)}</td><td>${i.paid?'<span class="badge badge-green">Paid</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`).join('')+
+    '</tbody></table></div>':'<div class="empty-state"><p>No invoices</p></div>';
+  const duelist=parties.map(p=>({name:p.name,due:getTotalBilled(p.id)-getTotalPaid(p.id)})).filter(p=>p.due>0).sort((a,b)=>b.due-a.due).slice(0,5);
+  document.getElementById('dash-top-due').innerHTML=duelist.length?'<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due</th></tr></thead><tbody>'+
+    duelist.map(p=>`<tr><td>${p.name}</td><td class="amount text-red">Rs. ${fmtI(p.due)}</td></tr>`).join('')+
+    '</tbody></table></div>':'<div class="empty-state"><p>All clear!</p></div>';
 }
 
-function exportBackup() {
-  const data = {
-    invoices: DB.invoices(),
-    parties: DB.parties(),
-    payments: DB.payments(),
-    journal: DB.journal(),
-    settings: DB.settings(),
-    exportedAt: new Date().toISOString()
+// ══════════════════════════════════════════════════════
+// BACKUP / RESTORE
+// ══════════════════════════════════════════════════════
+function exportBackup(){
+  const data={invoices:DB.invoices(),parties:DB.parties(),payments:DB.payments(),journal:DB.journal(),settings:DB.settings(),vouchers:DB.vouchers(),stock:DB.stock(),exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`FinPilot_Backup_${getNepaliDate()}.json`;a.click();
+}
+function importBackup(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!confirm('This will REPLACE all current data. Continue?'))return;
+      if(data.invoices)DB.saveInvoices(data.invoices);
+      if(data.parties)DB.saveParties(data.parties);
+      if(data.payments)DB.savePayments(data.payments);
+      if(data.journal)DB.saveJournal(data.journal);
+      if(data.settings)DB.saveSettings(data.settings);
+      if(data.vouchers)DB.saveVouchers(data.vouchers);
+      if(data.stock)DB.saveStock(data.stock);
+      alert('Restored!');location.reload();
+    }catch(e){alert('Invalid backup file.');}
   };
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `BizLedger_Backup_${getGlobalTodayBSDate()}.json`;
-  a.click();
+  reader.readAsText(file);inp.value='';
 }
 
-function importBackup(inp) {
-  const file = inp.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try {
-      const data = JSON.parse(e.target.result);
-      if(!confirm('This will REPLACE all current data. Continue?')) return;
-      if(data.invoices) DB.saveInvoices(data.invoices);
-      if(data.parties) DB.saveParties(data.parties);
-      if(data.payments) DB.savePayments(data.payments);
-      if(data.journal) DB.saveJournal(data.journal);
-      if(data.settings) DB.saveSettings(data.settings);
-      alert('Backup restored successfully!');
-      location.reload();
-    } catch(err) { alert('Invalid backup file.'); }
-  };
-  reader.readAsText(file);
-  inp.value='';
-}
-
-(function init() {
-  const s = DB.settings();
-  document.getElementById('nav-company-name').textContent = s.company||'Your Company';
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+(function init(){
+  const s=DB.settings();
+  document.getElementById('nav-company-name').textContent=s.company||'Your Company';
   renderDashboard();
   resetInvoiceForm();
+  initPaymentDate();
 })();
 </script>
 </body>
