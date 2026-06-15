@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinPilot — Billing & Journal</title>
-<link rel="icon" href="images/favicon.png" type="image/jpeg">
+<link rel="icon" href="images/favicon.jpg" type="image/jpeg">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -172,9 +172,23 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Dark Mode</button>
   </div>
   <div class="stats-grid" id="dash-stats"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
     <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Recent Invoices</div><div id="dash-recent-invoices"></div></div>
     <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Top Parties by Due</div><div id="dash-top-due"></div></div>
+  </div>
+  <!-- Monthly Sales Section -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600">📅 Monthly Sales</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="dash-month-filter" onchange="renderMonthlySales()" style="padding:7px 10px;font-size:13px;min-width:160px"></select>
+        <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-size:13px;font-weight:500;letter-spacing:0;cursor:pointer">
+          <input type="checkbox" id="dash-show-all" onchange="renderMonthlySales()" style="width:auto"> Show all months
+        </label>
+      </div>
+    </div>
+    <div id="dash-monthly-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px"></div>
+    <div id="dash-monthly-table"></div>
   </div>
 </div>
 
@@ -834,14 +848,15 @@ function acItem(inp,rowIdx){
       inp.value=s.name;invItems[rowIdx].name=s.name;
       if(s.rate&&!invItems[rowIdx].rate){
         invItems[rowIdx].rate=s.rate;
-        const rateInp=inp.closest('tr').querySelector('input[type="number"]');
-        if(rateInp)rateInp.value=s.rate;
+        // Use class selector — avoids index confusion with autocomplete list node
+        const rateInp=inp.closest('tr').querySelector('.inv-rate-inp');
+        if(rateInp){rateInp.value=s.rate;}
         calcInvRow(rowIdx);
       }
       list.classList.remove('open');
-      // focus qty
-      const tds=inp.closest('tr').querySelectorAll('td input');
-      if(tds[1])tds[1].focus();
+      // focus qty using class selector
+      const qtyInp=inp.closest('tr').querySelector('.inv-qty-inp');
+      if(qtyInp)qtyInp.focus();
     };
     list.appendChild(li);
   });
@@ -865,16 +880,22 @@ function acItemKeydown(e,list,inp,rowIdx){
     const hi=(list._highlighted||0)>=0?list._highlighted:0;
     if(items[hi])items[hi].click();
     else if(inp.value.trim()){invItems[rowIdx].name=inp.value.trim();autoCreateStockItem(inp.value.trim(),rowIdx);list.classList.remove('open');}
-    // focus qty
-    const tds=inp.closest('tr').querySelectorAll('td input');
-    if(tds[1])tds[1].focus();
+    // focus qty using class
+    const qtyInp=inp.closest('tr').querySelector('.inv-qty-inp');
+    if(qtyInp)qtyInp.focus();
   }else if(e.key==='Tab'){list.classList.remove('open');}
 }
 
+function getTodayBS(){const s=DB.settings();return s.todayBS||'2083-03-01';}
+function getTodayBSFull(){
+  const d=getTodayBS();const parts=d.split('-');
+  if(parts.length===3){const y=parseInt(parts[0]),m=parseInt(parts[1]),day=parseInt(parts[2]);if(y&&m&&day)return`${BS_MONTHS[m-1]} ${day}, ${y} BS`;}
+  return d;
+}
 function autoCreateStockItem(name,rowIdx){
   const stock=DB.stock();
   if(!stock.find(s=>s.name.toLowerCase()===name.toLowerCase())){
-    stock.push({id:uid(),name:name.trim(),rate:invItems[rowIdx]?.rate||0,unit:'',desc:'',updatedAt:getNepaliDate()});
+    stock.push({id:uid(),name:name.trim(),rate:invItems[rowIdx]?.rate||0,unit:'',desc:'',updatedAt:getTodayBS()});
     DB.saveStock(stock);
   }
 }
@@ -939,18 +960,18 @@ function renderInvItems(){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td style="position:relative">
-        <input type="text" value="${escH(item.name||'')}" placeholder="Item name" autocomplete="off"
+        <input type="text" class="inv-name-inp" value="${escH(item.name||'')}" placeholder="Item name" autocomplete="off"
           oninput="invItems[${i}].name=this.value;acItem(this,${i})"
           onkeydown="invItemTabEnter(event,this,${i},'name')"
           onfocus="acItem(this,${i})">
       </td>
-      <td><input type="number" value="${item.qty||''}" placeholder="1" min="0" step="any"
+      <td><input type="number" class="inv-qty-inp" value="${item.qty||''}" placeholder="1" min="0" step="any"
         oninput="invItems[${i}].qty=this.value;calcInvRow(${i})"
         onkeydown="invItemTabEnter(event,this,${i},'qty')"></td>
-      <td><input type="number" value="${item.rate||''}" placeholder="0" min="0" step="any"
+      <td><input type="number" class="inv-rate-inp" value="${item.rate||''}" placeholder="0" min="0" step="any"
         oninput="invItems[${i}].rate=this.value;calcInvRow(${i})"
         onkeydown="invItemTabEnter(event,this,${i},'rate')"></td>
-      <td><input type="number" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any"
+      <td><input type="number" class="inv-disc-inp" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any"
         oninput="invItems[${i}].disc=this.value;calcInvRow(${i})"
         onkeydown="invItemTabEnter(event,this,${i},'disc')"></td>
       <td class="total-col" id="inv-row-total-${i}">${fmtI(item.total||0)}</td>
@@ -963,29 +984,23 @@ function renderInvItems(){
 
 function invItemTabEnter(e,inp,rowIdx,field){
   if(e.key==='Tab'){
-    // default tab — browser handles it naturally; just close item AC
     if(inp._acList)inp._acList.classList.remove('open');
     return;
   }
   if(e.key==='Enter'){
     e.preventDefault();
     if(field==='disc'){
-      // last field — add new row and focus its name
       addInvItem();
       setTimeout(()=>{
         const rows=document.querySelectorAll('#inv-items-body tr');
         const lastRow=rows[rows.length-1];
-        if(lastRow){const ni=lastRow.querySelector('input[type="text"]');if(ni)ni.focus();}
+        if(lastRow){const ni=lastRow.querySelector('.inv-name-inp');if(ni)ni.focus();}
       },30);
     }else{
-      // move to next input in row
-      const fields=['name','qty','rate','disc'];
-      const nextField=fields[fields.indexOf(field)+1];
-      if(nextField){
-        const tds=inp.closest('tr').querySelectorAll('td input');
-        const idx=fields.indexOf(nextField);
-        if(tds[idx])tds[idx].focus();
-      }
+      const tr=inp.closest('tr');
+      const nextMap={name:'.inv-qty-inp',qty:'.inv-rate-inp',rate:'.inv-disc-inp'};
+      const nextSel=nextMap[field];
+      if(nextSel){const next=tr.querySelector(nextSel);if(next)next.focus();}
     }
   }
 }
@@ -1095,8 +1110,8 @@ function updateStockRate(name,rate){
   if(!name||!rate)return;
   const stock=DB.stock();
   const ex=stock.find(s=>s.name.toLowerCase()===name.toLowerCase());
-  if(ex){ex.rate=rate;ex.updatedAt=getNepaliDate();DB.saveStock(stock);}
-  else{stock.push({id:uid(),name,rate,unit:'',desc:'',updatedAt:getNepaliDate()});DB.saveStock(stock);}
+  if(ex){ex.rate=rate;ex.updatedAt=getTodayBS();DB.saveStock(stock);}
+  else{stock.push({id:uid(),name,rate,unit:'',desc:'',updatedAt:getTodayBS()});DB.saveStock(stock);}
 }
 
 // ══════════════════════════════════════════════════════
@@ -1487,9 +1502,11 @@ function saveSettings(){
   s.address=document.getElementById('set-address').value.trim();
   s.phone=document.getElementById('set-phone').value.trim();
   s.username=document.getElementById('set-username').value.trim()||'Admin';
-  s.todayBS=document.getElementById('set-today-bs').value.trim();
+  s.todayBS=document.getElementById('set-today-bs').value.trim()||'2083-03-01';
   DB.saveSettings(s);
   document.getElementById('nav-company-name').textContent=s.company;
+  // refresh dashboard date display immediately
+  const dd=document.getElementById('dash-date');if(dd)dd.textContent=getTodayBSFull();
   alert('Settings saved!');
 }
 function handleLogo(inp){
@@ -1630,10 +1647,10 @@ function renderDashboard(){
   const totalSales=invoices.reduce((s,i)=>s+(i.grandTotal||i.net||0),0);
   const totalReceived=payments.reduce((s,p)=>s+(p.amount||0),0);
   const totalDue=totalSales-totalReceived;
-  const s=DB.settings();
-  const thisMonth=(s.todayBS||getNepaliDate()).substr(0,7);
+  const todayBS=getTodayBS();
+  const thisMonth=todayBS.substr(0,7);
   const monthlySales=invoices.filter(i=>(i.dateBS||'').startsWith(thisMonth)).reduce((s2,i)=>s2+(i.grandTotal||i.net||0),0);
-  document.getElementById('dash-date').textContent=getNepaliDateFull();
+  document.getElementById('dash-date').textContent=getTodayBSFull();
   document.getElementById('dash-stats').innerHTML=`
     <div class="stat-card"><div class="label">Total Sales</div><div class="value">Rs.${fmtI(totalSales)}</div><div class="sub">${invoices.length} invoices</div></div>
     <div class="stat-card"><div class="label">Received</div><div class="value" style="color:var(--green)">Rs.${fmtI(totalReceived)}</div><div class="sub">${payments.length} payments</div></div>
@@ -1650,6 +1667,81 @@ function renderDashboard(){
   document.getElementById('dash-top-due').innerHTML=duelist.length?'<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due</th></tr></thead><tbody>'+
     duelist.map(p=>`<tr><td>${p.name}</td><td class="amount text-red">Rs. ${fmtI(p.due)}</td></tr>`).join('')+
     '</tbody></table></div>':'<div class="empty-state"><p>All clear!</p></div>';
+
+  // Populate month dropdown
+  populateMonthDropdown();
+  renderMonthlySales();
+}
+
+function populateMonthDropdown(){
+  const invoices=DB.invoices();
+  const monthSet=new Set();
+  invoices.forEach(i=>{if(i.dateBS)monthSet.add(i.dateBS.substr(0,7));});
+  const months=[...monthSet].sort().reverse();
+  const sel=document.getElementById('dash-month-filter');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='';
+  const todayMonth=getTodayBS().substr(0,7);
+  const allMonths=months.length?months:[todayMonth];
+  // ensure current month is present
+  if(!allMonths.includes(todayMonth))allMonths.unshift(todayMonth);
+  allMonths.forEach(m=>{
+    const parts=m.split('-');
+    const label=parts.length===2?`${BS_MONTHS[parseInt(parts[1])-1]} ${parts[0]}`:m;
+    const o=document.createElement('option');o.value=m;o.textContent=label;sel.appendChild(o);
+  });
+  if(cur&&allMonths.includes(cur))sel.value=cur;
+  else sel.value=allMonths[0]||todayMonth;
+}
+
+function renderMonthlySales(){
+  const showAll=document.getElementById('dash-show-all')?.checked;
+  const selMonth=document.getElementById('dash-month-filter')?.value||'';
+  const invoices=DB.invoices();
+  const payments=DB.payments();
+  const parties=DB.parties();
+
+  const filteredInv=showAll?invoices:invoices.filter(i=>(i.dateBS||'').startsWith(selMonth));
+  const filteredPay=showAll?payments:payments.filter(p=>(p.dateBS||'').startsWith(selMonth));
+
+  const mSales=filteredInv.reduce((s,i)=>s+(i.grandTotal||i.net||0),0);
+  const mRec=filteredPay.reduce((s,p)=>s+(p.amount||0),0);
+  const mDue=mSales-mRec;
+  const label=showAll?'All Time':(()=>{const p=selMonth.split('-');return p.length===2?`${BS_MONTHS[parseInt(p[1])-1]} ${p[0]}`:selMonth;})();
+
+  document.getElementById('dash-monthly-stats').innerHTML=`
+    <div class="stat-card"><div class="label">Sales (${label})</div><div class="value" style="font-size:20px">Rs.${fmtI(mSales)}</div><div class="sub">${filteredInv.length} invoices</div></div>
+    <div class="stat-card"><div class="label">Received</div><div class="value" style="font-size:20px;color:var(--green)">Rs.${fmtI(mRec)}</div><div class="sub">${filteredPay.length} payments</div></div>
+    <div class="stat-card"><div class="label">Due</div><div class="value" style="font-size:20px;color:var(--red)">Rs.${fmtI(mDue)}</div><div class="sub">Pending</div></div>
+    <div class="stat-card"><div class="label">Paid Invoices</div><div class="value" style="font-size:20px;color:var(--accent)">${filteredInv.filter(i=>i.paid).length}</div><div class="sub">of ${filteredInv.length}</div></div>
+  `;
+
+  // Party-wise breakdown
+  const partyMap={};
+  filteredInv.forEach(inv=>{
+    const pid=inv.partyId||inv.partyName||'Unknown';
+    const pname=inv.partyName||'Unknown';
+    if(!partyMap[pid])partyMap[pid]={name:pname,sales:0,invoices:0,received:0};
+    partyMap[pid].sales+=(inv.grandTotal||inv.net||0);
+    partyMap[pid].invoices++;
+  });
+  filteredPay.forEach(pay=>{
+    const pid=pay.partyId||pay.partyName||'Unknown';
+    if(!partyMap[pid])partyMap[pid]={name:pay.partyName||'Unknown',sales:0,invoices:0,received:0};
+    partyMap[pid].received+=(pay.amount||0);
+  });
+
+  const rows=Object.values(partyMap).sort((a,b)=>b.sales-a.sales);
+  if(!rows.length){
+    document.getElementById('dash-monthly-table').innerHTML='<div class="empty-state"><p>No data for this period.</p></div>';return;
+  }
+  document.getElementById('dash-monthly-table').innerHTML='<div class="table-wrap"><table><thead><tr><th>Party</th><th>Invoices</th><th class="amount">Sales (Rs.)</th><th class="amount">Received (Rs.)</th><th class="amount">Due (Rs.)</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const due=r.sales-r.received;
+      return`<tr><td><strong>${r.name}</strong></td><td>${r.invoices}</td><td class="amount">Rs. ${fmtI(r.sales)}</td><td class="amount text-green">Rs. ${fmtI(r.received)}</td><td class="amount ${due>0?'text-red':'text-green'}">Rs. ${fmtI(due)}</td><td>${due<=0?'<span class="badge badge-green">Settled</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`;
+    }).join('')+
+    '</tbody></table></div>';
 }
 
 // ══════════════════════════════════════════════════════
@@ -1686,6 +1778,7 @@ function importBackup(inp){
 // ══════════════════════════════════════════════════════
 (function init(){
   const s=DB.settings();
+  if(!s.todayBS){s.todayBS='2083-03-01';DB.saveSettings(s);}
   document.getElementById('nav-company-name').textContent=s.company||'Your Company';
   renderDashboard();
   resetInvoiceForm();
