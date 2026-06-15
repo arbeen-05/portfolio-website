@@ -438,13 +438,47 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
   <div class="page-header">
     <div><h2>Journal</h2><p>Double-entry bookkeeping</p></div>
     <div class="flex-gap">
-      <div class="search-wrap"><input type="text" id="jrn-search" placeholder="Search journal..." oninput="renderJournal()" style="width:175px"></div>
+      <button class="btn btn-primary btn-sm" onclick="openJournalEntryModal()">+ Add Entry</button>
       <button class="btn btn-green" onclick="exportJournalXLSX()">📊 Export Excel</button>
+    </div>
+  </div>
+  <!-- Filters -->
+  <div class="card" style="margin-bottom:16px;padding:14px 18px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:150px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Search</label>
+        <input type="text" id="jrn-search" placeholder="Party, description..." oninput="renderJournal()" style="margin-top:3px">
+      </div>
+      <div style="min-width:130px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Month (BS)</label>
+        <select id="jrn-month" onchange="renderJournal()" style="margin-top:3px">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div style="min-width:120px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Party</label>
+        <select id="jrn-party" onchange="renderJournal()" style="margin-top:3px">
+          <option value="">All Parties</option>
+        </select>
+      </div>
+      <div style="min-width:110px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Type</label>
+        <select id="jrn-type" onchange="renderJournal()" style="margin-top:3px">
+          <option value="">All Types</option>
+          <option value="invoice">Sales</option>
+          <option value="payment">Payment</option>
+          <option value="purchase">Purchase</option>
+          <option value="sales-return">Sales Return</option>
+          <option value="purchase-return">Purchase Return</option>
+          <option value="manual">Manual</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="clearJournalFilters()" style="align-self:flex-end">✕ Clear</button>
     </div>
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Date (BS)</th><th>Party</th><th>Description</th><th>Account</th><th class="amount">Debit (Rs.)</th><th class="amount">Credit (Rs.)</th></tr></thead>
+      <thead><tr><th>Date (BS)</th><th>Party</th><th>Description</th><th>Account</th><th class="amount">Debit (Rs.)</th><th class="amount">Credit (Rs.)</th><th style="width:70px">Actions</th></tr></thead>
       <tbody id="journal-tbody"></tbody>
     </table>
   </div>
