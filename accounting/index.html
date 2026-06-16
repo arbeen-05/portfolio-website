@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinPilot — Billing & Journal</title>
-<link rel="icon" href="images/favicon.png" type="image/jpeg">
+<link rel="icon" href="images/favicon.png" type="image/png">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -286,12 +286,15 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
   </div>
 </div>
 
-<!-- INVOICES LIST -->
 <div id="sec-invoices" class="section">
   <div class="page-header">
     <div><h2>Sales Invoices</h2><p>All saved invoices</p></div>
-    <div class="flex-gap">
-      <div class="search-wrap"><input type="text" id="inv-search" placeholder="Search..." oninput="renderInvoicesTable()" style="width:190px"></div>
+    <div class="flex-gap" style="align-items:center">
+      <div class="search-wrap"><input type="text" id="inv-search" placeholder="Search..." oninput="renderInvoicesTable()" style="width:160px"></div>
+      <select id="inv-month-filter" onchange="renderInvoicesTable()" style="padding:7px 10px;font-size:13px;width:auto"></select>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-weight:500;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:0">
+        <input type="checkbox" id="inv-show-all" onchange="renderInvoicesTable()" style="width:auto;margin:0"> All
+      </label>
       <button class="btn btn-primary" onclick="nav('invoice',null)">+ New Invoice</button>
     </div>
   </div>
@@ -438,47 +441,31 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
   <div class="page-header">
     <div><h2>Journal</h2><p>Double-entry bookkeeping</p></div>
     <div class="flex-gap">
-      <button class="btn btn-primary btn-sm" onclick="openJournalEntryModal()">+ Add Entry</button>
       <button class="btn btn-green" onclick="exportJournalXLSX()">📊 Export Excel</button>
     </div>
   </div>
-  <!-- Filters -->
+  <!-- Date range filter -->
   <div class="card" style="margin-bottom:16px;padding:14px 18px">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-      <div style="flex:1;min-width:150px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div>
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">From (BS)</label>
+        <input type="text" id="jrn-from" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:140px;margin-top:3px">
+      </div>
+      <div>
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">To (BS)</label>
+        <input type="text" id="jrn-to" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:140px;margin-top:3px">
+      </div>
+      <div style="flex:1;min-width:140px">
         <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Search</label>
         <input type="text" id="jrn-search" placeholder="Party, description..." oninput="renderJournal()" style="margin-top:3px">
       </div>
-      <div style="min-width:130px">
-        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Month (BS)</label>
-        <select id="jrn-month" onchange="renderJournal()" style="margin-top:3px">
-          <option value="">All Months</option>
-        </select>
-      </div>
-      <div style="min-width:120px">
-        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Party</label>
-        <select id="jrn-party" onchange="renderJournal()" style="margin-top:3px">
-          <option value="">All Parties</option>
-        </select>
-      </div>
-      <div style="min-width:110px">
-        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Type</label>
-        <select id="jrn-type" onchange="renderJournal()" style="margin-top:3px">
-          <option value="">All Types</option>
-          <option value="invoice">Sales</option>
-          <option value="payment">Payment</option>
-          <option value="purchase">Purchase</option>
-          <option value="sales-return">Sales Return</option>
-          <option value="purchase-return">Purchase Return</option>
-          <option value="manual">Manual</option>
-        </select>
-      </div>
       <button class="btn btn-secondary btn-sm" onclick="clearJournalFilters()" style="align-self:flex-end">✕ Clear</button>
     </div>
+    <div id="jrn-summary" style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text2)"></div>
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Date (BS)</th><th>Party</th><th>Description</th><th>Account</th><th class="amount">Debit (Rs.)</th><th class="amount">Credit (Rs.)</th><th style="width:70px">Actions</th></tr></thead>
+      <thead><tr><th>Date (BS)</th><th>Party</th><th>Description</th><th>Account</th><th class="amount">Debit (Rs.)</th><th class="amount">Credit (Rs.)</th><th style="width:52px">Del</th></tr></thead>
       <tbody id="journal-tbody"></tbody>
     </table>
   </div>
@@ -779,7 +766,11 @@ function nav(sec,el){
   else{const lk=document.querySelector(`nav a[onclick*="'${sec}'"]`);if(lk)lk.classList.add('active');}
   document.getElementById('sidebar').classList.remove('open');
   if(sec==='dashboard')renderDashboard();
-  if(sec==='invoices')renderInvoicesTable();
+  if(sec==='invoices'){
+    const ms=document.getElementById('inv-month-filter');
+    if(ms)ms.innerHTML=''; // force repopulate with latest months
+    renderInvoicesTable();
+  }
   if(sec==='parties')renderPartiesTable();
   if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
   if(sec==='journal')renderJournal();
@@ -858,7 +849,6 @@ function acKeydown(event,listId,inp,hiddenId,onSelectCb){
 let _acItemList=null;
 function acItem(inp,rowIdx){
   const val=inp.value.toLowerCase();
-  // close any other open list
   if(_acItemList&&_acItemList!==inp._acList){_acItemList.classList.remove('open');_acItemList.innerHTML='';}
   let list=inp._acList;
   if(!list){
@@ -868,36 +858,35 @@ function acItem(inp,rowIdx){
     inp.parentNode.style.position='relative';
     inp.parentNode.appendChild(list);
     inp._acList=list;
-    _acItemList=list;
   }
-  const items=DB.stock();
-  const filtered=items.filter(s=>s.name.toLowerCase().includes(val));
+  _acItemList=list;
+  const allItems=DB.stock();
+  const filtered=val?allItems.filter(s=>s.name.toLowerCase().includes(val)):allItems;
   list.innerHTML='';
   list._highlighted=-1;
   filtered.forEach((s,i)=>{
     const li=document.createElement('li');
     li.textContent=s.name+(s.rate?` — Rs. ${fmtI(s.rate)}`:'')+( s.unit?` (${s.unit})`:'');
-    li.dataset.idx=i;
     li.onclick=()=>{
-      inp.value=s.name;invItems[rowIdx].name=s.name;
-      if(s.rate&&!invItems[rowIdx].rate){
+      inp.value=s.name;
+      invItems[rowIdx].name=s.name;
+      // Fill rate only — use .inv-rate-inp class, not generic number input
+      if(s.rate){
         invItems[rowIdx].rate=s.rate;
-        // Use class selector — avoids index confusion with autocomplete list node
         const rateInp=inp.closest('tr').querySelector('.inv-rate-inp');
-        if(rateInp){rateInp.value=s.rate;}
+        if(rateInp)rateInp.value=s.rate;
         calcInvRow(rowIdx);
       }
       list.classList.remove('open');
-      // focus qty using class selector
       const qtyInp=inp.closest('tr').querySelector('.inv-qty-inp');
       if(qtyInp)qtyInp.focus();
     };
     list.appendChild(li);
   });
-  if(val&&!items.find(s=>s.name.toLowerCase()===val)){
+  if(val&&!allItems.find(s=>s.name.toLowerCase()===val)){
     const li=document.createElement('li');li.className='add-new';
-    li.textContent=`+ Create item "${inp.value}"`;
-    li.onclick=()=>{autoCreateStockItem(inp.value,rowIdx);list.classList.remove('open');};
+    li.textContent=`+ Create "${inp.value}"`;
+    li.onclick=()=>{invItems[rowIdx].name=inp.value.trim();autoCreateStockItem(inp.value.trim(),rowIdx);list.classList.remove('open');const q=inp.closest('tr').querySelector('.inv-qty-inp');if(q)q.focus();};
     list.appendChild(li);
   }
   list.classList.toggle('open',!!(val||filtered.length));
@@ -1152,11 +1141,31 @@ function updateStockRate(name,rate){
 // INVOICES LIST
 // ══════════════════════════════════════════════════════
 function renderInvoicesTable(){
+  // Populate month dropdown
+  const monthSel=document.getElementById('inv-month-filter');
+  if(monthSel&&monthSel.options.length===0){
+    const allInv=DB.invoices();
+    const monthSet=new Set();
+    allInv.forEach(i=>{if(i.dateBS)monthSet.add(i.dateBS.substr(0,7));});
+    const months=[...monthSet].sort().reverse();
+    const todayM=getTodayBS().substr(0,7);
+    if(!months.includes(todayM))months.unshift(todayM);
+    months.forEach(m=>{
+      const p=m.split('-');
+      const lbl=p.length===2?`${BS_MONTHS[parseInt(p[1])-1]} ${p[0]}`:m;
+      const o=document.createElement('option');o.value=m;o.textContent=lbl;monthSel.appendChild(o);
+    });
+    monthSel.value=months[0]||todayM;
+  }
+  const showAll=(document.getElementById('inv-show-all')||{}).checked;
+  const selMonth=(monthSel||{}).value||'';
   const q=(document.getElementById('inv-search')||{value:''}).value.toLowerCase();
   const tbody=document.getElementById('invoices-tbody');
-  const invoices=DB.invoices().filter(i=>!q||i.invNo.toLowerCase().includes(q)||(i.partyName||'').toLowerCase().includes(q)).slice().reverse();
+  let invoices=DB.invoices();
+  if(!showAll&&selMonth)invoices=invoices.filter(i=>(i.dateBS||'').startsWith(selMonth));
+  invoices=invoices.filter(i=>!q||i.invNo.toLowerCase().includes(q)||(i.partyName||'').toLowerCase().includes(q)).slice().reverse();
   tbody.innerHTML='';
-  if(!invoices.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices yet.</p></div></td></tr>`;return;}
+  if(!invoices.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices for this period.</p></div></td></tr>`;return;}
   invoices.forEach(inv=>{
     const tr=document.createElement('tr');
     const statusBadge=inv.paid?'<span class="badge badge-green">✅ Paid</span>':'<span class="badge badge-red">Due</span>';
@@ -1340,33 +1349,128 @@ function addJournalEntry(date,party,desc,debitAcc,creditAcc,amount,refId,isUpdat
   journal.push({id:uid(),date,party,desc,debitAcc,creditAcc,amount,refId,type:type||'invoice',createdAt:Date.now()});
   DB.saveJournal(journal);
 }
-function renderJournal(){
+function getJournalFilteredEntries(){
+  const from=(document.getElementById('jrn-from')||{value:''}).value.trim();
+  const to=(document.getElementById('jrn-to')||{value:''}).value.trim();
   const q=(document.getElementById('jrn-search')||{value:''}).value.toLowerCase();
+  return DB.journal().filter(e=>{
+    const d=e.date||'';
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    if(q&&!(e.party||'').toLowerCase().includes(q)&&!(e.desc||'').toLowerCase().includes(q)&&!(e.debitAcc||'').toLowerCase().includes(q))return false;
+    return true;
+  }).slice().reverse();
+}
+
+function renderJournal(){
+  // Auto-fill dates from settings if empty on first load
+  const fromEl=document.getElementById('jrn-from');
+  const toEl=document.getElementById('jrn-to');
+  if(fromEl&&!fromEl.value&&!toEl.value){
+    const s=DB.settings();
+    if(s.todayBS){
+      // default: first day of current BS month to today
+      const parts=s.todayBS.split('-');
+      if(parts.length===3) fromEl.value=`${parts[0]}-${parts[1]}-01`;
+      toEl.value=s.todayBS;
+    }
+  }
+
+  const entries=getJournalFilteredEntries();
   const tbody=document.getElementById('journal-tbody');
-  const entries=DB.journal().filter(j=>!q||(j.party||'').toLowerCase().includes(q)||(j.desc||'').toLowerCase().includes(q)||(j.debitAcc||'').toLowerCase().includes(q)).slice().reverse();
   tbody.innerHTML='';
-  if(!entries.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="icon">📒</div><p>No journal entries yet.</p></div></td></tr>`;return;}
+
+  // Summary totals
+  let totalDr=0,totalCr=0;
+  entries.forEach(e=>{
+    const isPay=e.type==='payment';
+    if(isPay)totalCr+=e.amount||0;
+    else totalDr+=e.amount||0;
+  });
+  const sumEl=document.getElementById('jrn-summary');
+  if(sumEl) sumEl.innerHTML=`
+    <span>Entries: <strong>${entries.length}</strong></span>
+    <span style="color:var(--red)">Total Debit: <strong>Rs. ${fmtI(totalDr)}</strong></span>
+    <span style="color:var(--green)">Total Credit: <strong>Rs. ${fmtI(totalCr)}</strong></span>
+  `;
+
+  if(!entries.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">📒</div><p>No journal entries for this period.</p></div></td></tr>`;
+    return;
+  }
   entries.forEach(e=>{
     const isPay=e.type==='payment';
     const dr=isPay?'—':`Rs. ${fmtI(e.amount)}`;
     const cr=isPay?`Rs. ${fmtI(e.amount)}`:'—';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="mono">${e.date}</td><td>${e.party||''}</td><td>${e.desc||''}</td><td>${e.debitAcc||''}/${e.creditAcc||''}</td><td class="amount ${isPay?'':'text-red'}">${dr}</td><td class="amount ${isPay?'text-green':''}">${cr}</td>`;
+    tr.innerHTML=`
+      <td class="mono">${e.date}</td>
+      <td>${e.party||''}</td>
+      <td>${e.desc||''}</td>
+      <td style="font-size:12px;color:var(--text2)">${e.debitAcc||''}/${e.creditAcc||''}</td>
+      <td class="amount ${isPay?'':'text-red'}">${dr}</td>
+      <td class="amount ${isPay?'text-green':''}">${cr}</td>
+      <td><button class="btn btn-danger btn-sm btn-icon" title="Delete entry" onclick="deleteJournalEntry('${e.id}','${e.type}','${e.refId||''}')">🗑</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
+
+function clearJournalFilters(){
+  const f=document.getElementById('jrn-from');const t=document.getElementById('jrn-to');const s=document.getElementById('jrn-search');
+  if(f)f.value='';if(t)t.value='';if(s)s.value='';
+  renderJournal();
+}
+
+function deleteJournalEntry(jid,type,refId){
+  const typeLabel=type==='payment'?'credit (payment)':'debit (sales/purchase)';
+  if(!confirm(`Delete this ${typeLabel} journal entry?\n\nThis will also remove the linked ${type==='payment'?'payment record':'invoice/voucher'} permanently.`))return;
+
+  // Remove journal entry
+  DB.saveJournal(DB.journal().filter(j=>j.id!==jid));
+
+  // Cascade: remove linked record
+  if(type==='payment'){
+    // Remove from payments where id === refId
+    DB.savePayments(DB.payments().filter(p=>p.id!==refId));
+  } else if(type==='invoice'){
+    // Remove from invoices
+    DB.saveInvoices(DB.invoices().filter(i=>i.id!==refId));
+    // Also remove any other journal entries with same refId (e.g. auto-payment on invoice)
+    DB.saveJournal(DB.journal().filter(j=>j.refId!==refId));
+  } else if(type==='purchase'||type==='sales-return'||type==='purchase-return'){
+    DB.saveVouchers(DB.vouchers().filter(v=>v.id!==refId));
+    DB.saveJournal(DB.journal().filter(j=>j.refId!==refId));
+  }
+
+  renderJournal();
+}
+
 function exportJournalXLSX(){
   if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
-  const entries=DB.journal().slice().reverse();
+  const entries=getJournalFilteredEntries().slice().reverse(); // chronological for export
+  const from=(document.getElementById('jrn-from')||{value:''}).value||'';
+  const to=(document.getElementById('jrn-to')||{value:''}).value||'';
+  const label=from&&to?`${from}_to_${to}`:from?`from_${from}`:to?`to_${to}`:'All';
   const rows=[['Date (BS)','Party','Description','Account','Debit (Rs.)','Credit (Rs.)']];
+  let runBalance=0;
   entries.forEach(e=>{
     const isPay=e.type==='payment';
-    rows.push([e.date,e.party||'',e.desc||'',(e.debitAcc||'')+'/'+( e.creditAcc||''),isPay?0:e.amount,isPay?e.amount:0]);
+    const dr=isPay?0:(e.amount||0);
+    const cr=isPay?(e.amount||0):0;
+    runBalance+=dr-cr;
+    rows.push([e.date,e.party||'',e.desc||'',(e.debitAcc||'')+'/'+( e.creditAcc||''),dr,cr]);
   });
-  const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:14},{wch:20},{wch:36},{wch:24},{wch:14},{wch:14}];
+  // Totals row
+  rows.push(['','','','TOTAL',
+    entries.filter(e=>e.type!=='payment').reduce((s,e)=>s+(e.amount||0),0),
+    entries.filter(e=>e.type==='payment').reduce((s,e)=>s+(e.amount||0),0)
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:14},{wch:22},{wch:36},{wch:24},{wch:14},{wch:14}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Journal');
   const s=DB.settings();
-  XLSX.writeFile(wb,`${(s.company||'FinPilot').replace(/\s+/g,'_')}_Journal_${getNepaliDate()}.xlsx`);
+  XLSX.writeFile(wb,`${(s.company||'FinPilot').replace(/\s+/g,'_')}_Journal_${label}.xlsx`);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1579,7 +1683,7 @@ function buildInvoiceHTML(inv){
       ${hasDisc?`<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>`:''}
       <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayTotal)}</strong></td></tr>
     </table>
-    <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>${getNepaliDateFull()}</span><span>Thank you!</span></div>
+    <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>Thank you!</span></div>
   </div>`;
 }
 
