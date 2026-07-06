@@ -174,7 +174,19 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
   <div class="stats-grid" id="dash-stats"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
     <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Recent Invoices</div><div id="dash-recent-invoices"></div></div>
-    <div class="card"><div style="font-weight:600;margin-bottom:12px;font-family:'Fraunces',serif">Top Parties by Due</div><div id="dash-top-due"></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+        <div style="font-weight:600;font-family:'Fraunces',serif">Parties by Due</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text2)">
+          <span>Show &gt;</span>
+          <select id="dash-due-days" onchange="renderTopDue()" style="padding:4px 7px;font-size:12px;width:auto">
+            <option value="0">All</option>
+          </select>
+          <span>days overdue</span>
+        </div>
+      </div>
+      <div id="dash-top-due"></div>
+    </div>
   </div>
   <!-- Monthly Sales Section -->
   <div class="card">
@@ -271,7 +283,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
         <label>Payment Method</label>
         <select id="inv-paid-method">
           <option value="Cash">Cash</option>
-          <option value="eSewa">eSewa</option>
+          <option value="QR">QR</option>
           <option value="Others">Others</option>
         </select>
       </div>
@@ -409,11 +421,19 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
       </div>
       <div class="form-group" style="margin-top:12px">
         <label>Payment Method</label>
-        <select id="pay-method">
+        <select id="pay-method" onchange="onPayMethodChange()">
           <option value="Cash">Cash</option>
-          <option value="eSewa">eSewa</option>
+          <option value="QR">QR</option>
           <option value="Others">Others</option>
         </select>
+      </div>
+      <div class="form-group" id="pay-others-row" style="display:none">
+        <label>Specify Method</label>
+        <input type="text" id="pay-others-text" placeholder="e.g. Bank Transfer, Cheque...">
+      </div>
+      <div class="form-group">
+        <label>Receipt Number</label>
+        <input type="text" id="pay-receipt" placeholder="Optional receipt / ref no.">
       </div>
       <div class="form-group">
         <label>Date (BS)</label>
@@ -449,13 +469,13 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
       <div>
         <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">From (BS)</label>
-        <input type="text" id="jrn-from" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:140px;margin-top:3px">
+        <input type="text" id="jrn-from" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:145px;margin-top:3px">
       </div>
       <div>
         <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">To (BS)</label>
-        <input type="text" id="jrn-to" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:140px;margin-top:3px">
+        <input type="text" id="jrn-to" placeholder="YYYY-MM-DD" oninput="renderJournal()" style="width:145px;margin-top:3px">
       </div>
-      <div style="flex:1;min-width:140px">
+      <div style="flex:1;min-width:160px">
         <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Search</label>
         <input type="text" id="jrn-search" placeholder="Party, description..." oninput="renderJournal()" style="margin-top:3px">
       </div>
@@ -849,7 +869,10 @@ function acKeydown(event,listId,inp,hiddenId,onSelectCb){
 let _acItemList=null;
 function acItem(inp,rowIdx){
   const val=inp.value.toLowerCase();
-  if(_acItemList&&_acItemList!==inp._acList){_acItemList.classList.remove('open');_acItemList.innerHTML='';}
+  // Close any OTHER row's open list
+  if(_acItemList&&_acItemList!==inp._acList){
+    _acItemList.classList.remove('open');
+  }
   let list=inp._acList;
   if(!list){
     list=document.createElement('ul');
@@ -864,13 +887,26 @@ function acItem(inp,rowIdx){
   const filtered=val?allItems.filter(s=>s.name.toLowerCase().includes(val)):allItems;
   list.innerHTML='';
   list._highlighted=-1;
-  filtered.forEach((s,i)=>{
+
+  if(!filtered.length&&!val){
+    // No stock items yet — show hint
+    const li=document.createElement('li');
+    li.style.color='var(--text3)';li.style.fontStyle='italic';
+    li.textContent='No stock items yet. Type to create.';
+    li.onclick=()=>list.classList.remove('open');
+    list.appendChild(li);
+    list.classList.add('open');
+    inp.onkeydown=e=>acItemKeydown(e,list,inp,rowIdx);
+    document.onclick=ev=>{if(!inp.contains(ev.target)&&!list.contains(ev.target))list.classList.remove('open');};
+    return;
+  }
+
+  filtered.forEach((s)=>{
     const li=document.createElement('li');
     li.textContent=s.name+(s.rate?` — Rs. ${fmtI(s.rate)}`:'')+( s.unit?` (${s.unit})`:'');
     li.onclick=()=>{
       inp.value=s.name;
       invItems[rowIdx].name=s.name;
-      // Fill rate only — use .inv-rate-inp class, not generic number input
       if(s.rate){
         invItems[rowIdx].rate=s.rate;
         const rateInp=inp.closest('tr').querySelector('.inv-rate-inp');
@@ -883,12 +919,20 @@ function acItem(inp,rowIdx){
     };
     list.appendChild(li);
   });
+
   if(val&&!allItems.find(s=>s.name.toLowerCase()===val)){
     const li=document.createElement('li');li.className='add-new';
     li.textContent=`+ Create "${inp.value}"`;
-    li.onclick=()=>{invItems[rowIdx].name=inp.value.trim();autoCreateStockItem(inp.value.trim(),rowIdx);list.classList.remove('open');const q=inp.closest('tr').querySelector('.inv-qty-inp');if(q)q.focus();};
+    li.onclick=()=>{
+      invItems[rowIdx].name=inp.value.trim();
+      autoCreateStockItem(inp.value.trim(),rowIdx);
+      list.classList.remove('open');
+      const q=inp.closest('tr').querySelector('.inv-qty-inp');
+      if(q)q.focus();
+    };
     list.appendChild(li);
   }
+
   list.classList.toggle('open',!!(val||filtered.length));
   inp.onkeydown=e=>acItemKeydown(e,list,inp,rowIdx);
   document.onclick=ev=>{if(!inp.contains(ev.target)&&!list.contains(ev.target))list.classList.remove('open');};
@@ -1260,6 +1304,10 @@ function initPaymentDate(){
   const el=document.getElementById('pay-date-bs');
   if(el&&!el.value){const s=DB.settings();el.value=s.todayBS||getNepaliDate();}
 }
+function onPayMethodChange(){
+  const v=document.getElementById('pay-method').value;
+  document.getElementById('pay-others-row').style.display=v==='Others'?'block':'none';
+}
 function loadPartyBalance(){
   const pid=document.getElementById('pay-party-id').value;
   if(!pid){document.getElementById('pay-billed').textContent='Rs. 0';document.getElementById('pay-received-so-far').textContent='Rs. 0';document.getElementById('pay-due').textContent='Rs. 0';return;}
@@ -1275,27 +1323,29 @@ function savePayment(){
   const amount=parseFloat(document.getElementById('pay-amount').value)||0;
   if(amount<=0){alert('Please enter a valid amount.');return;}
   const discount=parseFloat(document.getElementById('pay-discount').value)||0;
-  const method=document.getElementById('pay-method').value;
-  const note=document.getElementById('pay-note').value;
+  const methodRaw=document.getElementById('pay-method').value;
+  const othersText=document.getElementById('pay-others-text').value.trim();
+  const method=methodRaw==='Others'&&othersText?othersText:methodRaw;
+  const receipt=document.getElementById('pay-receipt').value.trim();
+  const note=document.getElementById('pay-note').value.trim();
   const dateBS=document.getElementById('pay-date-bs').value||getNepaliDate();
   const editId=document.getElementById('pay-editing-id').value;
+  const jDesc=`Payment Received (${method})${receipt?' #'+receipt:''}${note?': '+note:''}`;
 
   const payments=DB.payments();
   if(editId){
     const idx=payments.findIndex(p=>p.id===editId);
     if(idx>-1){
-      const old=payments[idx];
-      payments[idx]={...old,partyId:pid,partyName:pname,amount,discount,method,note,dateBS};
+      payments[idx]={...payments[idx],partyId:pid,partyName:pname,amount,discount,method,receipt,note,dateBS};
       DB.savePayments(payments);
-      // Update journal
       DB.saveJournal(DB.journal().filter(j=>j.refId!==editId));
-      addJournalEntry(dateBS,pname,`Payment Received (${method})${note?': '+note:''}`,method,'Accounts Receivable',amount,editId,false,'payment');
+      addJournalEntry(dateBS,pname,jDesc,method,'Accounts Receivable',amount,editId,false,'payment');
       if(discount>0)addJournalEntry(dateBS,pname,'Discount Allowed','Discount','Accounts Receivable',discount,editId,false,'payment');
     }
   }else{
-    const pay={id:uid(),partyId:pid,partyName:pname,amount,discount,method,note,dateBS,createdAt:Date.now()};
+    const pay={id:uid(),partyId:pid,partyName:pname,amount,discount,method,receipt,note,dateBS,createdAt:Date.now()};
     payments.push(pay);DB.savePayments(payments);
-    addJournalEntry(dateBS,pname,`Payment Received (${method})${note?': '+note:''}`,method,'Accounts Receivable',amount,pay.id,false,'payment');
+    addJournalEntry(dateBS,pname,jDesc,method,'Accounts Receivable',amount,pay.id,false,'payment');
     if(discount>0)addJournalEntry(dateBS,pname,'Discount Allowed','Discount','Accounts Receivable',discount,pay.id,false,'payment');
   }
   cancelEditPayment();
@@ -1306,6 +1356,10 @@ function cancelEditPayment(){
   document.getElementById('pay-editing-id').value='';
   document.getElementById('pay-amount').value='';
   document.getElementById('pay-discount').value='0';
+  document.getElementById('pay-method').value='Cash';
+  document.getElementById('pay-others-text').value='';
+  document.getElementById('pay-others-row').style.display='none';
+  document.getElementById('pay-receipt').value='';
   document.getElementById('pay-note').value='';
   document.getElementById('pay-form-title').textContent='Receive Payment';
   document.getElementById('pay-cancel-edit').style.display='none';
@@ -1316,7 +1370,13 @@ function editPayment(id){
   document.getElementById('pay-party-id').value=p.partyId||'';
   document.getElementById('pay-amount').value=p.amount||'';
   document.getElementById('pay-discount').value=p.discount||'0';
-  document.getElementById('pay-method').value=p.method||'Cash';
+  // Method: if stored value is Cash/QR pick directly, else Others + fill text
+  const knownMethods=['Cash','QR','Others'];
+  const isKnown=knownMethods.includes(p.method);
+  document.getElementById('pay-method').value=isKnown?p.method:'Others';
+  document.getElementById('pay-others-text').value=isKnown?'':p.method||'';
+  document.getElementById('pay-others-row').style.display=isKnown&&p.method!=='Others'?'none':'block';
+  document.getElementById('pay-receipt').value=p.receipt||'';
   document.getElementById('pay-note').value=p.note||'';
   document.getElementById('pay-date-bs').value=p.dateBS||'';
   document.getElementById('pay-editing-id').value=id;
@@ -1335,8 +1395,18 @@ function renderPaymentHistory(){
   const cont=document.getElementById('payment-history');
   const payments=DB.payments().slice().reverse();
   if(!payments.length){cont.innerHTML='<div class="empty-state"><div class="icon">💰</div><p>No payments yet.</p></div>';return;}
-  cont.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Method</th><th class="amount">Amount</th><th>Actions</th></tr></thead><tbody>'+
-    payments.map(p=>`<tr><td class="mono">${p.dateBS}</td><td>${p.partyName}</td><td><span class="badge badge-blue">${p.method}</span></td><td class="amount">Rs. ${fmtI(p.amount)}</td><td><div class="flex-gap"><button class="btn btn-secondary btn-sm" onclick="editPayment('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button></div></td></tr>`).join('')+
+  cont.innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Method</th><th>Receipt #</th><th class="amount">Amount</th><th>Actions</th></tr></thead><tbody>'+
+    payments.map(p=>`<tr>
+      <td class="mono">${p.dateBS}</td>
+      <td>${p.partyName}</td>
+      <td><span class="badge badge-blue">${p.method}</span></td>
+      <td class="mono" style="font-size:12px">${p.receipt||'—'}</td>
+      <td class="amount">Rs. ${fmtI(p.amount)}</td>
+      <td><div class="flex-gap">
+        <button class="btn btn-secondary btn-sm" onclick="editPayment('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('')+
     '</tbody></table></div>';
 }
 
@@ -1363,37 +1433,29 @@ function getJournalFilteredEntries(){
 }
 
 function renderJournal(){
-  // Auto-fill dates from settings if empty on first load
+  // Auto-fill From/To with current month on first open
   const fromEl=document.getElementById('jrn-from');
   const toEl=document.getElementById('jrn-to');
-  if(fromEl&&!fromEl.value&&!toEl.value){
+  if(fromEl&&toEl&&!fromEl.value&&!toEl.value){
     const s=DB.settings();
-    if(s.todayBS){
-      // default: first day of current BS month to today
-      const parts=s.todayBS.split('-');
-      if(parts.length===3) fromEl.value=`${parts[0]}-${parts[1]}-01`;
-      toEl.value=s.todayBS;
-    }
+    const today=s.todayBS||getTodayBS();
+    const parts=today.split('-');
+    if(parts.length===3){fromEl.value=`${parts[0]}-${parts[1]}-01`;toEl.value=today;}
   }
-
   const entries=getJournalFilteredEntries();
   const tbody=document.getElementById('journal-tbody');
   tbody.innerHTML='';
-
-  // Summary totals
   let totalDr=0,totalCr=0;
   entries.forEach(e=>{
     const isPay=e.type==='payment';
-    if(isPay)totalCr+=e.amount||0;
-    else totalDr+=e.amount||0;
+    if(isPay)totalCr+=e.amount||0; else totalDr+=e.amount||0;
   });
   const sumEl=document.getElementById('jrn-summary');
-  if(sumEl) sumEl.innerHTML=`
+  if(sumEl)sumEl.innerHTML=`
     <span>Entries: <strong>${entries.length}</strong></span>
     <span style="color:var(--red)">Total Debit: <strong>Rs. ${fmtI(totalDr)}</strong></span>
     <span style="color:var(--green)">Total Credit: <strong>Rs. ${fmtI(totalCr)}</strong></span>
   `;
-
   if(!entries.length){
     tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">📒</div><p>No journal entries for this period.</p></div></td></tr>`;
     return;
@@ -1410,7 +1472,7 @@ function renderJournal(){
       <td style="font-size:12px;color:var(--text2)">${e.debitAcc||''}/${e.creditAcc||''}</td>
       <td class="amount ${isPay?'':'text-red'}">${dr}</td>
       <td class="amount ${isPay?'text-green':''}">${cr}</td>
-      <td><button class="btn btn-danger btn-sm btn-icon" title="Delete entry" onclick="deleteJournalEntry('${e.id}','${e.type}','${e.refId||''}')">🗑</button></td>
+      <td><button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="deleteJournalEntry('${e.id}','${e.type}','${e.refId||''}')">🗑</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1448,29 +1510,33 @@ function deleteJournalEntry(jid,type,refId){
 
 function exportJournalXLSX(){
   if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
-  const entries=getJournalFilteredEntries().slice().reverse(); // chronological for export
-  const from=(document.getElementById('jrn-from')||{value:''}).value||'';
-  const to=(document.getElementById('jrn-to')||{value:''}).value||'';
-  const label=from&&to?`${from}_to_${to}`:from?`from_${from}`:to?`to_${to}`:'All';
-  const rows=[['Date (BS)','Party','Description','Account','Debit (Rs.)','Credit (Rs.)']];
-  let runBalance=0;
+  const entries=getJournalFilteredEntries().slice().reverse();
+  const from=(document.getElementById('jrn-from')||{value:''}).value.trim();
+  const to=(document.getElementById('jrn-to')||{value:''}).value.trim();
+  const s=DB.settings();
+  const company=(s.company||'FinPilot').replace(/\s+/g,'-');
+  const dateRange=from&&to?`(${from} to ${to})`:from?`(from ${from})`:to?`(to ${to})`:'(All)';
+  // Build payment lookup for receipt numbers
+  const payMap={};
+  DB.payments().forEach(p=>{payMap[p.id]={method:p.method,receipt:p.receipt||''};});
+  const rows=[['Date (BS)','Party','Description','Payment Method','Receipt No.','Sales (Dr.)','Payment (Cr.)']];
   entries.forEach(e=>{
     const isPay=e.type==='payment';
+    const payInfo=payMap[e.refId]||{};
+    const method=isPay?(payInfo.method||e.debitAcc||''):'—';
+    const receipt=isPay?(payInfo.receipt||''):'—';
     const dr=isPay?0:(e.amount||0);
     const cr=isPay?(e.amount||0):0;
-    runBalance+=dr-cr;
-    rows.push([e.date,e.party||'',e.desc||'',(e.debitAcc||'')+'/'+( e.creditAcc||''),dr,cr]);
+    rows.push([e.date,e.party||'',e.desc||'',method,receipt,dr,cr]);
   });
   // Totals row
-  rows.push(['','','','TOTAL',
-    entries.filter(e=>e.type!=='payment').reduce((s,e)=>s+(e.amount||0),0),
-    entries.filter(e=>e.type==='payment').reduce((s,e)=>s+(e.amount||0),0)
-  ]);
+  const totalDr=entries.filter(e=>e.type!=='payment').reduce((s,e)=>s+(e.amount||0),0);
+  const totalCr=entries.filter(e=>e.type==='payment').reduce((s,e)=>s+(e.amount||0),0);
+  rows.push(['','','','','TOTAL',totalDr,totalCr]);
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[{wch:14},{wch:22},{wch:36},{wch:24},{wch:14},{wch:14}];
+  ws['!cols']=[{wch:14},{wch:22},{wch:36},{wch:16},{wch:14},{wch:14},{wch:14}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Journal');
-  const s=DB.settings();
-  XLSX.writeFile(wb,`${(s.company||'FinPilot').replace(/\s+/g,'_')}_Journal_${label}.xlsx`);
+  XLSX.writeFile(wb,`Journal-${company}-${dateRange}.xlsx`);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1801,14 +1867,64 @@ function renderDashboard(){
   document.getElementById('dash-recent-invoices').innerHTML=recent.length?'<div class="table-wrap"><table><thead><tr><th>No</th><th>Party</th><th class="amount">Total</th><th>Status</th></tr></thead><tbody>'+
     recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmtI(i.grandTotal||i.net)}</td><td>${i.paid?'<span class="badge badge-green">Paid</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`).join('')+
     '</tbody></table></div>':'<div class="empty-state"><p>No invoices</p></div>';
-  const duelist=parties.map(p=>({name:p.name,due:getTotalBilled(p.id)-getTotalPaid(p.id)})).filter(p=>p.due>0).sort((a,b)=>b.due-a.due).slice(0,5);
-  document.getElementById('dash-top-due').innerHTML=duelist.length?'<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due</th></tr></thead><tbody>'+
-    duelist.map(p=>`<tr><td>${p.name}</td><td class="amount text-red">Rs. ${fmtI(p.due)}</td></tr>`).join('')+
-    '</tbody></table></div>':'<div class="empty-state"><p>All clear!</p></div>';
 
-  // Populate month dropdown
+  // Populate days dropdown (1–100 + All) once
+  const daysSel=document.getElementById('dash-due-days');
+  if(daysSel&&daysSel.options.length<=1){
+    for(let d=1;d<=100;d++){const o=document.createElement('option');o.value=d;o.textContent=d;daysSel.appendChild(o);}
+  }
+  renderTopDue();
   populateMonthDropdown();
   renderMonthlySales();
+}
+
+function bsDaysDiff(dateBS){
+  // Approximate: compare YYYY-MM-DD strings lexicographically, convert to rough day count
+  // Each BS month ≈ 30.5 days; simple approach: split and compute
+  const today=getTodayBS();
+  if(!dateBS||dateBS>=today)return 0;
+  const [ty,tm,td]=today.split('-').map(Number);
+  const [iy,im,id]=dateBS.split('-').map(Number);
+  // Rough day count via year/month/day difference
+  const days=(ty-iy)*365+(tm-im)*30+(td-id);
+  return Math.max(0,days);
+}
+
+function renderTopDue(){
+  const daysSel=document.getElementById('dash-due-days');
+  const minDays=daysSel?parseInt(daysSel.value)||0:0;
+  const parties=DB.parties();
+
+  // For each party: due amount + oldest unpaid invoice date
+  const duelist=parties.map(p=>{
+    const due=getTotalBilled(p.id)-getTotalPaid(p.id);
+    if(due<=0)return null;
+    // Find oldest unpaid invoice for this party
+    const unpaidInvs=DB.invoices().filter(i=>i.partyId===p.id&&!i.paid);
+    const oldest=unpaidInvs.map(i=>i.dateBS||'').filter(Boolean).sort()[0]||null;
+    const daysOld=oldest?bsDaysDiff(oldest):0;
+    return{name:p.name,due,oldest,daysOld};
+  }).filter(p=>p&&p.due>0&&(minDays===0||p.daysOld>=minDays))
+    .sort((a,b)=>b.due-a.due);
+
+  const el=document.getElementById('dash-top-due');
+  if(!duelist.length){
+    el.innerHTML=`<div class="empty-state"><p>${minDays>0?`No parties with dues older than ${minDays} days.`:'All clear!'}</p></div>`;
+    return;
+  }
+  el.innerHTML='<div class="table-wrap"><table><thead><tr><th>Party</th><th class="amount">Due (Rs.)</th><th>Oldest Invoice</th><th>Days Overdue</th></tr></thead><tbody>'+
+    duelist.map(p=>{
+      const daysBadge=p.daysOld>0
+        ?`<span class="badge ${p.daysOld>60?'badge-red':p.daysOld>30?'badge-orange':'badge-gray'}">${p.daysOld} days</span>`
+        :'<span class="badge badge-gray">Today</span>';
+      return`<tr>
+        <td><strong>${p.name}</strong></td>
+        <td class="amount text-red">Rs. ${fmtI(p.due)}</td>
+        <td class="mono" style="font-size:12px">${p.oldest||'—'}</td>
+        <td>${daysBadge}</td>
+      </tr>`;
+    }).join('')+
+    '</tbody></table></div>';
 }
 
 function populateMonthDropdown(){
@@ -1889,7 +2005,14 @@ function exportBackup(){
   const data={invoices:DB.invoices(),parties:DB.parties(),payments:DB.payments(),journal:DB.journal(),settings:DB.settings(),vouchers:DB.vouchers(),stock:DB.stock(),exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`FinPilot_Backup_${getNepaliDate()}.json`;a.click();
+  const s=DB.settings();
+  const company=(s.company||'FinPilot').replace(/\s+/g,'-');
+  const today=s.todayBS||getNepaliDate();
+  const parts=today.split('-');
+  const monthName=parts.length>=2?BS_MONTHS[parseInt(parts[1])-1]||parts[1]:'';
+  const year=parts[0]||'';
+  a.download=`Backup-${company}-${monthName}-${year}.json`;
+  a.click();
 }
 function importBackup(inp){
   const file=inp.files[0];if(!file)return;
