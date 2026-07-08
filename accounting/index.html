@@ -153,6 +153,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <li><a href="#" onclick="nav('stock',this)"><span class="icon">📦</span> Stock Items</a></li>
     <li><a href="#" onclick="nav('parties',this)"><span class="icon">👥</span> Parties</a></li>
     <li><a href="#" onclick="nav('payments',this)"><span class="icon">💰</span> Payments</a></li>
+    <li><a href="#" onclick="nav('due-details',this)"><span class="icon">📉</span> Due Details</a></li>
     <li><a href="#" onclick="nav('journal',this)"><span class="icon">📒</span> Journal</a></li>
     <li><a href="#" onclick="nav('settings',this)"><span class="icon">⚙️</span> Settings</a></li>
   </ul>
@@ -250,10 +251,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
         <thead>
           <tr>
             <th style="min-width:175px">Item Name</th>
-            <th style="min-width:75px">Qty</th>
-            <th style="min-width:90px">Rate (Rs.)</th>
-            <th style="min-width:90px">Discount (%)</th>
-            <th style="min-width:90px;text-align:right">Amount</th>
+            <th style="min-width:65px">Qty</th>
+            <th style="min-width:85px">Rate (Rs.)</th>
+            <th style="min-width:85px">Disc. (%)</th>
+            <th style="min-width:95px;text-align:right">Before Disc.</th>
+            <th style="min-width:95px;text-align:right">After Disc.</th>
             <th style="width:34px"></th>
           </tr>
         </thead>
@@ -453,6 +455,56 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
       <div style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:14px">Payment History</div>
       <div id="payment-history"></div>
     </div>
+  </div>
+</div>
+
+<!-- DUE DETAILS -->
+<div id="sec-due-details" class="section">
+  <div class="page-header">
+    <div><h2>Due Details</h2><p>Outstanding invoices by party</p></div>
+    <button class="btn btn-green" onclick="exportDueExcel()">📊 Export Excel</button>
+  </div>
+  <div class="card" style="margin-bottom:16px;padding:14px 18px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:140px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Party Name</label>
+        <input type="text" id="due-party-search" placeholder="Search party..." oninput="renderDueDetails()" style="margin-top:3px">
+      </div>
+      <div style="min-width:120px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Address</label>
+        <input type="text" id="due-address-search" placeholder="City..." oninput="renderDueDetails()" style="margin-top:3px">
+      </div>
+      <div style="min-width:130px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Invoice Date (BS)</label>
+        <input type="text" id="due-date-search" placeholder="YYYY-MM-DD" oninput="renderDueDetails()" style="margin-top:3px">
+      </div>
+      <div style="min-width:130px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Due &gt; days</label>
+        <select id="due-days-filter" onchange="renderDueDetails()" style="margin-top:3px;padding:8px 10px">
+          <option value="0">All</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="clearDueFilters()" style="align-self:flex-end">✕ Clear</button>
+    </div>
+    <div id="due-summary" style="margin-top:10px;font-size:13px;color:var(--text2)"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Party</th>
+          <th>Address</th>
+          <th>INV No.</th>
+          <th>Date of Sale</th>
+          <th>Days Overdue</th>
+          <th class="amount">Invoice Total</th>
+          <th class="amount">Paid</th>
+          <th class="amount">Due</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="due-details-tbody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -793,6 +845,7 @@ function nav(sec,el){
   }
   if(sec==='parties')renderPartiesTable();
   if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
+  if(sec==='due-details')renderDueDetails();
   if(sec==='journal')renderJournal();
   if(sec==='settings')loadSettings();
   if(sec==='invoice')initInvoiceForm();
@@ -1024,6 +1077,7 @@ function renderInvItems(){
   const tbody=document.getElementById('inv-items-body');
   tbody.innerHTML='';
   invItems.forEach((item,i)=>{
+    const gross=parseFloat(item.qty||0)*parseFloat(item.rate||0);
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td style="position:relative">
@@ -1041,6 +1095,7 @@ function renderInvItems(){
       <td><input type="number" class="inv-disc-inp" value="${item.disc||''}" placeholder="0" min="0" max="100" step="any"
         oninput="invItems[${i}].disc=this.value;calcInvRow(${i})"
         onkeydown="invItemTabEnter(event,this,${i},'disc')"></td>
+      <td class="total-col" id="inv-row-gross-${i}" style="color:var(--text2)">${fmtI(gross)}</td>
       <td class="total-col" id="inv-row-total-${i}">${fmtI(item.total||0)}</td>
       <td><button class="btn btn-danger btn-sm btn-icon" onclick="removeInvItem(${i})">✕</button></td>
     `;
@@ -1082,10 +1137,11 @@ function calcInvRow(i){
   const gross=qty*rate;
   const discAmt=gross*(disc/100);
   item.total=gross-discAmt;item.discAmt=discAmt;
+  const elGross=document.getElementById(`inv-row-gross-${i}`);
+  if(elGross)elGross.textContent=fmtI(gross);
   const el=document.getElementById(`inv-row-total-${i}`);
   if(el)el.textContent=fmtI(item.total);
   calcInvTotals();
-  // update stock rate if item name matches
   if((item.name||'').trim()&&rate>0) updateStockRate(item.name.trim(),rate);
 }
 
@@ -1212,7 +1268,7 @@ function renderInvoicesTable(){
   if(!invoices.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">🧾</div><p>No invoices for this period.</p></div></td></tr>`;return;}
   invoices.forEach(inv=>{
     const tr=document.createElement('tr');
-    const statusBadge=inv.paid?'<span class="badge badge-green">✅ Paid</span>':'<span class="badge badge-red">Due</span>';
+    const statusBadge=inv.paid?'<span class="badge badge-green">✅ Paid</span>':inv.partial?'<span class="badge badge-orange">⚡ Partial</span>':'<span class="badge badge-red">Due</span>';
     tr.innerHTML=`
       <td class="mono">${inv.invNo}</td>
       <td class="mono">${inv.dateBS}</td>
@@ -1283,6 +1339,124 @@ function saveParty(){
 function deleteParty(id){if(!confirm('Delete this party?'))return;DB.saveParties(DB.parties().filter(p=>p.id!==id));renderPartiesTable();}
 function getTotalBilled(pid){return DB.invoices().filter(i=>i.partyId===pid).reduce((s,i)=>s+(i.grandTotal||i.net||0),0);}
 function getTotalPaid(pid){return DB.payments().filter(p=>p.partyId===pid).reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);}
+
+// ── FIFO: get per-invoice paid amounts for a party ──────────
+// Returns map of invId → amountPaid against that specific invoice
+function getInvoicePaidMap(pid){
+  const invs=DB.invoices().filter(i=>i.partyId===pid).sort((a,b)=>(a.dateBS||'').localeCompare(b.dateBS||''));
+  const pays=DB.payments().filter(p=>p.partyId===pid).sort((a,b)=>(a.dateBS||'').localeCompare(b.dateBS||''));
+  const paidMap={};
+  invs.forEach(i=>paidMap[i.id]=0);
+  let pool=pays.reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);
+  for(const inv of invs){
+    const total=inv.grandTotal||inv.net||0;
+    const applied=Math.min(pool,total);
+    paidMap[inv.id]=applied;
+    pool-=applied;
+    if(pool<=0)break;
+  }
+  return paidMap;
+}
+
+function updateInvoiceStatusFIFO(pid){
+  const paidMap=getInvoicePaidMap(pid);
+  const invoices=DB.invoices();
+  let changed=false;
+  invoices.forEach(inv=>{
+    if(inv.partyId!==pid)return;
+    const total=inv.grandTotal||inv.net||0;
+    const paid=paidMap[inv.id]||0;
+    const newPaid=paid>=total;
+    const newPartial=paid>0&&paid<total;
+    if(inv.paid!==newPaid||inv.partial!==newPartial){
+      inv.paid=newPaid;
+      inv.partial=newPartial;
+      changed=true;
+    }
+  });
+  if(changed)DB.saveInvoices(invoices);
+}
+
+// ── DUE DETAILS ──────────────────────────────────────────────
+function getFilteredDueRows(){
+  const qParty=(document.getElementById('due-party-search')||{value:''}).value.toLowerCase();
+  const qAddr=(document.getElementById('due-address-search')||{value:''}).value.toLowerCase();
+  const qDate=(document.getElementById('due-date-search')||{value:''}).value.trim();
+  const minDays=parseInt((document.getElementById('due-days-filter')||{value:'0'}).value)||0;
+  const parties=DB.parties();
+  const partyMap={};parties.forEach(p=>partyMap[p.id]=p);
+  const rows=[];
+  DB.invoices().forEach(inv=>{
+    const party=partyMap[inv.partyId]||{name:inv.partyName||'',address:''};
+    if(qParty&&!(party.name||'').toLowerCase().includes(qParty))return;
+    if(qAddr&&!(party.address||'').toLowerCase().includes(qAddr))return;
+    if(qDate&&!(inv.dateBS||'').startsWith(qDate))return;
+    const paidMap=getInvoicePaidMap(inv.partyId);
+    const paid=paidMap[inv.id]||0;
+    const total=inv.grandTotal||inv.net||0;
+    const due=Math.max(0,total-paid);
+    if(due<=0)return;
+    const days=bsDaysDiff(inv.dateBS||'');
+    if(minDays>0&&days<minDays)return;
+    const status=paid<=0?'Unpaid':paid<total?'Partial':'Paid';
+    rows.push({partyName:party.name,address:party.address||'',invNo:inv.invNo,dateBS:inv.dateBS,days,total,paid,due,status});
+  });
+  rows.sort((a,b)=>a.dateBS.localeCompare(b.dateBS));
+  return rows;
+}
+
+function renderDueDetails(){
+  // Populate days dropdown once
+  const daysSel=document.getElementById('due-days-filter');
+  if(daysSel&&daysSel.options.length<=1){
+    for(let d=1;d<=100;d++){const o=document.createElement('option');o.value=d;o.textContent=d;daysSel.appendChild(o);}
+  }
+  const rows=getFilteredDueRows();
+  const tbody=document.getElementById('due-details-tbody');
+  const totalDue=rows.reduce((s,r)=>s+r.due,0);
+  const sumEl=document.getElementById('due-summary');
+  if(sumEl)sumEl.innerHTML=`<span>${rows.length} invoices with dues</span> &nbsp;|&nbsp; <span style="color:var(--red);font-weight:600">Total Due: Rs. ${fmtI(totalDue)}</span>`;
+  tbody.innerHTML='';
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div><p>No dues match the current filter.</p></div></td></tr>`;return;}
+  rows.forEach(r=>{
+    const daysBadge=r.days>60?`<span class="badge badge-red">${r.days}d</span>`:r.days>30?`<span class="badge badge-orange">${r.days}d</span>`:`<span class="badge badge-gray">${r.days}d</span>`;
+    const statusBadge=r.status==='Partial'?'<span class="badge badge-orange">Partial</span>':'<span class="badge badge-red">Unpaid</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><strong>${r.partyName}</strong></td>
+      <td>${r.address||'—'}</td>
+      <td class="mono">${r.invNo}</td>
+      <td class="mono">${r.dateBS}</td>
+      <td>${daysBadge}</td>
+      <td class="amount">Rs. ${fmtI(r.total)}</td>
+      <td class="amount text-green">Rs. ${fmtI(r.paid)}</td>
+      <td class="amount text-red">Rs. ${fmtI(r.due)}</td>
+      <td>${statusBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function clearDueFilters(){
+  ['due-party-search','due-address-search','due-date-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ds=document.getElementById('due-days-filter');if(ds)ds.value='0';
+  renderDueDetails();
+}
+
+function exportDueExcel(){
+  if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
+  const rows=getFilteredDueRows();
+  const data=[['Party Name','Address','INV No.','Date of Sale','Days Overdue','Invoice Total','Paid','Due Amount','Status']];
+  rows.forEach(r=>data.push([r.partyName,r.address,r.invNo,r.dateBS,r.days,r.total,r.paid,r.due,r.status]));
+  // Totals
+  data.push(['','','','','TOTAL','',rows.reduce((s,r)=>s+r.paid,0),rows.reduce((s,r)=>s+r.due,0),'']);
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:22},{wch:16},{wch:12},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Due Details');
+  const s=DB.settings();
+  const company=(s.company||'FinPilot').replace(/\s+/g,'-');
+  XLSX.writeFile(wb,`DueDetails-${company}-${getTodayBS()}.xlsx`);
+}
 function renderPartiesTable(){
   const q=(document.getElementById('party-search')||{value:''}).value.toLowerCase();
   const tbody=document.getElementById('parties-tbody');
@@ -1349,6 +1523,7 @@ function savePayment(){
     if(discount>0)addJournalEntry(dateBS,pname,'Discount Allowed','Discount','Accounts Receivable',discount,pay.id,false,'payment');
   }
   cancelEditPayment();
+  updateInvoiceStatusFIFO(pid);
   loadPartyBalance();
   renderPaymentHistory();
 }
@@ -1447,8 +1622,8 @@ function renderJournal(){
   tbody.innerHTML='';
   let totalDr=0,totalCr=0;
   entries.forEach(e=>{
-    const isPay=e.type==='payment';
-    if(isPay)totalCr+=e.amount||0; else totalDr+=e.amount||0;
+    const isCredit=e.type==='payment'||e.type==='sales-return';
+    if(isCredit)totalCr+=e.amount||0; else totalDr+=e.amount||0;
   });
   const sumEl=document.getElementById('jrn-summary');
   if(sumEl)sumEl.innerHTML=`
@@ -1461,17 +1636,17 @@ function renderJournal(){
     return;
   }
   entries.forEach(e=>{
-    const isPay=e.type==='payment';
-    const dr=isPay?'—':`Rs. ${fmtI(e.amount)}`;
-    const cr=isPay?`Rs. ${fmtI(e.amount)}`:'—';
+    const isCredit=e.type==='payment'||e.type==='sales-return';
+    const dr=isCredit?'—':`Rs. ${fmtI(e.amount)}`;
+    const cr=isCredit?`Rs. ${fmtI(e.amount)}`:'—';
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="mono">${e.date}</td>
       <td>${e.party||''}</td>
       <td>${e.desc||''}</td>
       <td style="font-size:12px;color:var(--text2)">${e.debitAcc||''}/${e.creditAcc||''}</td>
-      <td class="amount ${isPay?'':'text-red'}">${dr}</td>
-      <td class="amount ${isPay?'text-green':''}">${cr}</td>
+      <td class="amount ${isCredit?'':'text-red'}">${dr}</td>
+      <td class="amount ${isCredit?'text-green':''}">${cr}</td>
       <td><button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="deleteJournalEntry('${e.id}','${e.type}','${e.refId||''}')">🗑</button></td>
     `;
     tbody.appendChild(tr);
@@ -1521,17 +1696,17 @@ function exportJournalXLSX(){
   DB.payments().forEach(p=>{payMap[p.id]={method:p.method,receipt:p.receipt||''};});
   const rows=[['Date (BS)','Party','Description','Payment Method','Receipt No.','Sales (Dr.)','Payment (Cr.)']];
   entries.forEach(e=>{
-    const isPay=e.type==='payment';
+    const isCredit=e.type==='payment'||e.type==='sales-return';
     const payInfo=payMap[e.refId]||{};
-    const method=isPay?(payInfo.method||e.debitAcc||''):'—';
-    const receipt=isPay?(payInfo.receipt||''):'—';
-    const dr=isPay?0:(e.amount||0);
-    const cr=isPay?(e.amount||0):0;
+    const method=isCredit?(payInfo.method||e.debitAcc||e.type||''):'—';
+    const receipt=isCredit?(payInfo.receipt||''):'—';
+    const dr=isCredit?0:(e.amount||0);
+    const cr=isCredit?(e.amount||0):0;
     rows.push([e.date,e.party||'',e.desc||'',method,receipt,dr,cr]);
   });
   // Totals row
-  const totalDr=entries.filter(e=>e.type!=='payment').reduce((s,e)=>s+(e.amount||0),0);
-  const totalCr=entries.filter(e=>e.type==='payment').reduce((s,e)=>s+(e.amount||0),0);
+  const totalDr=entries.filter(e=>e.type!=='payment'&&e.type!=='sales-return').reduce((s,e)=>s+(e.amount||0),0);
+  const totalCr=entries.filter(e=>e.type==='payment'||e.type==='sales-return').reduce((s,e)=>s+(e.amount||0),0);
   rows.push(['','','','','TOTAL',totalDr,totalCr]);
   const ws=XLSX.utils.aoa_to_sheet(rows);
   ws['!cols']=[{wch:14},{wch:22},{wch:36},{wch:16},{wch:14},{wch:14},{wch:14}];
@@ -1655,7 +1830,15 @@ function saveVoucher(){
   const vouchers=DB.vouchers();
   // sync stock
   if(type==='purchase'){validItems.forEach(item=>syncStockFromItem(item.name.trim(),parseFloat(item.rate)||0,dateBS));}
-  const typeLabels={'purchase':['Purchases','Accounts Payable'],'sales-return':['Sales Return','Accounts Receivable'],'purchase-return':['Accounts Payable','Purchase Return']};
+  // Accounting rules:
+  // purchase: Debit=Purchases, Credit=Accounts Payable (we owe supplier) → debit entry
+  // sales-return: Debit=Sales Return, Credit=Accounts Receivable (we credit buyer) → credit entry
+  // purchase-return: Debit=Accounts Payable, Credit=Purchase Return (supplier owes us) → debit entry (reduces payable)
+  const typeLabels={
+    'purchase':       ['Purchases',        'Accounts Payable'],
+    'sales-return':   ['Sales Return',     'Accounts Receivable'],
+    'purchase-return':['Accounts Payable', 'Purchase Return'],
+  };
   const [drAcc,crAcc]=typeLabels[type]||['Debit','Credit'];
   if(editId){
     const idx=vouchers.findIndex(v=>v.id===editId);
@@ -1727,30 +1910,52 @@ function buildInvoiceHTML(inv){
   const s=DB.settings();
   const hasDisc=Math.round(inv.disc||0)>0;
   const logoHTML=s.logo?`<img src="${s.logo}" style="max-height:50px;max-width:80px">`:'';
-  const discTh=hasDisc?'<th class="r">Disc.</th>':'';
-  const itemsHTML=(inv.items||[]).map(item=>{
-    const discTd=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
-    return`<tr><td>${item.name||''}</td><td class="r">${Math.round(item.qty||0)}</td><td class="r">Rs. ${fmtI(item.rate)}</td>${discTd}<td class="r">Rs. ${fmtI(item.total)}</td></tr>`;
-  }).join('');
   const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
   const paidStamp=inv.paid?`<div class="print-paid-stamp">PAID</div>`:'';
-  return`<div class="print-invoice">
+  const discTh=hasDisc?'<th class="r">Disc.</th>':'';
+
+  const headerHTML=`
     <div class="print-header">
       <div class="print-company">${logoHTML}<h1>${s.company||'Company'}</h1><p>${s.address||''}</p><p>${s.phone||''}</p></div>
       <div class="print-inv-info"><div class="inv-no">${inv.invNo}</div><p>Date: ${inv.dateBS} (BS)</p><p>INVOICE</p>${paidStamp}</div>
     </div>
-    <div class="print-party"><strong>Bill To:</strong>${inv.partyName||''}${inv.note?`<br><em style="color:#777">${inv.note}</em>`:''}</div>
-    <table class="print-table">
-      <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate</th>${discTh}<th class="r">Amount</th></tr></thead>
-      <tbody>${itemsHTML}</tbody>
-    </table>
-    <table class="print-totals">
-      <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
-      ${hasDisc?`<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>`:''}
-      <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayTotal)}</strong></td></tr>
-    </table>
-    <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>Thank you!</span></div>
-  </div>`;
+    <div class="print-party"><strong>Bill To:</strong> ${inv.partyName||''}${inv.note?` — <em style="color:#777">${inv.note}</em>`:''}</div>
+  `;
+
+  const items=inv.items||[];
+  const ITEMS_PER_PAGE=18;
+  const pages=[];
+  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE) pages.push(items.slice(i,i+ITEMS_PER_PAGE));
+  if(!pages.length)pages.push([]);
+
+  const tableHeader=`<thead><tr><th>#</th><th>Item</th><th class="r">Qty</th><th class="r">Rate</th>${discTh}<th class="r">Amount</th></tr></thead>`;
+
+  let html='';
+  pages.forEach((pageItems,pi)=>{
+    const isLast=pi===pages.length-1;
+    let startIdx=pi*ITEMS_PER_PAGE;
+    const rowsHTML=pageItems.map((item,ri)=>{
+      const discTd=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
+      return`<tr><td style="color:#999;font-size:8.5pt">${startIdx+ri+1}</td><td>${item.name||''}</td><td class="r">${Math.round(item.qty||0)}</td><td class="r">Rs. ${fmtI(item.rate)}</td>${discTd}<td class="r">Rs. ${fmtI(item.total)}</td></tr>`;
+    }).join('');
+
+    const totalsHTML=isLast?`
+      <table class="print-totals">
+        <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
+        ${hasDisc?`<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>`:''}
+        <tr class="grand"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayTotal)}</strong></td></tr>
+      </table>
+      <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>Thank you!</span></div>
+    `:`<p style="text-align:right;font-size:8pt;color:#999;margin-top:4px">Continued on next page...</p>`;
+
+    html+=`<div class="print-invoice" style="${pi>0?'page-break-before:always;':''}">
+      ${headerHTML}
+      ${pages.length>1?`<div style="font-size:8.5pt;color:#999;text-align:right;margin-bottom:4px">Page ${pi+1} of ${pages.length}</div>`:''}
+      <table class="print-table">${tableHeader}<tbody>${rowsHTML}</tbody></table>
+      ${totalsHTML}
+    </div>`;
+  });
+  return html;
 }
 
 function printInvoice(id){
@@ -1865,7 +2070,7 @@ function renderDashboard(){
   `;
   const recent=invoices.slice().reverse().slice(0,5);
   document.getElementById('dash-recent-invoices').innerHTML=recent.length?'<div class="table-wrap"><table><thead><tr><th>No</th><th>Party</th><th class="amount">Total</th><th>Status</th></tr></thead><tbody>'+
-    recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmtI(i.grandTotal||i.net)}</td><td>${i.paid?'<span class="badge badge-green">Paid</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`).join('')+
+    recent.map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmtI(i.grandTotal||i.net)}</td><td>${i.paid?'<span class="badge badge-green">Paid</span>':i.partial?'<span class="badge badge-orange">Partial</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`).join('')+
     '</tbody></table></div>':'<div class="empty-state"><p>No invoices</p></div>';
 
   // Populate days dropdown (1–100 + All) once
