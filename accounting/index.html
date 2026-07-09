@@ -144,17 +144,18 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <p class="mono" id="nav-company-name">Your Company</p>
   </div>
   <ul>
-    <li><a href="#" class="active" onclick="nav('dashboard',this)"><span class="icon">📊</span> Dashboard</a></li>
-    <li><a href="#" onclick="nav('invoice',this)"><span class="icon">🧾</span> New Invoice</a></li>
-    <li><a href="#" onclick="nav('invoices',this)"><span class="icon">📋</span> Sales Invoices</a></li>
-    <li><a href="#" onclick="nav('purchase',this)"><span class="icon">🛒</span> Purchases</a></li>
-    <li><a href="#" onclick="nav('sales-return',this)"><span class="icon">↩️</span> Sales Return</a></li>
-    <li><a href="#" onclick="nav('purchase-return',this)"><span class="icon">↪️</span> Purchase Return</a></li>
-    <li><a href="#" onclick="nav('stock',this)"><span class="icon">📦</span> Stock Items</a></li>
-    <li><a href="#" onclick="nav('parties',this)"><span class="icon">👥</span> Parties</a></li>
-    <li><a href="#" onclick="nav('payments',this)"><span class="icon">💰</span> Payments</a></li>
-    <li><a href="#" onclick="nav('due-details',this)"><span class="icon">📉</span> Due Details</a></li>
-    <li><a href="#" onclick="nav('journal',this)"><span class="icon">📒</span> Journal</a></li>
+    <li><a href="#" class="active" onclick="nav('dashboard',this)"><span class="icon">📊</span> Dashboard <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F1</span></a></li>
+    <li><a href="#" onclick="nav('invoice',this)"><span class="icon">🧾</span> New Invoice <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F2</span></a></li>
+    <li><a href="#" onclick="nav('invoices',this)"><span class="icon">📋</span> Sales Invoices <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F3</span></a></li>
+    <li><a href="#" onclick="nav('purchase',this)"><span class="icon">🛒</span> Purchases <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F4</span></a></li>
+    <li><a href="#" onclick="nav('sales-return',this)"><span class="icon">↩️</span> Sales Return <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F5</span></a></li>
+    <li><a href="#" onclick="nav('purchase-return',this)"><span class="icon">↪️</span> Purchase Return <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F6</span></a></li>
+    <li><a href="#" onclick="nav('stock',this)"><span class="icon">📦</span> Stock Items <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F7</span></a></li>
+    <li><a href="#" onclick="nav('parties',this)"><span class="icon">👥</span> Parties <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F8</span></a></li>
+    <li><a href="#" onclick="nav('payments',this)"><span class="icon">💰</span> Payments <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F9</span></a></li>
+    <li><a href="#" onclick="nav('due-details',this)"><span class="icon">📉</span> Due Details <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F10</span></a></li>
+    <li><a href="#" onclick="nav('statement',this)"><span class="icon">📜</span> Party Statement <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F11</span></a></li>
+    <li><a href="#" onclick="nav('journal',this)"><span class="icon">📒</span> Journal <span style="margin-left:auto;font-size:10px;opacity:.45;font-family:'DM Mono',monospace">F12</span></a></li>
     <li><a href="#" onclick="nav('settings',this)"><span class="icon">⚙️</span> Settings</a></li>
   </ul>
   <div class="sidebar-footer">
@@ -484,13 +485,17 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
           <option value="0">All</option>
         </select>
       </div>
+      <div style="display:flex;align-items:center;gap:6px;padding-bottom:2px">
+        <input type="checkbox" id="due-full-view" onchange="renderDueDetails()" style="width:auto;margin:0;cursor:pointer">
+        <label for="due-full-view" style="text-transform:none;font-weight:600;font-size:13px;color:var(--accent);cursor:pointer;margin-bottom:0;letter-spacing:0;white-space:nowrap">Full Due</label>
+      </div>
       <button class="btn btn-secondary btn-sm" onclick="clearDueFilters()" style="align-self:flex-end">✕ Clear</button>
     </div>
     <div id="due-summary" style="margin-top:10px;font-size:13px;color:var(--text2)"></div>
   </div>
   <div class="table-wrap">
     <table>
-      <thead>
+      <thead id="due-thead">
         <tr>
           <th>Party</th>
           <th>Address</th>
@@ -544,6 +549,56 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 </div>
 
 <!-- SETTINGS -->
+<!-- PARTY STATEMENT -->
+<div id="sec-statement" class="section">
+  <div class="page-header">
+    <div><h2>Party Statement</h2><p>Full ledger per party</p></div>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="printStatement()">🖨 Print</button>
+      <button class="btn btn-green" onclick="exportStatementXLSX()">📊 Export Excel</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;padding:14px 18px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div class="autocomplete-wrap" style="flex:1;min-width:200px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">Party</label>
+        <input type="text" id="stmt-party-input" placeholder="Search party..." autocomplete="off"
+          oninput="acParty(this,'stmt-party-id','stmt-ac');renderStatement()"
+          onkeydown="acKeydown(event,'stmt-ac',this,'stmt-party-id','renderStatement')"
+          style="margin-top:3px">
+        <input type="hidden" id="stmt-party-id">
+        <ul class="autocomplete-list" id="stmt-ac"></ul>
+      </div>
+      <div>
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">From (BS)</label>
+        <input type="text" id="stmt-from" placeholder="YYYY-MM-DD" oninput="renderStatement()" style="width:140px;margin-top:3px">
+      </div>
+      <div>
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:600">To (BS)</label>
+        <input type="text" id="stmt-to" placeholder="YYYY-MM-DD" oninput="renderStatement()" style="width:140px;margin-top:3px">
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="clearStatementFilters()" style="align-self:flex-end">✕ Clear</button>
+    </div>
+    <div id="stmt-summary" style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text2)"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date (BS)</th>
+          <th>Type</th>
+          <th>Ref No.</th>
+          <th>Description</th>
+          <th class="amount">Debit (Rs.)</th>
+          <th class="amount">Credit (Rs.)</th>
+          <th class="amount">Balance (Rs.)</th>
+        </tr>
+      </thead>
+      <tbody id="stmt-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 <div id="sec-settings" class="section">
   <div class="page-header"><h2>Settings</h2></div>
   <div class="card" style="max-width:540px">
@@ -570,6 +625,45 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
       <div class="form-group">
         <input type="file" id="set-logo" accept="image/*" onchange="handleLogo(this)">
         <div style="margin-top:8px"><img id="logo-preview" style="display:none"></div>
+      </div>
+    </div>
+    <div class="setting-section">
+      <h3>🎨 Invoice Print Template</h3>
+      <div class="form-group">
+        <label>Select Template</label>
+        <select id="set-template" style="margin-top:4px">
+          <option value="classic">Classic — Company left, Invoice right, dark header table</option>
+          <option value="modern">Modern — Centered header, colored accent, clean lines</option>
+          <option value="minimal">Minimal — No borders, plain text, ultra compact</option>
+        </select>
+        <div style="font-size:11.5px;color:var(--text2);margin-top:5px">Applied to all printed invoices and Save as Image.</div>
+      </div>
+      <!-- Template previews -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px">
+        <div onclick="document.getElementById('set-template').value='classic';previewTemplate('classic')" id="tpl-preview-classic" style="cursor:pointer;border:2px solid var(--accent);border-radius:8px;padding:10px;background:var(--surface2)">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--accent)">Classic</div>
+          <div style="font-size:9px;line-height:1.6;color:var(--text2)">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:3px;margin-bottom:3px"><span style="font-weight:700">Company</span><span>INV-001</span></div>
+            <div style="background:var(--bg2);padding:2px 4px;margin-bottom:2px">▰▰▰▰▰▰▰▰▰▰</div>
+            <div style="background:var(--bg2);padding:2px 4px">▰▰▰▰▰▰▰</div>
+          </div>
+        </div>
+        <div onclick="document.getElementById('set-template').value='modern';previewTemplate('modern')" id="tpl-preview-modern" style="cursor:pointer;border:2px solid var(--border);border-radius:8px;padding:10px;background:var(--surface2)">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--text2)">Modern</div>
+          <div style="font-size:9px;line-height:1.6;color:var(--text2)">
+            <div style="text-align:center;border-bottom:3px solid var(--accent);padding-bottom:3px;margin-bottom:3px;font-weight:700">COMPANY</div>
+            <div style="background:var(--accent-bg);padding:2px 4px;margin-bottom:2px">▰▰▰▰▰▰▰▰▰▰</div>
+            <div style="background:var(--accent-bg);padding:2px 4px">▰▰▰▰▰▰▰</div>
+          </div>
+        </div>
+        <div onclick="document.getElementById('set-template').value='minimal';previewTemplate('minimal')" id="tpl-preview-minimal" style="cursor:pointer;border:2px solid var(--border);border-radius:8px;padding:10px;background:var(--surface2)">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px;color:var(--text2)">Minimal</div>
+          <div style="font-size:9px;line-height:1.6;color:var(--text2)">
+            <div style="font-weight:700;margin-bottom:3px">Company · INV-001</div>
+            <div style="border-top:1px solid var(--border);padding-top:2px">Item 1 ......... Rs.500</div>
+            <div>Item 2 ......... Rs.200</div>
+          </div>
+        </div>
       </div>
     </div>
     <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
@@ -846,6 +940,7 @@ function nav(sec,el){
   if(sec==='parties')renderPartiesTable();
   if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
   if(sec==='due-details')renderDueDetails();
+  if(sec==='statement')renderStatement();
   if(sec==='journal')renderJournal();
   if(sec==='settings')loadSettings();
   if(sec==='invoice')initInvoiceForm();
@@ -1411,51 +1506,102 @@ function renderDueDetails(){
   if(daysSel&&daysSel.options.length<=1){
     for(let d=1;d<=100;d++){const o=document.createElement('option');o.value=d;o.textContent=d;daysSel.appendChild(o);}
   }
+  const fullView=(document.getElementById('due-full-view')||{}).checked;
   const rows=getFilteredDueRows();
   const tbody=document.getElementById('due-details-tbody');
+  const thead=document.getElementById('due-thead');
   const totalDue=rows.reduce((s,r)=>s+r.due,0);
   const sumEl=document.getElementById('due-summary');
-  if(sumEl)sumEl.innerHTML=`<span>${rows.length} invoices with dues</span> &nbsp;|&nbsp; <span style="color:var(--red);font-weight:600">Total Due: Rs. ${fmtI(totalDue)}</span>`;
-  tbody.innerHTML='';
-  if(!rows.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div><p>No dues match the current filter.</p></div></td></tr>`;return;}
-  rows.forEach(r=>{
-    const daysBadge=r.days>60?`<span class="badge badge-red">${r.days}d</span>`:r.days>30?`<span class="badge badge-orange">${r.days}d</span>`:`<span class="badge badge-gray">${r.days}d</span>`;
-    const statusBadge=r.status==='Partial'?'<span class="badge badge-orange">Partial</span>':'<span class="badge badge-red">Unpaid</span>';
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><strong>${r.partyName}</strong></td>
-      <td>${r.address||'—'}</td>
-      <td class="mono">${r.invNo}</td>
-      <td class="mono">${r.dateBS}</td>
-      <td>${daysBadge}</td>
-      <td class="amount">Rs. ${fmtI(r.total)}</td>
-      <td class="amount text-green">Rs. ${fmtI(r.paid)}</td>
-      <td class="amount text-red">Rs. ${fmtI(r.due)}</td>
-      <td>${statusBadge}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+
+  if(fullView){
+    // Group by party — sum all dues
+    const byParty={};
+    rows.forEach(r=>{
+      const key=r.partyName+'||'+r.address;
+      if(!byParty[key])byParty[key]={partyName:r.partyName,address:r.address,totalDue:0,invoiceCount:0};
+      byParty[key].totalDue+=r.due;
+      byParty[key].invoiceCount++;
+    });
+    const grouped=Object.values(byParty).sort((a,b)=>b.totalDue-a.totalDue);
+    if(sumEl)sumEl.innerHTML=`<span>${grouped.length} parties with dues</span> &nbsp;|&nbsp; <span style="color:var(--red);font-weight:600">Total Due: Rs. ${fmtI(totalDue)}</span>`;
+    if(thead)thead.innerHTML=`<tr><th>Party Name</th><th>Address</th><th>Invoices</th><th class="amount">Total Due</th></tr>`;
+    tbody.innerHTML='';
+    if(!grouped.length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="icon">✅</div><p>No dues found.</p></div></td></tr>`;return;}
+    grouped.forEach(g=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><strong>${g.partyName}</strong></td>
+        <td>${g.address||'—'}</td>
+        <td style="color:var(--text2)">${g.invoiceCount} inv.</td>
+        <td class="amount text-red" style="font-size:15px;font-weight:700">Rs. ${fmtI(g.totalDue)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } else {
+    if(sumEl)sumEl.innerHTML=`<span>${rows.length} invoices with dues</span> &nbsp;|&nbsp; <span style="color:var(--red);font-weight:600">Total Due: Rs. ${fmtI(totalDue)}</span>`;
+    if(thead)thead.innerHTML=`<tr><th>Party</th><th>Address</th><th>INV No.</th><th>Date of Sale</th><th>Days Overdue</th><th class="amount">Invoice Total</th><th class="amount">Paid</th><th class="amount">Due</th><th>Status</th></tr>`;
+    tbody.innerHTML='';
+    if(!rows.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div><p>No dues match the current filter.</p></div></td></tr>`;return;}
+    rows.forEach(r=>{
+      const daysBadge=r.days>60?`<span class="badge badge-red">${r.days}d</span>`:r.days>30?`<span class="badge badge-orange">${r.days}d</span>`:`<span class="badge badge-gray">${r.days}d</span>`;
+      const statusBadge=r.status==='Partial'?'<span class="badge badge-orange">Partial</span>':'<span class="badge badge-red">Unpaid</span>';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><strong>${r.partyName}</strong></td>
+        <td>${r.address||'—'}</td>
+        <td class="mono">${r.invNo}</td>
+        <td class="mono">${r.dateBS}</td>
+        <td>${daysBadge}</td>
+        <td class="amount">Rs. ${fmtI(r.total)}</td>
+        <td class="amount text-green">Rs. ${fmtI(r.paid)}</td>
+        <td class="amount text-red">Rs. ${fmtI(r.due)}</td>
+        <td>${statusBadge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 }
 
 function clearDueFilters(){
   ['due-party-search','due-address-search','due-date-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const ds=document.getElementById('due-days-filter');if(ds)ds.value='0';
+  const fv=document.getElementById('due-full-view');if(fv)fv.checked=false;
   renderDueDetails();
 }
 
 function exportDueExcel(){
   if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
+  const fullView=(document.getElementById('due-full-view')||{}).checked;
   const rows=getFilteredDueRows();
-  const data=[['Party Name','Address','INV No.','Date of Sale','Days Overdue','Invoice Total','Paid','Due Amount','Status']];
-  rows.forEach(r=>data.push([r.partyName,r.address,r.invNo,r.dateBS,r.days,r.total,r.paid,r.due,r.status]));
-  // Totals
-  data.push(['','','','','TOTAL','',rows.reduce((s,r)=>s+r.paid,0),rows.reduce((s,r)=>s+r.due,0),'']);
-  const ws=XLSX.utils.aoa_to_sheet(data);
-  ws['!cols']=[{wch:22},{wch:16},{wch:12},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10}];
-  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Due Details');
   const s=DB.settings();
   const company=(s.company||'FinPilot').replace(/\s+/g,'-');
-  XLSX.writeFile(wb,`DueDetails-${company}-${getTodayBS()}.xlsx`);
+  let data,ws;
+
+  if(fullView){
+    // Group by party
+    const byParty={};
+    rows.forEach(r=>{
+      const key=r.partyName+'||'+r.address;
+      if(!byParty[key])byParty[key]={partyName:r.partyName,address:r.address,totalDue:0};
+      byParty[key].totalDue+=r.due;
+    });
+    const grouped=Object.values(byParty).sort((a,b)=>b.totalDue-a.totalDue);
+    data=[['Name','Address','Total Due (Rs.)']];
+    grouped.forEach(g=>data.push([g.partyName,g.address,g.totalDue]));
+    data.push(['','TOTAL',grouped.reduce((s,g)=>s+g.totalDue,0)]);
+    ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:26},{wch:20},{wch:16}];
+  } else {
+    data=[['Party Name','Address','INV No.','Date of Sale','Days Overdue','Invoice Total','Paid','Due Amount','Status']];
+    rows.forEach(r=>data.push([r.partyName,r.address,r.invNo,r.dateBS,r.days,r.total,r.paid,r.due,r.status]));
+    data.push(['','','','','TOTAL','',rows.reduce((s,r)=>s+r.paid,0),rows.reduce((s,r)=>s+r.due,0),'']);
+    ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:22},{wch:16},{wch:12},{wch:14},{wch:12},{wch:14},{wch:14},{wch:14},{wch:10}];
+  }
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,fullView?'Full Due':'Due Details');
+  XLSX.writeFile(wb,`DueDetails-${company}-${fullView?'Full':'ByInvoice'}-${getTodayBS()}.xlsx`);
 }
 function renderPartiesTable(){
   const q=(document.getElementById('party-search')||{value:''}).value.toLowerCase();
@@ -1881,6 +2027,10 @@ function loadSettings(){
   document.getElementById('set-phone').value=s.phone||'';
   document.getElementById('set-username').value=s.username||'';
   document.getElementById('set-today-bs').value=s.todayBS||'';
+  const tpl=s.invoiceTemplate||'classic';
+  const sel=document.getElementById('set-template');
+  if(sel)sel.value=tpl;
+  previewTemplate(tpl);
   if(s.logo){const img=document.getElementById('logo-preview');img.src=s.logo;img.style.display='block';}
 }
 function saveSettings(){
@@ -1890,9 +2040,10 @@ function saveSettings(){
   s.phone=document.getElementById('set-phone').value.trim();
   s.username=document.getElementById('set-username').value.trim()||'Admin';
   s.todayBS=document.getElementById('set-today-bs').value.trim()||'2083-03-01';
+  const sel=document.getElementById('set-template');
+  s.invoiceTemplate=sel?sel.value:'classic';
   DB.saveSettings(s);
   document.getElementById('nav-company-name').textContent=s.company;
-  // refresh dashboard date display immediately
   const dd=document.getElementById('dash-date');if(dd)dd.textContent=getTodayBSFull();
   alert('Settings saved!');
 }
@@ -1904,7 +2055,312 @@ function handleLogo(inp){
 }
 
 // ══════════════════════════════════════════════════════
-// PRINT INVOICE
+// INVOICE TEMPLATE SELECTOR
+// ══════════════════════════════════════════════════════
+function previewTemplate(tpl){
+  ['classic','modern','minimal'].forEach(t=>{
+    const el=document.getElementById(`tpl-preview-${t}`);
+    if(!el)return;
+    el.style.borderColor=t===tpl?'var(--accent)':'var(--border)';
+  });
+}
+
+function buildInvoiceHTMLByTemplate(inv){
+  const s=DB.settings();
+  const tpl=s.invoiceTemplate||'classic';
+  if(tpl==='modern') return buildInvoiceModern(inv,s);
+  if(tpl==='minimal') return buildInvoiceMinimal(inv,s);
+  return buildInvoiceHTML(inv); // classic (existing)
+}
+
+function buildInvoiceModern(inv,s){
+  const hasDisc=Math.round(inv.disc||0)>0;
+  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
+  const logoHTML=s.logo?`<img src="${s.logo}" style="max-height:55px;max-width:90px;display:block;margin:0 auto 6px">`:'';
+  const paidStamp=inv.paid?`<div class="print-paid-stamp">PAID</div>`:'';
+  const discTh=hasDisc?'<th class="r" style="background:#e8956a;color:#fff">Disc.</th>':'';
+  const items=inv.items||[];
+  const ITEMS_PER_PAGE=18;
+  const pages=[];
+  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE)pages.push(items.slice(i,i+ITEMS_PER_PAGE));
+  if(!pages.length)pages.push([]);
+  let html='';
+  pages.forEach((pageItems,pi)=>{
+    const isLast=pi===pages.length-1;
+    const sn=pi*ITEMS_PER_PAGE;
+    const rowsHTML=pageItems.map((item,ri)=>{
+      const discTd=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
+      return`<tr style="${(sn+ri)%2===0?'background:#fdf8f5':''}"><td style="color:#999;font-size:8pt">${sn+ri+1}</td><td>${item.name||''}</td><td class="r">${Math.round(item.qty||0)}</td><td class="r">Rs. ${fmtI(item.rate)}</td>${discTd}<td class="r" style="font-weight:600">Rs. ${fmtI(item.total)}</td></tr>`;
+    }).join('');
+    const totalsHTML=isLast?`
+      <table class="print-totals">
+        <tr><td>Subtotal</td><td class="r">Rs. ${fmtI(inv.sub)}</td></tr>
+        ${hasDisc?`<tr><td>Discount</td><td class="r">Rs. ${fmtI(inv.disc)}</td></tr>`:''}
+        <tr class="grand" style="color:#c4622d"><td><strong>Total</strong></td><td class="r"><strong>Rs. ${fmtI(displayTotal)}</strong></td></tr>
+      </table>
+      <div class="print-footer"><span>Printed by: ${s.username||'Admin'}</span><span>Thank you for your business!</span></div>
+    `:`<p style="text-align:right;font-size:8pt;color:#999;margin-top:4px">Continued...</p>`;
+    html+=`<div class="print-invoice" style="${pi>0?'page-break-before:always;':''}">
+      <div style="text-align:center;border-bottom:3px solid #c4622d;padding-bottom:12px;margin-bottom:12px">
+        ${logoHTML}
+        <h1 style="font-family:'Fraunces',serif;font-size:20pt;color:#c4622d;margin:0">${s.company||'Company'}</h1>
+        <p style="font-size:9pt;color:#777">${s.address||''}${s.address&&s.phone?' · ':''}${s.phone||''}</p>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:9.5pt"><strong>Bill To:</strong><br>${inv.partyName||''}${inv.note?`<br><em style="color:#777">${inv.note}</em>`:''}</div>
+        <div style="text-align:right;font-size:9.5pt">
+          <div style="font-family:'DM Mono',monospace;font-size:13pt;font-weight:700">${inv.invNo}</div>
+          <div style="color:#777">Date: ${inv.dateBS} (BS)</div>
+          <div style="color:#777">INVOICE</div>${paidStamp}
+        </div>
+      </div>
+      ${pages.length>1?`<div style="font-size:8.5pt;color:#999;text-align:right;margin-bottom:4px">Page ${pi+1} of ${pages.length}</div>`:''}
+      <table class="print-table">
+        <thead><tr><th style="width:28px;background:#c4622d;color:#fff">S.N.</th><th style="background:#c4622d;color:#fff">Item</th><th class="r" style="background:#c4622d;color:#fff">Qty</th><th class="r" style="background:#c4622d;color:#fff">Rate</th>${discTh}<th class="r" style="background:#c4622d;color:#fff">Amount</th></tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+      ${totalsHTML}
+    </div>`;
+  });
+  return html;
+}
+
+function buildInvoiceMinimal(inv,s){
+  const hasDisc=Math.round(inv.disc||0)>0;
+  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
+  const paidStamp=inv.paid?' [PAID]':'';
+  const items=inv.items||[];
+  const ITEMS_PER_PAGE=22;
+  const pages=[];
+  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE)pages.push(items.slice(i,i+ITEMS_PER_PAGE));
+  if(!pages.length)pages.push([]);
+  let html='';
+  pages.forEach((pageItems,pi)=>{
+    const isLast=pi===pages.length-1;
+    const sn=pi*ITEMS_PER_PAGE;
+    const rowsHTML=pageItems.map((item,ri)=>{
+      const discTd=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
+      return`<tr><td style="color:#999;font-size:8pt">${sn+ri+1}</td><td>${item.name||''}</td><td class="r">${Math.round(item.qty||0)}</td><td class="r">Rs. ${fmtI(item.rate)}</td>${discTd}<td class="r">Rs. ${fmtI(item.total)}</td></tr>`;
+    }).join('');
+    const totalsHTML=isLast?`
+      <div style="border-top:1px solid #ccc;margin-top:8px;padding-top:6px;text-align:right;font-size:10pt">
+        ${hasDisc?`<div>Subtotal: Rs. ${fmtI(inv.sub)} &nbsp;|&nbsp; Discount: Rs. ${fmtI(inv.disc)}</div>`:''}
+        <strong>Total: Rs. ${fmtI(displayTotal)}</strong>
+      </div>
+      <div style="margin-top:14px;font-size:8pt;color:#999">Printed by: ${s.username||'Admin'} &nbsp;·&nbsp; Thank you!</div>
+    `:`<p style="font-size:8pt;color:#999;text-align:right">…continued</p>`;
+    html+=`<div class="print-invoice" style="${pi>0?'page-break-before:always;':''}font-size:9.5pt">
+      <div style="border-bottom:1.5px solid #333;padding-bottom:6px;margin-bottom:8px">
+        <span style="font-weight:700;font-size:13pt">${s.company||'Company'}</span>
+        <span style="float:right;font-family:monospace">${inv.invNo}${paidStamp}</span>
+        <div style="clear:both;font-size:8.5pt;color:#555">${s.address||''}${s.address&&s.phone?' | ':''}${s.phone||''} &nbsp;·&nbsp; Date: ${inv.dateBS} (BS)</div>
+        <div style="font-size:8.5pt">To: <strong>${inv.partyName||''}</strong>${inv.note?` (${inv.note})`:''}</div>
+      </div>
+      ${pages.length>1?`<div style="font-size:8pt;color:#999;text-align:right">Page ${pi+1}/${pages.length}</div>`:''}
+      <table class="print-table" style="border-collapse:collapse;width:100%">
+        <thead><tr style="border-bottom:1px solid #333"><th style="text-align:left;padding:3px 6px;background:none;color:#333;font-size:8.5pt">S.N.</th><th style="text-align:left;padding:3px 6px;background:none;color:#333;font-size:8.5pt">Item</th><th class="r" style="padding:3px 6px;background:none;color:#333;font-size:8.5pt">Qty</th><th class="r" style="padding:3px 6px;background:none;color:#333;font-size:8.5pt">Rate</th>${hasDisc?'<th class="r" style="padding:3px 6px;background:none;color:#333;font-size:8.5pt">Disc.</th>':''}<th class="r" style="padding:3px 6px;background:none;color:#333;font-size:8.5pt">Amt</th></tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+      ${totalsHTML}
+    </div>`;
+  });
+  return html;
+}
+
+// Override printInvoice and printCurrentInvoice to use template
+function printInvoice(id){
+  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
+  const area=document.getElementById('print-area');
+  area.innerHTML=buildInvoiceHTMLByTemplate(inv);area.style.display='block';
+  window.print();area.style.display='none';
+}
+
+function printCurrentInvoice(){
+  const partyName=document.getElementById('inv-party-input').value.trim();
+  const invNo=document.getElementById('inv-no').value;
+  const dateBS=document.getElementById('inv-date-bs').value;
+  const note=document.getElementById('inv-note').value;
+  const isPaid=document.getElementById('inv-paid-check').checked;
+  let sub=0,disc=0;
+  const vItems=invItems.filter(i=>(i.name||'').trim());
+  vItems.forEach(i=>{sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0);disc+=parseFloat(i.discAmt||0);});
+  const gtVal=document.getElementById('inv-grand-total').value;
+  const grandTotal=gtVal!==''?Math.round(parseFloat(gtVal)):Math.round(sub-disc);
+  const fakeInv={id:'preview',invNo,dateBS,partyName,note,items:vItems,sub,disc,net:sub-disc,grandTotal,paid:isPaid};
+  const area=document.getElementById('print-area');
+  area.innerHTML=buildInvoiceHTMLByTemplate(fakeInv);area.style.display='block';
+  window.print();area.style.display='none';
+}
+
+// ══════════════════════════════════════════════════════
+// PARTY STATEMENT
+// ══════════════════════════════════════════════════════
+function clearStatementFilters(){
+  document.getElementById('stmt-party-input').value='';
+  document.getElementById('stmt-party-id').value='';
+  document.getElementById('stmt-from').value='';
+  document.getElementById('stmt-to').value='';
+  renderStatement();
+}
+
+function getStatementEntries(){
+  const pid=document.getElementById('stmt-party-id').value;
+  const from=(document.getElementById('stmt-from')||{value:''}).value.trim();
+  const to=(document.getElementById('stmt-to')||{value:''}).value.trim();
+  if(!pid)return[];
+  const entries=[];
+  // Invoices → debit
+  DB.invoices().filter(i=>i.partyId===pid).forEach(inv=>{
+    const d=inv.dateBS||'';
+    if(from&&d<from)return;if(to&&d>to)return;
+    entries.push({date:d,type:'Sales Invoice',ref:inv.invNo,desc:`Invoice to ${inv.partyName||''}`,debit:inv.grandTotal||inv.net||0,credit:0});
+  });
+  // Payments → credit
+  DB.payments().filter(p=>p.partyId===pid).forEach(pay=>{
+    const d=pay.dateBS||'';
+    if(from&&d<from)return;if(to&&d>to)return;
+    entries.push({date:d,type:'Payment',ref:pay.receipt||'—',desc:`Payment (${pay.method})${pay.note?': '+pay.note:''}`,debit:0,credit:pay.amount||0});
+    if(pay.discount>0)entries.push({date:d,type:'Discount',ref:pay.receipt||'—',desc:'Discount Allowed',debit:0,credit:pay.discount});
+  });
+  // Vouchers (sales return → credit, purchase return → debit)
+  DB.vouchers().filter(v=>v.partyId===pid).forEach(v=>{
+    const d=v.dateBS||'';
+    if(from&&d<from)return;if(to&&d>to)return;
+    if(v.type==='sales-return')entries.push({date:d,type:'Sales Return',ref:v.refNo,desc:`Return ref: ${v.ref||'—'}`,debit:0,credit:v.total||0});
+    if(v.type==='purchase-return')entries.push({date:d,type:'Purchase Return',ref:v.refNo,desc:`Return ref: ${v.ref||'—'}`,debit:v.total||0,credit:0});
+  });
+  entries.sort((a,b)=>a.date.localeCompare(b.date));
+  // Add running balance
+  let bal=0;
+  entries.forEach(e=>{bal+=e.debit-e.credit;e.balance=bal;});
+  return entries;
+}
+
+function renderStatement(){
+  const pid=document.getElementById('stmt-party-id').value;
+  const tbody=document.getElementById('stmt-tbody');
+  const sumEl=document.getElementById('stmt-summary');
+  if(!pid){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">📜</div><p>Select a party to view their statement.</p></div></td></tr>`;
+    if(sumEl)sumEl.innerHTML='';
+    return;
+  }
+  const entries=getStatementEntries();
+  tbody.innerHTML='';
+  if(!entries.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="icon">📜</div><p>No transactions for this party in the selected period.</p></div></td></tr>`;
+    if(sumEl)sumEl.innerHTML='';
+    return;
+  }
+  const totalDr=entries.reduce((s,e)=>s+e.debit,0);
+  const totalCr=entries.reduce((s,e)=>s+e.credit,0);
+  const closingBal=totalDr-totalCr;
+  if(sumEl)sumEl.innerHTML=`
+    <span>Total Debit: <strong style="color:var(--red)">Rs. ${fmtI(totalDr)}</strong></span>
+    <span>Total Credit: <strong style="color:var(--green)">Rs. ${fmtI(totalCr)}</strong></span>
+    <span>Closing Balance: <strong style="color:${closingBal>0?'var(--red)':'var(--green)'}">Rs. ${fmtI(Math.abs(closingBal))} ${closingBal>0?'Dr':'Cr'}</strong></span>
+  `;
+  entries.forEach(e=>{
+    const typeColor=e.type==='Sales Invoice'?'badge-orange':e.type==='Payment'?'badge-green':e.type==='Discount'?'badge-blue':'badge-red';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="mono">${e.date}</td>
+      <td><span class="badge ${typeColor}">${e.type}</span></td>
+      <td class="mono" style="font-size:12px">${e.ref}</td>
+      <td style="font-size:12.5px">${e.desc}</td>
+      <td class="amount ${e.debit?'text-red':''}">${e.debit?`Rs. ${fmtI(e.debit)}`:'—'}</td>
+      <td class="amount ${e.credit?'text-green':''}">${e.credit?`Rs. ${fmtI(e.credit)}`:'—'}</td>
+      <td class="amount" style="font-weight:600;color:${e.balance>0?'var(--red)':'var(--green)'}">Rs. ${fmtI(Math.abs(e.balance))} ${e.balance>0?'Dr':'Cr'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  // Closing balance row
+  const closingTr=document.createElement('tr');
+  closingTr.style.background='var(--bg2)';closingTr.style.fontWeight='700';
+  closingTr.innerHTML=`<td colspan="4" style="text-align:right;padding:10px 14px">Closing Balance</td><td class="amount text-red">Rs. ${fmtI(totalDr)}</td><td class="amount text-green">Rs. ${fmtI(totalCr)}</td><td class="amount" style="color:${closingBal>0?'var(--red)':'var(--green)'}">Rs. ${fmtI(Math.abs(closingBal))} ${closingBal>0?'Dr':'Cr'}</td>`;
+  tbody.appendChild(closingTr);
+}
+
+function exportStatementXLSX(){
+  if(typeof XLSX==='undefined'){alert('SheetJS not loaded.');return;}
+  const pid=document.getElementById('stmt-party-id').value;
+  const pname=document.getElementById('stmt-party-input').value.trim();
+  if(!pid){alert('Please select a party first.');return;}
+  const entries=getStatementEntries();
+  const data=[['Date (BS)','Type','Ref No.','Description','Debit (Rs.)','Credit (Rs.)','Balance (Rs.)']];
+  entries.forEach(e=>data.push([e.date,e.type,e.ref,e.desc,e.debit||0,e.credit||0,e.balance]));
+  const totalDr=entries.reduce((s,e)=>s+e.debit,0);
+  const totalCr=entries.reduce((s,e)=>s+e.credit,0);
+  data.push(['','','','CLOSING BALANCE',totalDr,totalCr,totalDr-totalCr]);
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:14},{wch:16},{wch:12},{wch:36},{wch:14},{wch:14},{wch:16}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Statement');
+  const s=DB.settings();
+  const company=(s.company||'FinPilot').replace(/\s+/g,'-');
+  const from=document.getElementById('stmt-from').value||'All';
+  const to=document.getElementById('stmt-to').value||'All';
+  XLSX.writeFile(wb,`Statement-${company}-${pname.replace(/\s+/g,'-')}-${from}-to-${to}.xlsx`);
+}
+
+function printStatement(){
+  const pid=document.getElementById('stmt-party-id').value;
+  const pname=document.getElementById('stmt-party-input').value.trim();
+  if(!pid){alert('Please select a party first.');return;}
+  const entries=getStatementEntries();
+  const s=DB.settings();
+  const from=document.getElementById('stmt-from').value||'—';
+  const to=document.getElementById('stmt-to').value||'—';
+  const totalDr=entries.reduce((s,e)=>s+e.debit,0);
+  const totalCr=entries.reduce((s,e)=>s+e.credit,0);
+  const bal=totalDr-totalCr;
+  const rowsHTML=entries.map(e=>`
+    <tr style="border-bottom:1px solid #eee">
+      <td style="padding:4px 6px;font-family:monospace;font-size:8.5pt">${e.date}</td>
+      <td style="padding:4px 6px;font-size:8.5pt">${e.type}</td>
+      <td style="padding:4px 6px;font-family:monospace;font-size:8.5pt">${e.ref}</td>
+      <td style="padding:4px 6px;font-size:8.5pt">${e.desc}</td>
+      <td style="padding:4px 6px;text-align:right;color:#c42d2d;font-family:monospace;font-size:8.5pt">${e.debit?`Rs. ${fmtI(e.debit)}`:'—'}</td>
+      <td style="padding:4px 6px;text-align:right;color:#2d7a4f;font-family:monospace;font-size:8.5pt">${e.credit?`Rs. ${fmtI(e.credit)}`:'—'}</td>
+      <td style="padding:4px 6px;text-align:right;font-weight:600;font-family:monospace;font-size:8.5pt;color:${e.balance>0?'#c42d2d':'#2d7a4f'}">Rs. ${fmtI(Math.abs(e.balance))} ${e.balance>0?'Dr':'Cr'}</td>
+    </tr>
+  `).join('');
+  const html=`
+    <div style="font-family:'DM Sans',Arial,sans-serif;padding:0">
+      <div style="border-bottom:2px solid #1a1714;padding-bottom:10px;margin-bottom:12px;display:flex;justify-content:space-between">
+        <div><h2 style="font-family:'Fraunces',serif;color:#c4622d;margin:0">${s.company||'Company'}</h2><p style="color:#777;font-size:9pt;margin:2px 0">${s.address||''} ${s.phone?'· '+s.phone:''}</p></div>
+        <div style="text-align:right"><div style="font-size:13pt;font-weight:700">PARTY STATEMENT</div><p style="color:#777;font-size:9pt;margin:2px 0">Period: ${from} to ${to}</p></div>
+      </div>
+      <div style="margin-bottom:10px;font-size:10pt"><strong>Party:</strong> ${pname}</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#1a1714;color:#fff">
+          <th style="padding:5px 6px;text-align:left;font-size:8.5pt">Date</th>
+          <th style="padding:5px 6px;text-align:left;font-size:8.5pt">Type</th>
+          <th style="padding:5px 6px;text-align:left;font-size:8.5pt">Ref</th>
+          <th style="padding:5px 6px;text-align:left;font-size:8.5pt">Description</th>
+          <th style="padding:5px 6px;text-align:right;font-size:8.5pt">Debit</th>
+          <th style="padding:5px 6px;text-align:right;font-size:8.5pt">Credit</th>
+          <th style="padding:5px 6px;text-align:right;font-size:8.5pt">Balance</th>
+        </tr></thead>
+        <tbody>${rowsHTML}</tbody>
+        <tfoot><tr style="background:#f5f2ee;font-weight:700">
+          <td colspan="4" style="padding:6px;text-align:right;font-size:9pt">Closing Balance</td>
+          <td style="padding:6px;text-align:right;color:#c42d2d;font-family:monospace">Rs. ${fmtI(totalDr)}</td>
+          <td style="padding:6px;text-align:right;color:#2d7a4f;font-family:monospace">Rs. ${fmtI(totalCr)}</td>
+          <td style="padding:6px;text-align:right;color:${bal>0?'#c42d2d':'#2d7a4f'};font-family:monospace">Rs. ${fmtI(Math.abs(bal))} ${bal>0?'Dr':'Cr'}</td>
+        </tr></tfoot>
+      </table>
+      <div style="margin-top:18px;padding-top:8px;border-top:1px solid #ddd;font-size:8pt;color:#999;display:flex;justify-content:space-between">
+        <span>Printed by: ${s.username||'Admin'}</span><span>FinPilot — ${s.company||''}</span>
+      </div>
+    </div>
+  `;
+  const area=document.getElementById('print-area');
+  area.innerHTML=html;area.style.display='block';
+  window.print();area.style.display='none';
+}
+
+// ══════════════════════════════════════════════════════
+// BUILD INVOICE HTML (Classic template)
 // ══════════════════════════════════════════════════════
 function buildInvoiceHTML(inv){
   const s=DB.settings();
@@ -1928,7 +2384,7 @@ function buildInvoiceHTML(inv){
   for(let i=0;i<items.length;i+=ITEMS_PER_PAGE) pages.push(items.slice(i,i+ITEMS_PER_PAGE));
   if(!pages.length)pages.push([]);
 
-  const tableHeader=`<thead><tr><th>#</th><th>Item</th><th class="r">Qty</th><th class="r">Rate</th>${discTh}<th class="r">Amount</th></tr></thead>`;
+  const tableHeader=`<thead><tr><th style="width:28px">S.N.</th><th>Item</th><th class="r">Qty</th><th class="r">Rate</th>${discTh}<th class="r">Amount</th></tr></thead>`;
 
   let html='';
   pages.forEach((pageItems,pi)=>{
@@ -1958,29 +2414,6 @@ function buildInvoiceHTML(inv){
   return html;
 }
 
-function printInvoice(id){
-  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
-  const area=document.getElementById('print-area');
-  area.innerHTML=buildInvoiceHTML(inv);area.style.display='block';
-  window.print();area.style.display='none';
-}
-
-function printCurrentInvoice(){
-  const partyName=document.getElementById('inv-party-input').value.trim();
-  const invNo=document.getElementById('inv-no').value;
-  const dateBS=document.getElementById('inv-date-bs').value;
-  const note=document.getElementById('inv-note').value;
-  const isPaid=document.getElementById('inv-paid-check').checked;
-  let sub=0,disc=0;
-  const validItems=invItems.filter(i=>(i.name||'').trim());
-  validItems.forEach(i=>{sub+=parseFloat(i.qty||0)*parseFloat(i.rate||0);disc+=parseFloat(i.discAmt||0);});
-  const gtVal=document.getElementById('inv-grand-total').value;
-  const grandTotal=gtVal!==''?Math.round(parseFloat(gtVal)):Math.round(sub-disc);
-  const fakeInv={id:'preview',invNo,dateBS,partyName,note,items:validItems,sub,disc,net:sub-disc,grandTotal,paid:isPaid};
-  const area=document.getElementById('print-area');
-  area.innerHTML=buildInvoiceHTML(fakeInv);area.style.display='block';
-  window.print();area.style.display='none';
-}
 
 // ══════════════════════════════════════════════════════
 // SAVE INVOICE AS IMAGE
@@ -2008,7 +2441,7 @@ function renderAndDownloadInvoiceImage(inv){
   const s=DB.settings();
   // Use a hidden iframe-like div, render, use html2canvas-equivalent via Canvas API
   const area=document.getElementById('print-area');
-  const html=buildInvoiceHTML(inv);
+  const html=buildInvoiceHTMLByTemplate(inv);
   // Wrap in a fixed-size A4-like container
   area.innerHTML=`<div id="img-render-box" style="width:794px;padding:96px;background:#fff;font-family:DM Sans,sans-serif;color:#000;position:relative;">${html}</div>`;
   area.style.display='block';
@@ -2249,6 +2682,22 @@ function importBackup(inp){
   renderDashboard();
   resetInvoiceForm();
   initPaymentDate();
+
+  // F1–F12 navigation shortcuts
+  const fKeyMap={
+    'F1':'dashboard','F2':'invoice','F3':'invoices','F4':'purchase',
+    'F5':'sales-return','F6':'purchase-return','F7':'stock','F8':'parties',
+    'F9':'payments','F10':'due-details','F11':'statement','F12':'journal'
+  };
+  document.addEventListener('keydown',function(e){
+    if(!fKeyMap[e.key])return;
+    const tag=(document.activeElement||{}).tagName||'';
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+    e.preventDefault();
+    const sec=fKeyMap[e.key];
+    const link=document.querySelector(`nav a[onclick*="'${sec}'"]`);
+    nav(sec,link||null);
+  });
 })();
 </script>
 </body>
