@@ -1432,7 +1432,13 @@ function saveParty(){
   DB.saveParties(parties);closeModal('party-modal');renderPartiesTable();
 }
 function deleteParty(id){if(!confirm('Delete this party?'))return;DB.saveParties(DB.parties().filter(p=>p.id!==id));renderPartiesTable();}
-function getTotalBilled(pid){return DB.invoices().filter(i=>i.partyId===pid).reduce((s,i)=>s+(i.grandTotal||i.net||0),0);}
+function getTotalSalesReturn(pid){
+  return DB.vouchers().filter(v=>v.type==='sales-return'&&v.partyId===pid).reduce((s,v)=>s+(v.total||0),0);
+}
+function getTotalBilled(pid){
+  const billed=DB.invoices().filter(i=>i.partyId===pid).reduce((s,i)=>s+(i.grandTotal||i.net||0),0);
+  return Math.max(0,billed-getTotalSalesReturn(pid));
+}
 function getTotalPaid(pid){return DB.payments().filter(p=>p.partyId===pid).reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);}
 
 // ── FIFO: get per-invoice paid amounts for a party ──────────
@@ -1442,7 +1448,10 @@ function getInvoicePaidMap(pid){
   const pays=DB.payments().filter(p=>p.partyId===pid).sort((a,b)=>(a.dateBS||'').localeCompare(b.dateBS||''));
   const paidMap={};
   invs.forEach(i=>paidMap[i.id]=0);
-  let pool=pays.reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);
+  // Pool = cash payments + sales returns (returns reduce amount owed, applied oldest-first)
+  const payPool=pays.reduce((s,p)=>s+(p.amount||0)+(p.discount||0),0);
+  const returnPool=getTotalSalesReturn(pid);
+  let pool=payPool+returnPool;
   for(const inv of invs){
     const total=inv.grandTotal||inv.net||0;
     const applied=Math.min(pool,total);
@@ -1631,10 +1640,12 @@ function onPayMethodChange(){
 function loadPartyBalance(){
   const pid=document.getElementById('pay-party-id').value;
   if(!pid){document.getElementById('pay-billed').textContent='Rs. 0';document.getElementById('pay-received-so-far').textContent='Rs. 0';document.getElementById('pay-due').textContent='Rs. 0';return;}
-  const b=getTotalBilled(pid),pa=getTotalPaid(pid);
-  document.getElementById('pay-billed').textContent='Rs. '+fmtI(b);
+  const b=getTotalBilled(pid); // already net of sales returns
+  const pa=getTotalPaid(pid);
+  const ret=getTotalSalesReturn(pid);
+  document.getElementById('pay-billed').textContent='Rs. '+fmtI(b)+(ret>0?` (after Rs.${fmtI(ret)} return)`:'');
   document.getElementById('pay-received-so-far').textContent='Rs. '+fmtI(pa);
-  document.getElementById('pay-due').textContent='Rs. '+fmtI(b-pa);
+  document.getElementById('pay-due').textContent='Rs. '+fmtI(Math.max(0,b-pa));
 }
 function savePayment(){
   const pid=document.getElementById('pay-party-id').value;
