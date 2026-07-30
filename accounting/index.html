@@ -303,6 +303,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
         <select id="inv-paid-method">
           <option value="Cash">Cash</option>
           <option value="QR">QR</option>
+          <option value="Cheque">Cheque</option>
           <option value="Others">Others</option>
         </select>
       </div>
@@ -443,19 +444,40 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
         <select id="pay-method" onchange="onPayMethodChange()">
           <option value="Cash">Cash</option>
           <option value="QR">QR</option>
+          <option value="Cheque">Cheque</option>
           <option value="Others">Others</option>
         </select>
       </div>
       <div class="form-group" id="pay-others-row" style="display:none">
         <label>Specify Method</label>
-        <input type="text" id="pay-others-text" placeholder="e.g. Bank Transfer, Cheque...">
+        <input type="text" id="pay-others-text" placeholder="e.g. Bank Transfer...">
+      </div>
+      <div class="form-group" id="pay-cheque-row" style="display:none">
+        <div style="background:var(--blue-bg);border:1px solid var(--blue);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:8px">🏦 Cheque Details</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Cheque No.</label>
+              <input type="text" id="pay-cheque-no" placeholder="Cheque number">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Bank Name</label>
+              <input type="text" id="pay-cheque-bank" placeholder="Bank / branch">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;margin-top:8px">
+            <label>Cheque Date (BS)</label>
+            <input type="text" id="pay-cheque-date" placeholder="YYYY-MM-DD — date written on cheque">
+          </div>
+          <div style="font-size:11.5px;color:var(--blue);margin-top:6px">⚠️ Cheques are saved as <strong>Pending</strong> and won't affect dues until marked as <strong>Cheque Cleared</strong> below.</div>
+        </div>
       </div>
       <div class="form-group">
-        <label>Receipt Number</label>
-        <input type="text" id="pay-receipt" placeholder="Optional receipt / ref no.">
+        <label>Receipt / Ref No. <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+        <input type="text" id="pay-receipt" placeholder="Receipt or reference number">
       </div>
       <div class="form-group">
-        <label>Date (BS)</label>
+        <label>Date of Entry (BS)</label>
         <input type="text" id="pay-date-bs" placeholder="YYYY-MM-DD">
       </div>
       <div class="form-group">
@@ -471,6 +493,31 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <div class="card">
       <div style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:14px">Payment History</div>
       <div id="payment-history"></div>
+    </div>
+  </div>
+
+  <!-- Pending Cheques — inside payments -->
+  <div class="card" style="margin-top:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:'Fraunces',serif;font-size:17px">🏦 Pending Cheques</div>
+      <span id="cheque-badge-inline" style="display:none;background:var(--red);color:#fff;border-radius:12px;padding:2px 10px;font-size:12px;font-weight:600">0 pending</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Party</th>
+            <th class="amount">Amount</th>
+            <th>Cheque No.</th>
+            <th>Bank</th>
+            <th>Cheque Date (BS)</th>
+            <th>Entry Date (BS)</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cheques-tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -914,6 +961,7 @@ const DB={
   settings:()=>DB.get('settings')||{company:'FinPilot',address:'',phone:'',username:'Admin',logo:'',todayBS:''},
   vouchers:()=>DB.get('vouchers')||[],
   stock:()=>DB.get('stock')||[],
+  cheques:()=>DB.get('cheques')||[],
   saveInvoices:v=>DB.set('invoices',v),
   saveParties:v=>DB.set('parties',v),
   savePayments:v=>DB.set('payments',v),
@@ -921,6 +969,7 @@ const DB={
   saveSettings:v=>DB.set('settings',v),
   saveVouchers:v=>DB.set('vouchers',v),
   saveStock:v=>DB.set('stock',v),
+  saveCheques:v=>DB.set('cheques',v),
 };
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
@@ -1011,6 +1060,7 @@ function nav(sec,el){
   }
   if(sec==='parties')renderPartiesTable();
   if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
+  if(sec==='cheques'){renderPendingCheques();}
   if(sec==='due-details')renderDueDetails();
   if(sec==='statement')renderStatement();
   if(sec==='journal')renderJournal();
@@ -1708,6 +1758,7 @@ function initPaymentDate(){
 function onPayMethodChange(){
   const v=document.getElementById('pay-method').value;
   document.getElementById('pay-others-row').style.display=v==='Others'?'block':'none';
+  document.getElementById('pay-cheque-row').style.display=v==='Cheque'?'block':'none';
 }
 function loadPartyBalance(){
   const pid=document.getElementById('pay-party-id').value;
@@ -1733,8 +1784,31 @@ function savePayment(){
   const note=document.getElementById('pay-note').value.trim();
   const dateBS=document.getElementById('pay-date-bs').value||getNepaliDate();
   const editId=document.getElementById('pay-editing-id').value;
-  const jDesc=`Payment Received (${method})${receipt?' #'+receipt:''}${note?': '+note:''}`;
 
+  // ── CHEQUE: save to pendingCheques, NOT payments ────────────
+  if(methodRaw==='Cheque'){
+    const chequeNo=document.getElementById('pay-cheque-no').value.trim();
+    const chequeBank=document.getElementById('pay-cheque-bank').value.trim();
+    const chequeDate=document.getElementById('pay-cheque-date').value.trim();
+    if(!chequeNo){alert('Please enter the cheque number.');return;}
+    if(!chequeDate){alert('Please enter the cheque date.');return;}
+    const cheques=DB.cheques();
+    if(editId){
+      const idx=cheques.findIndex(c=>c.id===editId);
+      if(idx>-1){cheques[idx]={...cheques[idx],partyId:pid,partyName:pname,amount,discount,chequeNo,chequeBank,chequeDate,entryDate:dateBS,receipt,note}; DB.saveCheques(cheques);}
+    }else{
+      cheques.push({id:uid(),partyId:pid,partyName:pname,amount,discount,chequeNo,chequeBank,chequeDate,entryDate:dateBS,receipt,note,status:'pending',createdAt:Date.now()});
+      DB.saveCheques(cheques);
+    }
+    cancelEditPayment();
+    renderPaymentHistory();
+    renderPendingCheques();
+    updateChequeBadge();
+    alert('Cheque saved as Pending. Go to Pending Cheques to mark as exchanged.');
+    return;
+  }
+
+  const jDesc=`Payment Received (${method})${receipt?' Ref:'+receipt:''}${note?': '+note:''}`;
   const payments=DB.payments();
   if(editId){
     const idx=payments.findIndex(p=>p.id===editId);
@@ -1763,6 +1837,10 @@ function cancelEditPayment(){
   document.getElementById('pay-method').value='Cash';
   document.getElementById('pay-others-text').value='';
   document.getElementById('pay-others-row').style.display='none';
+  document.getElementById('pay-cheque-row').style.display='none';
+  document.getElementById('pay-cheque-no').value='';
+  document.getElementById('pay-cheque-bank').value='';
+  document.getElementById('pay-cheque-date').value='';
   document.getElementById('pay-receipt').value='';
   document.getElementById('pay-note').value='';
   document.getElementById('pay-form-title').textContent='Receive Payment';
@@ -1774,12 +1852,15 @@ function editPayment(id){
   document.getElementById('pay-party-id').value=p.partyId||'';
   document.getElementById('pay-amount').value=p.amount||'';
   document.getElementById('pay-discount').value=p.discount||'0';
-  // Method: if stored value is Cash/QR pick directly, else Others + fill text
-  const knownMethods=['Cash','QR','Others'];
+  const knownMethods=['Cash','QR','Cheque','Others'];
   const isKnown=knownMethods.includes(p.method);
   document.getElementById('pay-method').value=isKnown?p.method:'Others';
   document.getElementById('pay-others-text').value=isKnown?'':p.method||'';
-  document.getElementById('pay-others-row').style.display=isKnown&&p.method!=='Others'?'none':'block';
+  document.getElementById('pay-others-row').style.display=(!isKnown||p.method==='Others')?'block':'none';
+  document.getElementById('pay-cheque-row').style.display=p.method==='Cheque'?'block':'none';
+  document.getElementById('pay-cheque-no').value=p.chequeNo||'';
+  document.getElementById('pay-cheque-bank').value=p.chequeBank||'';
+  document.getElementById('pay-cheque-date').value=p.chequeDate||'';
   document.getElementById('pay-receipt').value=p.receipt||'';
   document.getElementById('pay-note').value=p.note||'';
   document.getElementById('pay-date-bs').value=p.dateBS||'';
@@ -1812,6 +1893,77 @@ function renderPaymentHistory(){
       </div></td>
     </tr>`).join('')+
     '</tbody></table></div>';
+}
+
+// ══════════════════════════════════════════════════════
+// PENDING CHEQUES
+// ══════════════════════════════════════════════════════
+function updateChequeBadge(){
+  const pending=DB.cheques().filter(c=>c.status==='pending').length;
+  const badge=document.getElementById('cheque-badge');
+  if(!badge)return;
+  badge.textContent=pending;
+  badge.style.display=pending>0?'inline':'none';
+}
+
+function renderPendingCheques(){
+  const tbody=document.getElementById('cheques-tbody');
+  if(!tbody)return;
+  const cheques=DB.cheques().filter(c=>c.status==='pending').slice().reverse();
+  tbody.innerHTML='';
+  if(!cheques.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="icon">🏦</div><p>No pending cheques. All clear!</p></div></td></tr>`;
+    return;
+  }
+  cheques.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><strong>${c.partyName}</strong></td>
+      <td class="amount text-accent">Rs. ${fmtI(c.amount)}</td>
+      <td class="mono">${c.chequeNo}</td>
+      <td>${c.chequeBank||'—'}</td>
+      <td class="mono">${c.chequeDate}</td>
+      <td class="mono">${c.entryDate}</td>
+      <td style="font-size:12px;color:var(--text2)">${c.note||'—'}</td>
+      <td>
+        <div class="flex-gap">
+          <button class="btn btn-green btn-sm" onclick="exchangeCheque('${c.id}')">✅ Exchanged</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCheque('${c.id}')">🗑</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function exchangeCheque(id){
+  const cheques=DB.cheques();
+  const c=cheques.find(x=>x.id===id);
+  if(!c)return;
+  const exchangeDate=prompt('Enter Cheque Exchange Date (BS):',DB.settings().todayBS||getTodayBS());
+  if(!exchangeDate)return;
+  // Mark cheque as exchanged
+  c.status='exchanged';
+  c.exchangeDate=exchangeDate;
+  DB.saveCheques(cheques);
+  // Now record the actual payment
+  const jDesc=`Cheque Exchanged | Cheque No: ${c.chequeNo}${c.chequeBank?' ('+c.chequeBank+')':''} | Entry: ${c.entryDate} | Exchanged: ${exchangeDate}`;
+  const pay={id:uid(),partyId:c.partyId,partyName:c.partyName,amount:c.amount,discount:c.discount||0,method:'Cheque',receipt:c.chequeNo,note:c.note||'',dateBS:exchangeDate,chequeNo:c.chequeNo,chequeBank:c.chequeBank,chequeDate:c.chequeDate,entryDate:c.entryDate,exchangeDate,createdAt:Date.now()};
+  const payments=DB.payments();payments.push(pay);DB.savePayments(payments);
+  addJournalEntry(exchangeDate,c.partyName,jDesc,'Cheque','Accounts Receivable',c.amount,pay.id,false,'payment');
+  if(c.discount>0)addJournalEntry(exchangeDate,c.partyName,'Discount Allowed (Cheque)','Discount','Accounts Receivable',c.discount,pay.id,false,'payment');
+  updateInvoiceStatusFIFO(c.partyId);
+  renderPendingCheques();
+  updateChequeBadge();
+  renderPaymentHistory();
+  alert(`Cheque exchanged! Payment of Rs. ${fmtI(c.amount)} recorded for ${c.partyName}.`);
+}
+
+function deleteCheque(id){
+  if(!confirm('Delete this pending cheque?'))return;
+  DB.saveCheques(DB.cheques().filter(c=>c.id!==id));
+  renderPendingCheques();
+  updateChequeBadge();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3121,7 +3273,7 @@ function renderMonthlySales(){
 // BACKUP / RESTORE
 // ══════════════════════════════════════════════════════
 function exportBackup(){
-  const data={invoices:DB.invoices(),parties:DB.parties(),payments:DB.payments(),journal:DB.journal(),settings:DB.settings(),vouchers:DB.vouchers(),stock:DB.stock(),exportedAt:new Date().toISOString()};
+  const data={invoices:DB.invoices(),parties:DB.parties(),payments:DB.payments(),journal:DB.journal(),settings:DB.settings(),vouchers:DB.vouchers(),stock:DB.stock(),cheques:DB.cheques(),exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   const s=DB.settings();
@@ -3147,6 +3299,7 @@ function importBackup(inp){
       if(data.settings)DB.saveSettings(data.settings);
       if(data.vouchers)DB.saveVouchers(data.vouchers);
       if(data.stock)DB.saveStock(data.stock);
+      if(data.cheques)DB.saveCheques(data.cheques);
       alert('Restored!');location.reload();
     }catch(e){alert('Invalid backup file.');}
   };
@@ -3165,6 +3318,7 @@ function importBackup(inp){
   renderDashboard();
   resetInvoiceForm();
   initPaymentDate();
+  updateChequeBadge();
 
   // F1–F12 navigation shortcuts
   const fKeyMap={
