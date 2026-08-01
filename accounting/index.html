@@ -110,7 +110,11 @@ table .amount{text-align:right;font-family:'DM Mono',monospace}
     break-after:page
   }
   .print-page:last-child{page-break-after:auto;break-after:auto}
+  /* Screen print mode */
+  #print-area.screen-print{font-size:9pt}
 }
+@page receipt{size:80mm auto;margin:4mm}
+.receipt-page{width:72mm;font-family:'Courier New',monospace;font-size:9pt;color:#000;background:#fff}
 #print-area{display:none}
 .print-invoice{width:100%;background:#fff;color:#000;font-size:10pt;font-family:'DM Sans',sans-serif}
 .print-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #1a1714;padding-bottom:10px;margin-bottom:14px}
@@ -145,8 +149,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 .setting-section{margin-bottom:22px}
 .setting-section h3{font-family:'Fraunces',serif;font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 #logo-preview{max-width:100px;max-height:60px;border-radius:4px;border:1px solid var(--border)}
-.paid-checkbox-row{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);margin-top:10px}
-.paid-checkbox-row label{margin-bottom:0;text-transform:none;font-size:13.5px;font-weight:600;color:var(--green);letter-spacing:0;cursor:pointer}
+.btn-print{background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+.btn-print:hover{background:var(--border)}
+@media print{.no-print{display:none!important}}.paid-checkbox-row label{margin-bottom:0;text-transform:none;font-size:13.5px;font-weight:600;color:var(--green);letter-spacing:0;cursor:pointer}
 </style>
 </head>
 <body data-theme="light">
@@ -187,7 +192,19 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-dashboard" class="section active">
   <div class="page-header">
     <div><h2>Dashboard</h2><p id="dash-date" class="mono"></p></div>
-    <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Dark Mode</button>
+    <div class="flex-gap">
+      <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <button class="btn btn-print no-print" onclick="printScreen('dashboard')">🖨 Print</button>
+    </div>
+  </div>
+  <!-- Today's Sales -->
+  <div class="card" style="margin-bottom:16px;background:var(--accent-bg);border-color:var(--accent2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--accent)">☀️ Today's Sales</div>
+      <div id="dash-today-date" class="mono" style="font-size:12px;color:var(--text2)"></div>
+    </div>
+    <div id="dash-today-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px"></div>
+    <div id="dash-today-invoices" style="margin-top:12px"></div>
   </div>
   <div class="stats-grid" id="dash-stats"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
@@ -327,6 +344,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
       <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-weight:500;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:0">
         <input type="checkbox" id="inv-show-all" onchange="renderInvoicesTable()" style="width:auto;margin:0"> All
       </label>
+      <button class="btn btn-print no-print" onclick="printScreen('invoices')">🖨 Print</button>
       <button class="btn btn-primary" onclick="nav('invoice',null)">+ New Invoice</button>
     </div>
   </div>
@@ -342,7 +360,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-purchase" class="section">
   <div class="page-header">
     <div><h2>Purchases</h2><p>Record purchase bills</p></div>
-    <button class="btn btn-primary" onclick="openVoucherModal('purchase')">+ New Purchase</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('purchase')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="openVoucherModal('purchase')">+ New Purchase</button>
+    </div>
   </div>
   <div class="table-wrap">
     <table>
@@ -356,7 +377,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-sales-return" class="section">
   <div class="page-header">
     <div><h2>Sales Return</h2><p>Record returned sales</p></div>
-    <button class="btn btn-primary" onclick="openVoucherModal('sales-return')">+ New Sales Return</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('sales-return')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="openVoucherModal('sales-return')">+ New Sales Return</button>
+    </div>
   </div>
   <div class="table-wrap">
     <table>
@@ -370,7 +394,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-purchase-return" class="section">
   <div class="page-header">
     <div><h2>Purchase Return</h2><p>Record returned purchases</p></div>
-    <button class="btn btn-primary" onclick="openVoucherModal('purchase-return')">+ New Purchase Return</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('purchase-return')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="openVoucherModal('purchase-return')">+ New Purchase Return</button>
+    </div>
   </div>
   <div class="table-wrap">
     <table>
@@ -384,7 +411,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-stock" class="section">
   <div class="page-header">
     <div><h2>Stock Items</h2><p>Auto-populated from invoices & purchases</p></div>
-    <button class="btn btn-primary" onclick="openStockModal()">+ Add Item</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('stock')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="openStockModal()">+ Add Item</button>
+    </div>
   </div>
   <div class="search-wrap" style="margin-bottom:14px"><input type="text" id="stock-search" placeholder="Search items..." oninput="renderStockTable()" style="max-width:280px"></div>
   <div class="table-wrap">
@@ -399,7 +429,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-parties" class="section">
   <div class="page-header">
     <div><h2>Parties</h2><p>Customers & vendors</p></div>
-    <button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('parties')">🖨 Print</button>
+      <button class="btn btn-primary" onclick="openPartyModal()">+ Add Party</button>
+    </div>
   </div>
   <div class="search-wrap" style="margin-bottom:14px"><input type="text" id="party-search" placeholder="Search parties..." oninput="renderPartiesTable()" style="max-width:280px"></div>
   <div class="table-wrap">
@@ -412,7 +445,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 
 <!-- PAYMENTS -->
 <div id="sec-payments" class="section">
-  <div class="page-header"><div><h2>Payments</h2><p>Record amount received</p></div></div>
+  <div class="page-header"><div><h2>Payments</h2><p>Record amount received</p></div><button class="btn btn-print no-print" onclick="printScreen('payments')">🖨 Print</button></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
     <div class="card">
       <h3 style="font-family:'Fraunces',serif;font-size:17px;margin-bottom:14px" id="pay-form-title">Receive Payment</h3>
@@ -526,7 +559,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="sec-due-details" class="section">
   <div class="page-header">
     <div><h2>Due Details</h2><p>Outstanding invoices by party</p></div>
-    <button class="btn btn-green" onclick="exportDueExcel()">📊 Export Excel</button>
+    <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('due-details')">🖨 Print</button>
+      <button class="btn btn-green" onclick="exportDueExcel()">📊 Export Excel</button>
+    </div>
   </div>
   <div class="card" style="margin-bottom:16px;padding:14px 18px">
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
@@ -581,6 +617,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
   <div class="page-header">
     <div><h2>Journal</h2><p>Double-entry bookkeeping</p></div>
     <div class="flex-gap">
+      <button class="btn btn-print no-print" onclick="printScreen('journal')">🖨 Print</button>
       <button class="btn btn-green" onclick="exportJournalXLSX()">📊 Export Excel</button>
     </div>
   </div>
@@ -777,6 +814,30 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
         <tbody id="stock-stmt-tbody"></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- THERMAL RECEIPT MODAL -->
+<div class="modal-overlay" id="receipt-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="close-btn" onclick="closeModal('receipt-modal')">✕</button>
+    <h3>🧾 Thermal Receipt</h3>
+    <div class="form-group">
+      <label>Template</label>
+      <select id="receipt-template" onchange="previewReceipt()" style="margin-top:4px">
+        <option value="classic">Classic — Center header, dashed dividers</option>
+        <option value="modern">Modern — Bold company, clean lines</option>
+        <option value="minimal">Minimal — Max items, no frills</option>
+        <option value="boxed">Boxed — Bordered receipt style</option>
+        <option value="nepali">Nepali Style — BS date prominent</option>
+      </select>
+    </div>
+    <div style="background:#fff;color:#000;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;font-family:'Courier New',monospace;font-size:11px;max-height:320px;overflow-y:auto;white-space:pre" id="receipt-preview-text"></div>
+    <div class="flex-gap">
+      <button class="btn btn-primary" onclick="printThermalReceipt()">🖨 Print Receipt</button>
+      <button class="btn btn-secondary" onclick="closeModal('receipt-modal')">Cancel</button>
+    </div>
+    <input type="hidden" id="receipt-inv-id">
   </div>
 </div>
 
@@ -1059,8 +1120,7 @@ function nav(sec,el){
     renderInvoicesTable();
   }
   if(sec==='parties')renderPartiesTable();
-  if(sec==='payments'){renderPaymentHistory();initPaymentDate();}
-  if(sec==='cheques'){renderPendingCheques();}
+  if(sec==='payments'){renderPaymentHistory();initPaymentDate();renderPendingCheques();}
   if(sec==='due-details')renderDueDetails();
   if(sec==='statement')renderStatement();
   if(sec==='journal')renderJournal();
@@ -1380,6 +1440,8 @@ function saveInvoice(){
   if(!partyName){alert('Please select or enter a party name.');return;}
   let pid=document.getElementById('inv-party-id').value;
   if(!pid){pid=addPartyQuick(partyName);document.getElementById('inv-party-id').value=pid;}
+  // Credit limit: warn if party has dues older than 20 days
+  if(!editingInvId&&!checkCreditLimit(pid,partyName))return;
   const validItems=invItems.filter(i=>(i.name||'').trim()&&parseFloat(i.qty)>0&&parseFloat(i.rate)>0);
   if(!validItems.length){alert('Please add at least one valid item.');return;}
   let sub=0,disc=0;
@@ -1498,6 +1560,7 @@ function renderInvoicesTable(){
           <button class="btn btn-secondary btn-sm" onclick="editInvoice('${inv.id}')">✏️</button>
           <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">🖨</button>
           <button class="btn btn-blue btn-sm" onclick="saveInvoiceAsImageById('${inv.id}')">🖼</button>
+          <button class="btn btn-secondary btn-sm" onclick="openReceiptModal('${inv.id}')">🧾</button>
           <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${inv.id}')">🗑</button>
         </div>
       </td>
@@ -1803,8 +1866,7 @@ function savePayment(){
     cancelEditPayment();
     renderPaymentHistory();
     renderPendingCheques();
-    updateChequeBadge();
-    alert('Cheque saved as Pending. Go to Pending Cheques to mark as exchanged.');
+    alert('Cheque saved as Pending. Mark as "Cheque Cleared" below when it clears.');
     return;
   }
 
@@ -1900,9 +1962,9 @@ function renderPaymentHistory(){
 // ══════════════════════════════════════════════════════
 function updateChequeBadge(){
   const pending=DB.cheques().filter(c=>c.status==='pending').length;
-  const badge=document.getElementById('cheque-badge');
+  const badge=document.getElementById('cheque-badge-inline');
   if(!badge)return;
-  badge.textContent=pending;
+  badge.textContent=pending+' pending';
   badge.style.display=pending>0?'inline':'none';
 }
 
@@ -1912,7 +1974,8 @@ function renderPendingCheques(){
   const cheques=DB.cheques().filter(c=>c.status==='pending').slice().reverse();
   tbody.innerHTML='';
   if(!cheques.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="icon">🏦</div><p>No pending cheques. All clear!</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div><p>No pending cheques.</p></div></td></tr>`;
+    updateChequeBadge();
     return;
   }
   cheques.forEach(c=>{
@@ -1927,43 +1990,42 @@ function renderPendingCheques(){
       <td style="font-size:12px;color:var(--text2)">${c.note||'—'}</td>
       <td>
         <div class="flex-gap">
-          <button class="btn btn-green btn-sm" onclick="exchangeCheque('${c.id}')">✅ Exchanged</button>
+          <button class="btn btn-green btn-sm" onclick="clearCheque('${c.id}')">✅ Cheque Cleared</button>
           <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCheque('${c.id}')">🗑</button>
         </div>
       </td>
     `;
     tbody.appendChild(tr);
   });
+  updateChequeBadge();
 }
 
-function exchangeCheque(id){
+function clearCheque(id){
   const cheques=DB.cheques();
   const c=cheques.find(x=>x.id===id);
   if(!c)return;
-  const exchangeDate=prompt('Enter Cheque Exchange Date (BS):',DB.settings().todayBS||getTodayBS());
-  if(!exchangeDate)return;
-  // Mark cheque as exchanged
-  c.status='exchanged';
-  c.exchangeDate=exchangeDate;
+  const s=DB.settings();
+  const clearDate=prompt('Enter Cheque Clearing Date (BS):',s.todayBS||getTodayBS());
+  if(!clearDate)return;
+  c.status='cleared';
+  c.exchangeDate=clearDate;
   DB.saveCheques(cheques);
-  // Now record the actual payment
-  const jDesc=`Cheque Exchanged | Cheque No: ${c.chequeNo}${c.chequeBank?' ('+c.chequeBank+')':''} | Entry: ${c.entryDate} | Exchanged: ${exchangeDate}`;
-  const pay={id:uid(),partyId:c.partyId,partyName:c.partyName,amount:c.amount,discount:c.discount||0,method:'Cheque',receipt:c.chequeNo,note:c.note||'',dateBS:exchangeDate,chequeNo:c.chequeNo,chequeBank:c.chequeBank,chequeDate:c.chequeDate,entryDate:c.entryDate,exchangeDate,createdAt:Date.now()};
+  const jDesc=`Cheque Cleared | Cheque No: ${c.chequeNo}${c.chequeBank?' ('+c.chequeBank+')':''} | Entry Date: ${c.entryDate} | Cleared: ${clearDate}`;
+  const pay={id:uid(),partyId:c.partyId,partyName:c.partyName,amount:c.amount,discount:c.discount||0,method:'Cheque',receipt:c.chequeNo,note:c.note||'',dateBS:clearDate,chequeNo:c.chequeNo,chequeBank:c.chequeBank,chequeDate:c.chequeDate,entryDate:c.entryDate,exchangeDate:clearDate,createdAt:Date.now()};
   const payments=DB.payments();payments.push(pay);DB.savePayments(payments);
-  addJournalEntry(exchangeDate,c.partyName,jDesc,'Cheque','Accounts Receivable',c.amount,pay.id,false,'payment');
-  if(c.discount>0)addJournalEntry(exchangeDate,c.partyName,'Discount Allowed (Cheque)','Discount','Accounts Receivable',c.discount,pay.id,false,'payment');
+  addJournalEntry(clearDate,c.partyName,jDesc,'Cheque','Accounts Receivable',c.amount,pay.id,false,'payment');
+  if((c.discount||0)>0)addJournalEntry(clearDate,c.partyName,'Discount Allowed (Cheque)','Discount','Accounts Receivable',c.discount,pay.id,false,'payment');
   updateInvoiceStatusFIFO(c.partyId);
   renderPendingCheques();
-  updateChequeBadge();
   renderPaymentHistory();
-  alert(`Cheque exchanged! Payment of Rs. ${fmtI(c.amount)} recorded for ${c.partyName}.`);
+  loadPartyBalance();
+  alert(`Cheque cleared! Payment of Rs. ${fmtI(c.amount)} recorded for ${c.partyName}.`);
 }
 
 function deleteCheque(id){
   if(!confirm('Delete this pending cheque?'))return;
   DB.saveCheques(DB.cheques().filter(c=>c.id!==id));
   renderPendingCheques();
-  updateChequeBadge();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3147,6 +3209,7 @@ function renderDashboard(){
   renderTopDue();
   populateMonthDropdown();
   renderMonthlySales();
+  renderTodaySales();
 }
 
 function bsDaysDiff(dateBS){
@@ -3272,6 +3335,237 @@ function renderMonthlySales(){
 // ══════════════════════════════════════════════════════
 // BACKUP / RESTORE
 // ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// UNIVERSAL SCREEN PRINT
+// ══════════════════════════════════════════════════════
+function printScreen(secId){
+  const sec=document.getElementById('sec-'+secId);
+  if(!sec)return;
+  const s=DB.settings();
+  const area=document.getElementById('print-area');
+  const title=sec.querySelector('h2')?sec.querySelector('h2').textContent:'Report';
+  // Clone the section, strip no-print elements, render
+  const clone=sec.cloneNode(true);
+  clone.querySelectorAll('.no-print,.btn-print,.btn-danger,.btn-secondary,.btn-primary,.btn-blue,.btn-green,.flex-gap').forEach(el=>el.remove());
+  const html=`<div class="print-page" style="font-family:'DM Sans',Arial,sans-serif;color:#000">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1714;padding-bottom:8px;margin-bottom:14px">
+      <div><div style="font-size:16pt;font-weight:700;font-family:Georgia,serif;color:#c4622d">${s.company||'FinPilot'}</div><div style="font-size:9pt;color:#555">${s.address||''}${s.phone?' · '+s.phone:''}</div></div>
+      <div style="text-align:right"><div style="font-size:14pt;font-weight:600">${title}</div><div style="font-size:9pt;color:#555">${s.todayBS||getTodayBS()} (BS) · Printed by: ${s.username||'Admin'}</div></div>
+    </div>
+    ${clone.innerHTML}
+  </div>`;
+  area.innerHTML=html;area.style.display='block';
+  window.print();area.style.display='none';
+}
+
+// ══════════════════════════════════════════════════════
+// TODAY'S SALES
+// ══════════════════════════════════════════════════════
+function renderTodaySales(){
+  const today=getTodayBS();
+  const todayInvs=DB.invoices().filter(i=>i.dateBS===today);
+  const todayPays=DB.payments().filter(p=>p.dateBS===today);
+  const todaySales=todayInvs.reduce((s,i)=>s+(i.grandTotal||i.net||0),0);
+  const todayReceived=todayPays.reduce((s,p)=>s+(p.amount||0),0);
+  const el=document.getElementById('dash-today-date');
+  if(el)el.textContent=today+' (BS)';
+  const stats=document.getElementById('dash-today-stats');
+  if(stats)stats.innerHTML=`
+    <div class="stat-card" style="background:var(--surface)"><div class="label">Today's Sales</div><div class="value" style="color:var(--accent)">Rs.${fmtI(todaySales)}</div><div class="sub">${todayInvs.length} invoice${todayInvs.length!==1?'s':''}</div></div>
+    <div class="stat-card" style="background:var(--surface)"><div class="label">Today's Received</div><div class="value" style="color:var(--green)">Rs.${fmtI(todayReceived)}</div><div class="sub">${todayPays.length} payment${todayPays.length!==1?'s':''}</div></div>
+    <div class="stat-card" style="background:var(--surface)"><div class="label">Pending Cheques</div><div class="value" style="color:var(--blue)">${DB.cheques().filter(c=>c.status==='pending').length}</div><div class="sub">awaiting clearance</div></div>
+  `;
+  const inv=document.getElementById('dash-today-invoices');
+  if(!inv)return;
+  if(!todayInvs.length){inv.innerHTML='<div style="color:var(--text3);font-size:13px">No invoices today yet.</div>';return;}
+  inv.innerHTML='<div class="table-wrap"><table><thead><tr><th>Inv No</th><th>Party</th><th class="amount">Amount</th><th>Status</th></tr></thead><tbody>'+
+    todayInvs.slice().reverse().map(i=>`<tr><td class="mono">${i.invNo}</td><td>${i.partyName||''}</td><td class="amount">Rs. ${fmtI(i.grandTotal||i.net)}</td><td>${i.paid?'<span class="badge badge-green">Paid</span>':i.partial?'<span class="badge badge-orange">Partial</span>':'<span class="badge badge-red">Due</span>'}</td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+// ══════════════════════════════════════════════════════
+// CREDIT LIMIT — 20 DAYS WARNING
+// ══════════════════════════════════════════════════════
+function checkCreditLimit(partyId,partyName){
+  // Find oldest unpaid invoice for this party
+  const unpaid=DB.invoices().filter(i=>i.partyId===partyId&&!i.paid).sort((a,b)=>(a.dateBS||'').localeCompare(b.dateBS||''));
+  if(!unpaid.length)return true;
+  const oldest=unpaid[0];
+  const days=bsDaysDiff(oldest.dateBS||'');
+  const due=getTotalBilled(partyId)-getTotalPaid(partyId);
+  if(days>=20&&due>0){
+    return confirm(`⚠️ Credit Limit Warning!\n\n${partyName} has an overdue balance of Rs. ${fmtI(due)}\nOldest unpaid invoice: ${oldest.invNo} (${oldest.dateBS}) — ${days} days overdue.\n\nDo you still want to create a new invoice?`);
+  }
+  return true;
+}
+
+// ══════════════════════════════════════════════════════
+// THERMAL RECEIPT (5 TEMPLATES)
+// ══════════════════════════════════════════════════════
+let _receiptInvId=null;
+
+function openReceiptModal(invId){
+  _receiptInvId=invId;
+  document.getElementById('receipt-inv-id').value=invId;
+  document.getElementById('receipt-modal').classList.add('open');
+  previewReceipt();
+}
+
+function buildReceiptText(inv,tpl){
+  const s=DB.settings();
+  const company=s.company||'FinPilot';
+  const addr=s.address||'';
+  const phone=s.phone||'';
+  const user=s.username||'Admin';
+  const W=42; // receipt width chars
+  const line=(c='-')=>c.repeat(W);
+  const center=(t)=>{const p=Math.max(0,Math.floor((W-t.length)/2));return ' '.repeat(p)+t;};
+  const right=(t)=>{const p=Math.max(0,W-t.length);return ' '.repeat(p)+t;};
+  const lr=(l,r)=>{const sp=Math.max(1,W-l.length-r.length);return l+' '.repeat(sp)+r;};
+  const parties=DB.parties();
+  const party=parties.find(p=>p.id===inv.partyId)||{};
+  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
+  const items=inv.items||[];
+
+  if(tpl==='classic'){
+    let r='';
+    r+=center(company)+'\n';
+    if(addr)r+=center(addr)+'\n';
+    if(phone)r+=center(phone)+'\n';
+    r+=line('=')+'\n';
+    r+=center('SALES INVOICE')+'\n';
+    r+=line('=')+'\n';
+    r+=lr('Invoice:',inv.invNo)+'\n';
+    r+=lr('Date:',inv.dateBS+' (BS)')+'\n';
+    r+=lr('Party:',inv.partyName||'')+'\n';
+    if(party.address)r+=lr('Addr:',party.address)+'\n';
+    r+=line('-')+'\n';
+    r+='ITEM                   QTY    AMOUNT\n';
+    r+=line('-')+'\n';
+    items.forEach(i=>{
+      const nm=(i.name||'').substring(0,20).padEnd(20);
+      const qt=String(Math.round(i.qty||0)).padStart(4);
+      const am=('Rs.'+fmtI(i.total)).padStart(10);
+      r+=nm+qt+am+'\n';
+    });
+    r+=line('-')+'\n';
+    if(Math.round(inv.disc||0)>0)r+=lr('Discount:','Rs.'+fmtI(inv.disc))+'\n';
+    r+=lr('** TOTAL **','Rs.'+fmtI(displayTotal))+'\n';
+    r+=line('=')+'\n';
+    r+=center(inv.paid?'** PAID **':'')+'\n';
+    r+=center('Thank you for shopping!')+'\n';
+    r+=center('Printed by: '+user)+'\n';
+    return r;
+  }
+  if(tpl==='modern'){
+    let r='';
+    r+=line('█')+'\n';
+    r+=' '+company.toUpperCase()+'\n';
+    if(addr)r+=' '+addr+'\n';
+    if(phone)r+=' Ph: '+phone+'\n';
+    r+=line('█')+'\n';
+    r+=' INV: '+inv.invNo+'   '+inv.dateBS+'\n';
+    r+=' To:  '+(inv.partyName||'')+'\n';
+    r+=line()+'\n';
+    items.forEach(i=>{
+      r+=' '+(i.name||'').substring(0,24)+'\n';
+      r+=right(Math.round(i.qty||0)+' x Rs.'+fmtI(i.rate)+'  = Rs.'+fmtI(i.total))+'\n';
+    });
+    r+=line()+'\n';
+    r+=right('TOTAL: Rs.'+fmtI(displayTotal))+'\n';
+    r+=line('█')+'\n';
+    r+=' '+user+' | '+(inv.paid?'PAID':'PENDING')+'\n';
+    return r;
+  }
+  if(tpl==='minimal'){
+    let r='';
+    r+=company+'\n';
+    if(phone)r+=phone+'\n';
+    r+=inv.invNo+' | '+inv.dateBS+'\n';
+    r+=(inv.partyName||'')+'\n';
+    r+=line()+'\n';
+    items.forEach(i=>{r+=(i.name||'').substring(0,22)+'  '+Math.round(i.qty||0)+' x '+fmtI(i.rate)+'  '+fmtI(i.total)+'\n';});
+    r+=line()+'\n';
+    r+='Total: Rs.'+fmtI(displayTotal)+(inv.paid?' [PAID]':'')+'\n';
+    return r;
+  }
+  if(tpl==='boxed'){
+    const box=(t)=>'| '+t.padEnd(W-4)+' |';
+    const topBot='+'+line('-').slice(2)+'+';
+    let r='';
+    r+=topBot+'\n';
+    r+=box(center(company))+'\n';
+    if(addr)r+=box(center(addr))+'\n';
+    if(phone)r+=box(center(phone))+'\n';
+    r+=topBot+'\n';
+    r+=box(' Invoice: '+inv.invNo)+'\n';
+    r+=box(' Date   : '+inv.dateBS+' (BS)')+'\n';
+    r+=box(' Party  : '+(inv.partyName||''))+'\n';
+    r+=topBot+'\n';
+    items.forEach(i=>{
+      r+=box(' '+(i.name||'').substring(0,22)+'  Qty:'+Math.round(i.qty||0))+'\n';
+      r+=box(right('  Rs.'+fmtI(i.rate)+' x '+Math.round(i.qty||0)+' = Rs.'+fmtI(i.total)))+'\n';
+    });
+    r+=topBot+'\n';
+    r+=box(right('TOTAL: Rs.'+fmtI(displayTotal)))+'\n';
+    r+=box(center(inv.paid?'*** PAID ***':''))+'\n';
+    r+=topBot+'\n';
+    r+=box(center('Thank you! '+user))+'\n';
+    r+=topBot+'\n';
+    return r;
+  }
+  if(tpl==='nepali'){
+    let r='';
+    r+=center('🙏 '+company+' 🙏')+'\n';
+    if(addr)r+=center(addr)+'\n';
+    if(phone)r+=center('Ph: '+phone)+'\n';
+    r+=line('=')+'\n';
+    r+=center('बिक्री रसिद / Sales Receipt')+'\n';
+    r+=line('=')+'\n';
+    r+=lr('Bill No.:',inv.invNo)+'\n';
+    r+=lr('मिति (BS):',inv.dateBS)+'\n';
+    r+=lr('पार्टी:',inv.partyName||'')+'\n';
+    if(party.address)r+=lr('ठेगाना:',party.address)+'\n';
+    r+=line('-')+'\n';
+    items.forEach(i=>{
+      r+=(i.name||'').substring(0,24)+'\n';
+      r+=right(Math.round(i.qty||0)+' x Rs.'+fmtI(i.rate)+' = Rs.'+fmtI(i.total))+'\n';
+    });
+    r+=line('-')+'\n';
+    if(Math.round(inv.disc||0)>0)r+=lr('छुट / Discount:','Rs.'+fmtI(inv.disc))+'\n';
+    r+=lr('जम्मा / TOTAL:','Rs.'+fmtI(displayTotal))+'\n';
+    r+=line('=')+'\n';
+    r+=center(inv.paid?'** भुक्तानी भयो / PAID **':'')+'\n';
+    r+=center('धन्यवाद! / Thank You!')+'\n';
+    r+=center(user)+'\n';
+    return r;
+  }
+  return '';
+}
+
+function previewReceipt(){
+  if(!_receiptInvId)return;
+  const inv=DB.invoices().find(i=>i.id===_receiptInvId);
+  if(!inv)return;
+  const tpl=document.getElementById('receipt-template').value;
+  document.getElementById('receipt-preview-text').textContent=buildReceiptText(inv,tpl);
+}
+
+function printThermalReceipt(){
+  if(!_receiptInvId)return;
+  const inv=DB.invoices().find(i=>i.id===_receiptInvId);
+  if(!inv)return;
+  const tpl=document.getElementById('receipt-template').value;
+  const text=buildReceiptText(inv,tpl);
+  const s=DB.settings();
+  const area=document.getElementById('print-area');
+  area.innerHTML=`<div style="font-family:'Courier New',Courier,monospace;font-size:10pt;white-space:pre;color:#000;background:#fff;width:72mm;padding:4mm">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
+  area.style.display='block';
+  window.print();
+  area.style.display='none';
+  closeModal('receipt-modal');
+}
+
 function exportBackup(){
   const data={invoices:DB.invoices(),parties:DB.parties(),payments:DB.payments(),journal:DB.journal(),settings:DB.settings(),vouchers:DB.vouchers(),stock:DB.stock(),cheques:DB.cheques(),exportedAt:new Date().toISOString()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
