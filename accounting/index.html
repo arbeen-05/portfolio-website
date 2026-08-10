@@ -6,7 +6,6 @@
 <title>FinPilot — Billing & Journal</title>
 <link rel="icon" href="images/favicon.png" type="image/png">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script type="importmap">{"imports":{"nepali-date-converter":"https://cdn.jsdelivr.net/npm/nepali-date-converter@3/+esm"}}</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
 :root{--bg:#f5f2ee;--bg2:#ede9e3;--surface:#fff;--surface2:#faf8f5;--border:#ddd8d0;--text:#1a1714;--text2:#6b6560;--text3:#9b948d;--accent:#c4622d;--accent2:#e8956a;--accent-bg:#fdf0e8;--green:#2d7a4f;--green-bg:#e8f5ee;--red:#c42d2d;--red-bg:#fde8e8;--blue:#2d4fc4;--blue-bg:#e8edfb;--shadow:0 1px 3px rgba(26,23,20,.08),0 4px 12px rgba(26,23,20,.04);--shadow-lg:0 8px 32px rgba(26,23,20,.12);--radius:10px;--radius-sm:6px;--nav-w:224px}
@@ -330,9 +329,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
     <div class="flex-gap">
       <button class="btn btn-primary" onclick="saveInvoice()">💾 Save Invoice</button>
       <button class="btn btn-secondary" onclick="printCurrentInvoice()">🖨 Print</button>
-      <button class="btn btn-blue" onclick="saveInvoiceAsImage()">🖼 Image</button>
-      <button class="btn btn-secondary" onclick="exportInvoiceJSON()">📤 Export JSON</button>
-      <label class="btn btn-secondary" style="cursor:pointer">📥 Import JSON<input type="file" accept=".json" style="display:none" onchange="importInvoiceJSON(this)"></label>
+      <button class="btn btn-blue" onclick="saveInvoiceAsImage()">🖼 Save as Image</button>
     </div>
     <input type="hidden" id="inv-editing-id">
   </div>
@@ -754,10 +751,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
           <option value="bold">Bold — Large company name, thick borders</option>
           <option value="ledger">Ledger — Two-column header, ruled table</option>
           <option value="elegant">Elegant — Serif fonts, thin lines, refined</option>
-          <option value="colorband">Color Band — Full-color top bar</option>
-          <option value="watermark">Watermark — Company name ghost behind items</option>
-          <option value="twocol">Two-Column — Items in two columns, saves space</option>
-          <option value="formal">Formal / Government — Black & white, strict layout</option>
+          <option value="colorband">Color Band — Full-color top bar with company</option>
         </select>
         <div style="font-size:11.5px;color:var(--text2);margin-top:5px">Applied to all printed invoices and Save as Image.</div>
       </div>
@@ -936,35 +930,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 <!-- PRINT AREA -->
 <div id="print-area"></div>
 
-<script type="module">
-import NepaliDate from 'nepali-date-converter';
-
+<script>
 // ══════════════════════════════════════════════════════
-// BS DATE — using nepali-date-converter library
+// BS DATE DATA & CONVERTER
 // ══════════════════════════════════════════════════════
 const BS_MONTHS=['Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
-
-function getNepaliDate(date=new Date()){
-  try{
-    const bs=new NepaliDate(date);
-    return `${bs.getYear()}-${String(bs.getMonth()+1).padStart(2,'0')}-${String(bs.getDate()).padStart(2,'0')}`;
-  }catch(e){
-    // Fallback: simple offset approximation
-    const adYear=date.getFullYear(),adMonth=date.getMonth()+1,adDay=date.getDate();
-    const bsYear=adYear+56+(adMonth>4||(adMonth===4&&adDay>=14)?1:0);
-    return `${bsYear}-${String(adMonth).padStart(2,'0')}-${String(adDay).padStart(2,'0')}`;
-  }
-}
-function getNepaliDateFull(date=new Date()){
-  try{
-    const bs=new NepaliDate(date);
-    return `${BS_MONTHS[bs.getMonth()]} ${bs.getDate()}, ${bs.getYear()} BS`;
-  }catch(e){ return date.toLocaleDateString(); }
-}
-function getTodayBS(){ return getNepaliDate(new Date()); }
-function getTodayBSFull(){ return getNepaliDateFull(new Date()); }
-
-// Keep bs_data for the BS date picker dropdowns (year/month/day selectors)
 const bs_data={
   2000:[30,32,31,32,31,30,30,30,29,30,29,31],2001:[31,31,32,31,31,31,30,29,30,29,30,30],
   2002:[31,31,32,32,31,30,30,29,30,29,30,30],2003:[31,32,31,32,31,30,30,30,29,30,29,31],
@@ -1010,6 +980,34 @@ const bs_data={
   2082:[31,31,32,31,31,31,30,29,30,29,30,30],2083:[31,31,32,32,31,30,30,29,30,29,30,30]
 };
 
+function adToBS(y,m,d){
+  const adDate=new Date(y,m-1,d);
+  const adEpoch=new Date(1944,0,1);
+  let diff=Math.floor((adDate-adEpoch)/86400000);
+  let bsYear=2000,bsMonth=9,bsDay=17;
+  const years=Object.keys(bs_data).map(Number).sort((a,b)=>a-b);
+  for(const yr of years){
+    const diy=bs_data[yr].reduce((a,b)=>a+b,0);
+    if(diff>=diy){diff-=diy;bsYear++;}
+    else{
+      for(let mo=0;mo<12;mo++){
+        if(diff>=bs_data[yr][mo]){diff-=bs_data[yr][mo];bsMonth=mo+2;}
+        else{bsDay+=diff;if(bsDay>bs_data[yr][mo]){bsDay-=bs_data[yr][mo];bsMonth++;}break;}
+      }
+      break;
+    }
+  }
+  return{year:bsYear,month:bsMonth,day:bsDay};
+}
+
+function getNepaliDate(date=new Date()){
+  try{const b=adToBS(date.getFullYear(),date.getMonth()+1,date.getDate());return`${b.year}-${String(b.month).padStart(2,'0')}-${String(b.day).padStart(2,'0')}`;}
+  catch(e){return`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
+}
+function getNepaliDateFull(date=new Date()){
+  try{const b=adToBS(date.getFullYear(),date.getMonth()+1,date.getDate());return`${BS_MONTHS[b.month-1]} ${b.day}, ${b.year} BS`;}
+  catch(e){return date.toLocaleDateString();}
+}
 
 // ══════════════════════════════════════════════════════
 // DATA STORE
@@ -1043,12 +1041,23 @@ function fmtI(n){return Math.round(parseFloat(n||0)).toString().replace(/\B(?=(\
 // FETCH TODAY'S DATE
 // ══════════════════════════════════════════════════════
 async function fetchTodayBSDate(fieldId){
-  // NepaliDate library converts device clock directly — no API needed
-  const bs=getNepaliDate(new Date());
-  const el=document.getElementById(fieldId);
-  if(el){el.value=bs;syncBSPicker(bs);}
   const status=document.getElementById('inv-date-fetch-status');
-  if(status){status.textContent='✅';setTimeout(()=>{status.textContent='';},2000);}
+  if(status) status.textContent='⏳';
+  try{
+    const res=await fetch('https://worldtimeapi.org/api/timezone/Asia/Kathmandu');
+    if(!res.ok) throw new Error();
+    const data=await res.json();
+    const d=new Date(data.datetime);
+    const bs=getNepaliDate(d);
+    const el=document.getElementById(fieldId);
+    if(el){el.value=bs;syncBSPicker(bs);}
+    if(status){status.textContent='✅';setTimeout(()=>{status.textContent='';},2500);}
+  }catch(e){
+    const bs=getNepaliDate(new Date());
+    const el=document.getElementById(fieldId);
+    if(el){el.value=bs;syncBSPicker(bs);}
+    if(status){status.textContent='📴 device';setTimeout(()=>{status.textContent='';},3000);}
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1145,24 +1154,13 @@ function acParty(inp,hiddenId,listId){
     const li=document.createElement('li');
     li.textContent=p.name+(p.phone?` · ${p.phone}`:'');
     li.dataset.idx=idx;
-    li.onmousedown=(ev)=>{
-      ev.preventDefault();
-      inp.value=p.name;
-      document.getElementById(hiddenId).value=p.id;
-      list.classList.remove('open');
-      if(hiddenId==='pay-party-id')loadPartyBalance();
-    };
+    li.onclick=()=>{inp.value=p.name;document.getElementById(hiddenId).value=p.id;list.classList.remove('open');if(hiddenId==='pay-party-id')loadPartyBalance();};
     list.appendChild(li);
   });
   if(val&&!parties.find(p=>p.name.toLowerCase()===val)){
     const li=document.createElement('li');li.className='add-new';
     li.textContent=`+ Add "${inp.value}" as new party`;
-    li.onmousedown=(ev)=>{
-      ev.preventDefault();
-      const id=addPartyQuick(inp.value);
-      document.getElementById(hiddenId).value=id;
-      list.classList.remove('open');
-    };
+    li.onclick=()=>{const id=addPartyQuick(inp.value);inp.value=inp.value;document.getElementById(hiddenId).value=id;list.classList.remove('open');};
     list.appendChild(li);
   }
   list.classList.add('open');
@@ -1236,24 +1234,18 @@ function acItem(inp,rowIdx){
   filtered.forEach((s)=>{
     const li=document.createElement('li');
     li.textContent=s.name+(s.rate?` — Rs. ${fmtI(s.rate)}`:'')+( s.unit?` (${s.unit})`:'');
-    li.onmousedown=(ev)=>{
-      ev.preventDefault(); // stop input blur closing list before selection
+    li.onclick=()=>{
       inp.value=s.name;
       invItems[rowIdx].name=s.name;
       if(s.rate){
         invItems[rowIdx].rate=s.rate;
         const rateInp=inp.closest('tr').querySelector('.inv-rate-inp');
-        if(rateInp){
-          rateInp.value=s.rate;
-          rateInp.dispatchEvent(new Event('input',{bubbles:true}));
-        }
+        if(rateInp)rateInp.value=s.rate;
         calcInvRow(rowIdx);
       }
       list.classList.remove('open');
-      setTimeout(()=>{
-        const qtyInp=inp.closest('tr').querySelector('.inv-qty-inp');
-        if(qtyInp)qtyInp.focus();
-      },10);
+      const qtyInp=inp.closest('tr').querySelector('.inv-qty-inp');
+      if(qtyInp)qtyInp.focus();
     };
     list.appendChild(li);
   });
@@ -1261,15 +1253,12 @@ function acItem(inp,rowIdx){
   if(val&&!allItems.find(s=>s.name.toLowerCase()===val)){
     const li=document.createElement('li');li.className='add-new';
     li.textContent=`+ Create "${inp.value}"`;
-    li.onmousedown=(ev)=>{
-      ev.preventDefault();
+    li.onclick=()=>{
       invItems[rowIdx].name=inp.value.trim();
       autoCreateStockItem(inp.value.trim(),rowIdx);
       list.classList.remove('open');
-      setTimeout(()=>{
-        const q=inp.closest('tr').querySelector('.inv-qty-inp');
-        if(q)q.focus();
-      },10);
+      const q=inp.closest('tr').querySelector('.inv-qty-inp');
+      if(q)q.focus();
     };
     list.appendChild(li);
   }
@@ -1294,6 +1283,12 @@ function acItemKeydown(e,list,inp,rowIdx){
   }else if(e.key==='Tab'){list.classList.remove('open');}
 }
 
+function getTodayBS(){const s=DB.settings();return s.todayBS||'2083-03-01';}
+function getTodayBSFull(){
+  const d=getTodayBS();const parts=d.split('-');
+  if(parts.length===3){const y=parseInt(parts[0]),m=parseInt(parts[1]),day=parseInt(parts[2]);if(y&&m&&day)return`${BS_MONTHS[m-1]} ${day}, ${y} BS`;}
+  return d;
+}
 function autoCreateStockItem(name,rowIdx){
   const stock=DB.stock();
   if(!stock.find(s=>s.name.toLowerCase()===name.toLowerCase())){
@@ -1315,12 +1310,11 @@ let invItems=[],editingInvId=null;
 function initInvoiceForm(){if(editingInvId)return;resetInvoiceForm();}
 
 function getDefaultInvoiceDate(){
-  // Always use real device date as primary; last invoice date as secondary preference
-  const realToday=getTodayBS();
+  const s=DB.settings();
+  if(s.todayBS)return s.todayBS;
   const last=DB.invoices().slice(-1)[0];
-  // If last invoice was today or in the future (same day re-use), use it; else use today
-  if(last&&last.dateBS===realToday)return realToday;
-  return realToday;
+  if(last&&last.dateBS)return last.dateBS;
+  return getNepaliDate();
 }
 
 function resetInvoiceForm(){
@@ -1567,7 +1561,6 @@ function renderInvoicesTable(){
           <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">🖨</button>
           <button class="btn btn-blue btn-sm" onclick="saveInvoiceAsImageById('${inv.id}')">🖼</button>
           <button class="btn btn-secondary btn-sm" onclick="openReceiptModal('${inv.id}')">🧾</button>
-          <button class="btn btn-secondary btn-sm" onclick="exportInvoiceJSONById('${inv.id}')" title="Export JSON">📤</button>
           <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${inv.id}')">🗑</button>
         </div>
       </td>
@@ -2515,7 +2508,7 @@ function handleLogo(inp){
 // INVOICE TEMPLATE SELECTOR
 // ══════════════════════════════════════════════════════
 function previewTemplate(tpl){
-  ['classic','modern','minimal','bold','ledger','elegant','colorband','watermark','twocol','formal'].forEach(t=>{
+  ['classic','modern','minimal','bold','ledger','elegant','colorband'].forEach(t=>{
     const el=document.getElementById(`tpl-preview-${t}`);
     if(el)el.style.borderColor=t===tpl?'var(--accent)':'var(--border)';
   });
@@ -2530,11 +2523,10 @@ function buildInvoiceHTMLByTemplate(inv){
   if(tpl==='ledger')    return buildInvoiceLedger(inv,s);
   if(tpl==='elegant')   return buildInvoiceElegant(inv,s);
   if(tpl==='colorband') return buildInvoiceColorBand(inv,s);
-  if(tpl==='watermark') return buildInvoiceWatermark(inv,s);
-  if(tpl==='twocol')    return buildInvoiceTwoCol(inv,s);
-  if(tpl==='formal')    return buildInvoiceFormal(inv,s);
   return buildInvoiceHTML(inv); // classic
 }
+
+// ── shared helper ─────────────────────────────────────
 function _getPartyAddress(inv){
   const party=DB.parties().find(p=>p.id===inv.partyId);
   return party?(party.address||''):'';
@@ -2730,219 +2722,6 @@ function buildInvoiceLedger(inv,s){
     </div>`;
   });
   return html;
-}
-
-// ──────────────────────────────────────────────────────
-// TEMPLATE: Watermark
-// ──────────────────────────────────────────────────────
-function buildInvoiceWatermark(inv,s){
-  const hasDisc=Math.round(inv.disc||0)>0;
-  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
-  const parties=DB.parties();const party=parties.find(p=>p.id===inv.partyId)||{};
-  const partyAddr=party.address||'';const partyPhone=party.phone||'';
-  const discTh=hasDisc?'<th class="r">Disc.</th>':'';
-  const ITEMS_PER_PAGE=20;const pages=[];const items=inv.items||[];
-  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE)pages.push(items.slice(i,i+ITEMS_PER_PAGE));
-  if(!pages.length)pages.push([]);
-  let html='';
-  pages.forEach((pgItems,pi)=>{
-    const isLast=pi===pages.length-1;const startIdx=pi*ITEMS_PER_PAGE;
-    const rows=pgItems.map((item,ri)=>{
-      const dt=hasDisc?`<td class="r">${item.disc||0}%</td>`:'';
-      return`<tr><td style="font-size:8pt;color:#aaa;padding:4px 6px">${startIdx+ri+1}</td><td style="padding:4px 6px">${item.name||''}</td><td style="padding:4px 6px;text-align:right">${Math.round(item.qty||0)}</td><td style="padding:4px 6px;text-align:right">Rs.${fmtI(item.rate)}</td>${dt}<td style="padding:4px 6px;text-align:right;font-weight:600">Rs.${fmtI(item.total)}</td></tr>`;
-    }).join('');
-    const totals=isLast?`<div style="display:flex;justify-content:flex-end;margin-top:10px"><table style="width:190px;font-size:9pt"><tr><td>Subtotal</td><td style="text-align:right">Rs.${fmtI(inv.sub)}</td></tr>${hasDisc?`<tr><td>Discount</td><td style="text-align:right">Rs.${fmtI(inv.disc)}</td></tr>`:''}<tr style="border-top:2px solid #000;font-size:11pt;font-weight:700"><td>TOTAL</td><td style="text-align:right">Rs.${fmtI(displayTotal)}</td></tr></table></div><div style="margin-top:18px;border-top:1px solid #ddd;padding-top:8px;font-size:8pt;color:#888;display:flex;justify-content:space-between"><span>Printed by: ${s.username||'Admin'}</span><span>Thank you!</span></div>`:
-    '<p style="text-align:right;font-size:8pt;color:#aaa;margin-top:6px">Continued →</p>';
-    html+=`<div class="print-page"><div style="font-family:'DM Sans',Arial,sans-serif;color:#000;background:#fff;position:relative;overflow:hidden">
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:72pt;font-weight:900;color:rgba(0,0,0,0.04);white-space:nowrap;pointer-events:none;user-select:none;z-index:0">${s.company||'Company'}</div>
-      <div style="position:relative;z-index:1">
-        <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:12px">
-          <div>${s.logo?`<img src="${s.logo}" style="max-height:45px;display:block;margin-bottom:4px">`:''}
-            <div style="font-size:16pt;font-weight:700">${s.company||''}</div>
-            <div style="font-size:8.5pt;color:#555">${s.address||''}${s.phone?' · '+s.phone:''}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:12pt;font-weight:700;font-family:monospace">${inv.invNo}</div>
-            <div style="font-size:8.5pt;color:#555">Date: ${inv.dateBS} BS</div>
-            ${inv.paid?'<div style="border:2px solid green;color:green;padding:1px 6px;font-weight:700;font-size:10pt;letter-spacing:1px;display:inline-block;margin-top:3px">PAID</div>':''}
-          </div>
-        </div>
-        <div style="font-size:9pt;margin-bottom:10px"><strong>Bill To: </strong>${inv.partyName||''}${partyAddr?`<br><span style="color:#666">${partyAddr}</span>`:''}${partyPhone?` <span style="color:#666">· ${partyPhone}</span>`:''}</div>
-        ${pages.length>1?`<div style="text-align:right;font-size:8pt;color:#aaa">Page ${pi+1}/${pages.length}</div>`:''}
-        <table style="width:100%;border-collapse:collapse;border:1px solid #ddd"><thead><tr style="background:#f5f5f5"><th style="padding:5px 6px;text-align:left;font-size:8.5pt;border:1px solid #ddd;width:24px">SN</th><th style="padding:5px 6px;text-align:left;font-size:8.5pt;border:1px solid #ddd">Item</th><th style="padding:5px 6px;text-align:right;font-size:8.5pt;border:1px solid #ddd">Qty</th><th style="padding:5px 6px;text-align:right;font-size:8.5pt;border:1px solid #ddd">Rate</th>${discTh}<th style="padding:5px 6px;text-align:right;font-size:8.5pt;border:1px solid #ddd">Amount</th></tr></thead><tbody>${rows}</tbody></table>
-        ${totals}
-      </div>
-    </div></div>`;
-  });
-  return html;
-}
-
-// ──────────────────────────────────────────────────────
-// TEMPLATE: Two-Column items
-// ──────────────────────────────────────────────────────
-function buildInvoiceTwoCol(inv,s){
-  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
-  const parties=DB.parties();const party=parties.find(p=>p.id===inv.partyId)||{};
-  const partyAddr=party.address||'';const partyPhone=party.phone||'';
-  const items=inv.items||[];
-  const ITEMS_PER_PAGE=36;const pages=[];
-  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE)pages.push(items.slice(i,i+ITEMS_PER_PAGE));
-  if(!pages.length)pages.push([]);
-  let html='';
-  pages.forEach((pgItems,pi)=>{
-    const isLast=pi===pages.length-1;const startIdx=pi*ITEMS_PER_PAGE;
-    const half=Math.ceil(pgItems.length/2);
-    const col1=pgItems.slice(0,half);const col2=pgItems.slice(half);
-    const renderCol=(colItems,offset)=>colItems.map((item,ri)=>`
-      <tr><td style="padding:3px 5px;font-size:8pt;color:#aaa">${offset+ri+1}</td><td style="padding:3px 5px;font-size:8.5pt">${(item.name||'').substring(0,20)}</td><td style="padding:3px 5px;text-align:right;font-size:8.5pt">${Math.round(item.qty||0)}</td><td style="padding:3px 5px;text-align:right;font-size:8.5pt">Rs.${fmtI(item.total)}</td></tr>
-    `).join('');
-    const totals=isLast?`<div style="border-top:2px solid #000;margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:8pt;color:#777">Printed by: ${s.username||'Admin'}</div><div style="font-size:12pt;font-weight:700">TOTAL: Rs.${fmtI(displayTotal)}</div></div>`:
-    '<p style="text-align:right;font-size:8pt;color:#aaa;margin-top:6px">Continued →</p>';
-    html+=`<div class="print-page"><div style="font-family:'DM Sans',Arial,sans-serif;color:#000;background:#fff">
-      <div style="display:flex;justify-content:space-between;border-bottom:3px solid #1a1714;padding-bottom:8px;margin-bottom:10px">
-        <div>${s.logo?`<img src="${s.logo}" style="max-height:40px;display:block;margin-bottom:3px">`:''}
-          <div style="font-size:15pt;font-weight:700">${s.company||''}</div>
-          <div style="font-size:8pt;color:#555">${s.address||''}${s.phone?' · '+s.phone:''}</div>
-        </div>
-        <div style="text-align:right"><div style="font-size:12pt;font-weight:700;font-family:monospace">${inv.invNo}</div><div style="font-size:8.5pt">Date: ${inv.dateBS} BS</div><div style="font-size:8.5pt">To: ${inv.partyName||''}${partyAddr?' · '+partyAddr:''}</div></div>
-      </div>
-      ${pages.length>1?`<div style="font-size:8pt;color:#aaa;text-align:right;margin-bottom:3px">Page ${pi+1}/${pages.length}</div>`:''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a1714;color:#fff"><th style="padding:4px 5px;font-size:8pt;width:20px">SN</th><th style="padding:4px 5px;font-size:8pt;text-align:left">Item</th><th style="padding:4px 5px;font-size:8pt;text-align:right">Qty</th><th style="padding:4px 5px;font-size:8pt;text-align:right">Amt</th></tr></thead><tbody>${renderCol(col1,startIdx)}</tbody></table>
-        <table style="width:100%;border-collapse:collapse"><thead><tr style="background:#1a1714;color:#fff"><th style="padding:4px 5px;font-size:8pt;width:20px">SN</th><th style="padding:4px 5px;font-size:8pt;text-align:left">Item</th><th style="padding:4px 5px;font-size:8pt;text-align:right">Qty</th><th style="padding:4px 5px;font-size:8pt;text-align:right">Amt</th></tr></thead><tbody>${renderCol(col2,startIdx+half)}</tbody></table>
-      </div>
-      ${totals}
-    </div></div>`;
-  });
-  return html;
-}
-
-// ──────────────────────────────────────────────────────
-// TEMPLATE: Formal / Government
-// ──────────────────────────────────────────────────────
-function buildInvoiceFormal(inv,s){
-  const hasDisc=Math.round(inv.disc||0)>0;
-  const displayTotal=inv.grandTotal!==undefined?inv.grandTotal:Math.round(inv.net||0);
-  const parties=DB.parties();const party=parties.find(p=>p.id===inv.partyId)||{};
-  const partyAddr=party.address||'';const partyPhone=party.phone||'';
-  const items=inv.items||[];
-  const ITEMS_PER_PAGE=20;const pages=[];
-  for(let i=0;i<items.length;i+=ITEMS_PER_PAGE)pages.push(items.slice(i,i+ITEMS_PER_PAGE));
-  if(!pages.length)pages.push([]);
-  let html='';
-  pages.forEach((pgItems,pi)=>{
-    const isLast=pi===pages.length-1;const startIdx=pi*ITEMS_PER_PAGE;
-    const rows=pgItems.map((item,ri)=>{
-      const dt=hasDisc?`<td style="border:1px solid #000;padding:4px 7px;text-align:right">${item.disc||0}%</td>`:'';
-      return`<tr><td style="border:1px solid #000;padding:4px 7px;text-align:center">${startIdx+ri+1}</td><td style="border:1px solid #000;padding:4px 7px">${item.name||''}</td><td style="border:1px solid #000;padding:4px 7px;text-align:right">${Math.round(item.qty||0)}</td><td style="border:1px solid #000;padding:4px 7px;text-align:right">Rs.${fmtI(item.rate)}</td>${dt}<td style="border:1px solid #000;padding:4px 7px;text-align:right">Rs.${fmtI(item.total)}</td></tr>`;
-    }).join('');
-    const totals=isLast?`<table style="width:200px;margin-left:auto;margin-top:0;border-collapse:collapse"><tr><td style="border:1px solid #000;padding:4px 7px">Subtotal</td><td style="border:1px solid #000;padding:4px 7px;text-align:right">Rs.${fmtI(inv.sub)}</td></tr>${hasDisc?`<tr><td style="border:1px solid #000;padding:4px 7px">Discount</td><td style="border:1px solid #000;padding:4px 7px;text-align:right">Rs.${fmtI(inv.disc)}</td></tr>`:''}<tr style="font-weight:700"><td style="border:2px solid #000;padding:5px 7px">GRAND TOTAL</td><td style="border:2px solid #000;padding:5px 7px;text-align:right">Rs.${fmtI(displayTotal)}</td></tr></table>
-    <div style="margin-top:30px;display:flex;justify-content:space-between;font-size:9pt"><div style="text-align:center;border-top:1px solid #000;padding-top:4px;min-width:130px">Received By</div><div style="text-align:center;border-top:1px solid #000;padding-top:4px;min-width:130px">Authorized Signatory</div></div>
-    <div style="margin-top:14px;border-top:1px solid #ddd;padding-top:6px;font-size:8pt;color:#777;display:flex;justify-content:space-between"><span>Printed by: ${s.username||'Admin'}</span><span>Date: ${inv.dateBS} (BS)</span></div>`:
-    '<p style="text-align:right;font-size:8pt;color:#aaa;border-top:1px solid #ddd;padding-top:4px">Continued on next page →</p>';
-    html+=`<div class="print-page"><div style="font-family:'Times New Roman',Georgia,serif;color:#000;background:#fff;font-size:10pt">
-      <div style="text-align:center;margin-bottom:14px;border-bottom:3px double #000;padding-bottom:10px">
-        ${s.logo?`<img src="${s.logo}" style="max-height:50px;display:block;margin:0 auto 6px">`:''}
-        <div style="font-size:18pt;font-weight:700;letter-spacing:2px">${(s.company||'').toUpperCase()}</div>
-        <div style="font-size:9pt;margin-top:2px">${s.address||''}${s.phone?' | '+s.phone:''}</div>
-      </div>
-      <div style="text-align:center;font-size:14pt;font-weight:700;margin-bottom:12px;border:2px solid #000;padding:4px">SALES INVOICE</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:9.5pt">
-        <div><strong>Bill To:</strong><br>${inv.partyName||''}${partyAddr?`<br>${partyAddr}`:''}${partyPhone?`<br>Ph: ${partyPhone}`:''}</div>
-        <div style="text-align:right"><strong>Invoice No:</strong> ${inv.invNo}<br><strong>Date:</strong> ${inv.dateBS} (BS)${inv.paid?'<br><strong style="color:green">STATUS: PAID</strong>':''}</div>
-      </div>
-      ${pages.length>1?`<div style="font-size:8pt;text-align:right;margin-bottom:3px">Page ${pi+1} of ${pages.length}</div>`:''}
-      <table style="width:100%;border-collapse:collapse;font-size:9.5pt"><thead><tr style="background:#000;color:#fff"><th style="border:1px solid #000;padding:5px 7px;text-align:center;width:30px">S.N.</th><th style="border:1px solid #000;padding:5px 7px;text-align:left">Particulars</th><th style="border:1px solid #000;padding:5px 7px;text-align:right">Quantity</th><th style="border:1px solid #000;padding:5px 7px;text-align:right">Rate</th>${hasDisc?'<th style="border:1px solid #000;padding:5px 7px;text-align:right">Disc.</th>':''}<th style="border:1px solid #000;padding:5px 7px;text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
-      ${totals}
-    </div></div>`;
-  });
-  return html;
-}
-
-// ══════════════════════════════════════════════════════
-// INVOICE JSON EXPORT / IMPORT
-// ══════════════════════════════════════════════════════
-function gatherCurrentInvoiceData(){
-  return {
-    _type:'finpilot-invoice',
-    _version:1,
-    invNo:document.getElementById('inv-no').value,
-    dateBS:document.getElementById('inv-date-bs').value,
-    partyName:document.getElementById('inv-party-input').value.trim(),
-    partyId:document.getElementById('inv-party-id').value,
-    note:document.getElementById('inv-note').value,
-    grandTotalOverride:document.getElementById('inv-grand-total').value,
-    paid:document.getElementById('inv-paid-check').checked,
-    payMethod:document.getElementById('inv-paid-method').value,
-    items:invItems.map(i=>({...i})),
-    exportedAt:new Date().toISOString()
-  };
-}
-
-function exportInvoiceJSON(){
-  const data=gatherCurrentInvoiceData();
-  const partySlug=(data.partyName||'Unknown').replace(/[^a-zA-Z0-9]/g,'-').substring(0,30);
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`Invoice-${partySlug}-${data.invNo||'draft'}.json`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-}
-
-function exportInvoiceJSONById(id){
-  const inv=DB.invoices().find(i=>i.id===id);if(!inv)return;
-  const partySlug=(inv.partyName||'Unknown').replace(/[^a-zA-Z0-9]/g,'-').substring(0,30);
-  const data={_type:'finpilot-invoice',_version:1,...inv,exportedAt:new Date().toISOString()};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`Invoice-${partySlug}-${inv.invNo}.json`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-}
-
-function importInvoiceJSON(input){
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const data=JSON.parse(e.target.result);
-      if(data._type!=='finpilot-invoice'){alert('Not a valid FinPilot invoice file.');return;}
-      // Navigate to New Invoice and populate — do NOT save
-      editingInvId=null;
-      nav('invoice',null);
-      setTimeout(()=>{
-        document.getElementById('inv-form-title').textContent='Imported Invoice (unsaved)';
-        document.getElementById('inv-no').value=data.invNo||'';
-        document.getElementById('inv-date-bs').value=data.dateBS||getTodayBS();
-        syncBSPicker(data.dateBS||getTodayBS());
-        document.getElementById('inv-party-input').value=data.partyName||'';
-        // Try to find existing party or leave blank for user to confirm
-        const existingParty=DB.parties().find(p=>p.name.toLowerCase()===(data.partyName||'').toLowerCase());
-        document.getElementById('inv-party-id').value=existingParty?existingParty.id:(data.partyId||'');
-        document.getElementById('inv-note').value=data.note||'';
-        document.getElementById('inv-grand-total').value=data.grandTotalOverride||'';
-        document.getElementById('inv-paid-check').checked=!!data.paid;
-        onPaidCheckChange();
-        if(data.payMethod)document.getElementById('inv-paid-method').value=data.payMethod;
-        invItems=(data.items||[{}]).map(i=>({...i}));
-        if(!invItems.length)invItems=[{}];
-        renderInvItems();
-        invItems.forEach((_,i)=>calcInvRow(i));
-        // Show a notice
-        const notice=document.createElement('div');
-        notice.className='inline-info';
-        notice.style.cssText='background:var(--green-bg);border-color:var(--green);color:var(--green);margin-bottom:12px';
-        notice.textContent=`✅ Invoice imported from "${file.name}". Review and click Save Invoice when ready.`;
-        const card=document.querySelector('#sec-invoice .card');
-        if(card)card.insertBefore(notice,card.firstChild);
-        setTimeout(()=>notice.remove(),8000);
-      },80);
-    }catch(err){alert('Failed to read invoice file. Make sure it is a valid FinPilot invoice JSON.');}
-  };
-  reader.readAsText(file);
-  input.value='';
 }
 
 // Override printInvoice and printCurrentInvoice to use template
@@ -3851,34 +3630,6 @@ function importBackup(inp){
     nav(sec,link||null);
   });
 })();
-
-// ── Expose functions to global scope (required for module scripts) ──
-Object.assign(window,{
-  toggleNav,toggleTheme,nav,
-  acParty,acKeydown,acItem,invItemTabEnter,
-  addInvItem,removeInvItem,calcInvRow,addVmItem,removeVmItem,calcVmRow,
-  saveInvoice,resetInvoiceForm,editInvoice,deleteInvoice,
-  printInvoice,printCurrentInvoice,saveInvoiceAsImage,saveInvoiceAsImageById,
-  exportInvoiceJSON,exportInvoiceJSONById,importInvoiceJSON,
-  openPartyModal,saveParty,deleteParty,
-  openStockModal,saveStockItem,deleteStockItem,openStockStatement,
-  savePayment,cancelEditPayment,editPayment,deletePayment,loadPartyBalance,
-  onPayMethodChange,onPaidCheckChange,
-  clearCheque,deleteCheque,
-  openVoucherModal,saveVoucher,deleteVoucher,
-  renderInvoicesTable,renderPartiesTable,renderPaymentHistory,renderPendingCheques,
-  renderStockTable,renderJournal,renderStatement,renderDueDetails,renderMonthlySales,
-  renderTopDue,renderDashboard,
-  clearJournalFilters,clearStatementFilters,clearDueFilters,
-  exportJournalXLSX,exportStatementXLSX,exportDueExcel,
-  exportBackup,importBackup,
-  saveSettings,loadSettings,handleLogo,
-  fetchTodayBSDate,syncBSPicker,applyBSPicker,
-  previewTemplate,previewReceipt,
-  openReceiptModal,printThermalReceipt,printScreen,printStatement,
-  closeModal,
-  nav,
-});
 </script>
 </body>
 </html>
